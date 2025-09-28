@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stitch Design</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Space+Grotesk:wght@400;500;700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d7ff2",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 1,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col justify-between overflow-x-hidden">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 p-4 pb-2 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="text-neutral-800 dark:text-white">
+<svg class="lucide lucide-arrow-left" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+</button>
+<h1 class="flex-1 text-center text-lg font-bold text-neutral-800 dark:text-white">Activity Details</h1>
+<div class="w-8"></div>
+</header>
+<main class="p-4">
+<section class="mb-6 rounded-xl bg-white p-4 dark:bg-background-dark/50">
+<h2 class="mb-4 text-xl font-bold text-neutral-800 dark:text-white">Workout Data</h2>
+<div class="flex items-center gap-4">
+<div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined !text-3xl">directions_run</span>
+</div>
+<div class="flex flex-col">
+<p class="text-base font-bold text-neutral-800 dark:text-white">Morning Run</p>
+<p class="text-sm text-neutral-500 dark:text-neutral-400">July 24, 2024 · 8:00 AM</p>
+</div>
+</div>
+<div class="mt-4 space-y-2 pt-4">
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Duration</p>
+<p class="font-medium text-neutral-800 dark:text-white">1h 15m</p>
+</div>
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Distance</p>
+<p class="font-medium text-neutral-800 dark:text-white">10.5 km</p>
+</div>
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Avg. Heart Rate</p>
+<p class="font-medium text-neutral-800 dark:text-white">155 bpm</p>
+</div>
+</div>
+</section>
+<div class="border-b border-neutral-200/80 dark:border-neutral-700/80">
+<div class="flex gap-4 px-2">
+<button class="border-b-2 border-transparent px-2 py-3 text-sm font-bold text-neutral-500 dark:text-neutral-400">Workout</button>
+<button class="border-b-2 border-primary px-2 py-3 text-sm font-bold text-primary">Supplements</button>
+</div>
+</div>
+<section class="py-6">
+<div class="mb-4 flex items-center justify-between">
+<h2 class="text-xl font-bold text-neutral-800 dark:text-white">Supplement Log</h2>
+<button class="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm font-bold text-primary dark:bg-primary/20">
+<svg class="lucide lucide-plus" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+<span>Add Consumption</span>
+</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-4 rounded-xl bg-white p-3 dark:bg-background-dark/50">
+<img alt="Energy Gel" class="size-16 shrink-0 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBX0erPaNFCjAhSi1qB3wytgNR6HFUQYj4SZujfdlvNcL8ChT5ZRjkPcmwWg0E-uknpsD2s4kkux5BK5mZSQe9x3yi32r1YZTH07NPJlp_PrFuS6eoXJx6Lxndsc7XF1bLETDjri6URfOUsmahmUD_ln6kfohQ34vOk005J2WD71gpo-W04KediHN6vuDEOTc6vGskyWnXrc7AtEahWd2SChvjMB4Me6Hmv85euVHsrvkSKQirn0LJ4lASX_MKjv4ADTla9gWIlbeY"/>
+<div class="flex-grow">
+<p class="font-bold text-neutral-800 dark:text-white">Energy Gel</p>
+<p class="text-xs text-neutral-500 dark:text-neutral-400">2 portions · 100 kcal</p>
+<p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Carbs: 25g, Protein: 5g</p>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-xl bg-white p-3 dark:bg-background-dark/50">
+<img alt="Protein Shake" class="size-16 shrink-0 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgWfunVuLx4waw3SRFUsjmFOt_Tjz5TE-kz7mudtvG6IDprqUv7TWCHALOQoZbOdQ0xncYkq3Ne_T4AMe6ysQP3lKgylQn5zlEWcYd4uObQuW3gY7oueK8slguqqNTUGtmYvB5Rm2JDGGmdI4leAxUH7H0hHGr77oNcYjXlalyb2usLjMeFqrBkqNwpu3JwJYbzmLsjCiP5lXNhQ8-5h1zB6IxaVysqAPmMZKmIGRPH1uxiajXGk1fLviJkGZ33LLl1OHWJsBmqs0"/>
+<div class="flex-grow">
+<p class="font-bold text-neutral-800 dark:text-white">Protein Shake</p>
+<p class="text-xs text-neutral-500 dark:text-neutral-400">1 scoop · 120 kcal</p>
+<p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Carbs: 10g, Protein: 20g</p>
+</div>
+</div>
+</div>
+</section>
+<section class="rounded-xl bg-white p-4 dark:bg-background-dark/50">
+<h2 class="mb-4 text-xl font-bold text-neutral-800 dark:text-white">Nutritional Summary</h2>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Total Calories</p>
+<p class="font-medium text-neutral-800 dark:text-white">220 kcal</p>
+</div>
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Total Carbs</p>
+<p class="font-medium text-neutral-800 dark:text-white">35g</p>
+</div>
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Total Protein</p>
+<p class="font-medium text-neutral-800 dark:text-white">25g</p>
+</div>
+<div class="flex justify-between text-sm">
+<p class="text-neutral-500 dark:text-neutral-400">Total Fat</p>
+<p class="font-medium text-neutral-800 dark:text-white">2g</p>
+</div>
+</div>
+</section>
+</main>
+</div>
+<nav class="sticky bottom-0 border-t border-neutral-200/80 bg-background-light/80 pb-3 pt-2 backdrop-blur-sm dark:border-neutral-700/80 dark:bg-background-dark/80">
+<div class="flex justify-around">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-xs font-bold">Activities</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-neutral-500 dark:text-neutral-400" href="#">
+<span class="material-symbols-outlined !fill-0">science</span>
+<span class="text-xs font-medium">Supplements</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-neutral-500 dark:text-neutral-400" href="#">
+<span class="material-symbols-outlined !fill-0">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+
+</body></html>

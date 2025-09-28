@@ -1,0 +1,122 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: endura-backend
+  
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/endura}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+  
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  security:
+    jwt:
+      secret: ${JWT_SECRET:your-super-secret-jwt-key-here-make-it-long-and-complex}
+      expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+  
+  web:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+
+# External API Integrations
+integrations:
+  strava:
+    client-id: ${STRAVA_CLIENT_ID:}
+    client-secret: ${STRAVA_CLIENT_SECRET:}
+    redirect-uri: ${STRAVA_REDIRECT_URI:http://localhost:3000/auth/strava/callback}
+    base-url: https://www.strava.com/api/v3
+    auth-url: https://www.strava.com/oauth
+  
+  garmin:
+    consumer-key: ${GARMIN_CONSUMER_KEY:}
+    consumer-secret: ${GARMIN_CONSUMER_SECRET:}
+    base-url: https://apis.garmin.com
+  
+  trainingpeaks:
+    client-id: ${TRAININGPEAKS_CLIENT_ID:}
+    client-secret: ${TRAININGPEAKS_CLIENT_SECRET:}
+    base-url: https://api.trainingpeaks.com
+  
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    base-url: https://api.openai.com/v1
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Logging
+logging:
+  level:
+    com.endura: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/endura.log
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.endura: DEBUG
+    org.springframework.web: DEBUG
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    com.endura: INFO
+    org.springframework.security: WARN
