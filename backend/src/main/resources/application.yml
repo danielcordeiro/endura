@@ -7,30 +7,59 @@ spring:
   application:
     name: endura-backend
   
+  main:
+    allow-circular-references: true
+  
+  # Configuração H2 Database (desenvolvimento)
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/endura}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:endura;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
   
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
-    show-sql: false
+    show-sql: true
+    defer-datasource-initialization: true
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
   
   flyway:
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    validate-on-migrate: true
+    enabled: false
   
   security:
     jwt:
       secret: ${JWT_SECRET:your-super-secret-jwt-key-here-make-it-long-and-complex}
       expiration: ${JWT_EXPIRATION:86400000} # 24 hours
+
+# App Configuration
+app:
+  jwtSecret: ${JWT_SECRET:your-super-secret-jwt-key-here-make-it-long-and-complex}
+  jwtExpirationInMs: ${JWT_EXPIRATION:86400000} # 24 hours
+  jwtRefreshExpirationInMs: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  strava:
+    clientId: ${STRAVA_CLIENT_ID:}
+    clientSecret: ${STRAVA_CLIENT_SECRET:}
+    tokenUrl: https://www.strava.com/oauth/token
+    authUrl: https://www.strava.com/oauth
+    apiUrl: https://www.strava.com/api/v3
   
   web:
     cors:

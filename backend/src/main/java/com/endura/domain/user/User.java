@@ -154,4 +154,17 @@ public class User implements UserDetails {
     
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    
+    // Helper methods for compatibility
+    public String getName() { 
+        return firstName + " " + lastName; 
+    }
+    
+    public void setActive(Boolean active) { 
+        this.isActive = active; 
+    }
+    
+    public Boolean getActive() { 
+        return isActive; 
+    }
 }
