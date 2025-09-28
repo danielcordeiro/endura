@@ -111,6 +111,13 @@ cd endura
 ```
 
 ### 2. Setup do Backend
+#### Inicialização rápida do backend (Java 17 + Spring Boot + H2)
+```powershell
+./start-backend.ps1
+```
+Esse script configura o Java 17, finaliza processos na porta 8080 e inicia o backend automaticamente.
+
+#### Instalação manual
 ```bash
 cd backend
 mvn clean install
@@ -174,6 +181,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ```
 endura/
+├── .gitignore
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -261,9 +269,19 @@ GET /api/reports/insights
 # Frontend
 cd frontend && npm run dev
 
-# Backend
+# Backend (recomendado)
+./start-backend.ps1
+
+# Backend (manual)
 cd backend && mvn spring-boot:run
 ```
+
+### H2 Console (Desenvolvimento)
+O banco H2 em memória pode ser acessado via browser:
+- URL: http://localhost:8080/h2-console
+- JDBC URL: jdbc:h2:mem:endura
+- User: sa
+- Password: (deixe em branco)
 
 ### Produção
 ```bash
