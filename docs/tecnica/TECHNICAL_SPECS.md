@@ -148,6 +148,30 @@ public class Workout {
     private Double distance;
     private String activityType;
     private String externalId; // ID from Strava/Garmin
+    
+    // ✅ NOVOS CAMPOS IMPLEMENTADOS
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(name = "sync_source")
+    private String syncSource = "STRAVA";
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
 
 @Entity
@@ -686,5 +710,99 @@ jobs:
         run: |
           # Deploy commands here
 ```
+
+## 🆕 Componentes Implementados - v1.0.0
+
+### Backend Services ✅
+
+#### SyncController
+```java
+@RestController
+@RequestMapping("/api/sync")
+public class SyncController {
+    @PostMapping("/strava/activities")
+    public ResponseEntity<?> syncStravaActivities(@RequestHeader("Authorization") String token)
+    
+    @GetMapping("/strava/status/{userId}")
+    public ResponseEntity<?> getSyncStatus(@PathVariable Long userId, @RequestHeader("Authorization") String token)
+}
+```
+
+#### StravaScheduledSyncService
+```java
+@Service
+public class StravaScheduledSyncService {
+    @Scheduled(fixedRate = 7200000) // 2 horas
+    public void syncAllUserActivities()
+    
+    @Scheduled(cron = "0 0 6 * * *") // Diário às 6h
+    public void dailyTokenRefresh()
+}
+```
+
+#### Sistema de Logging
+```java
+@Entity
+@Table(name = "strava_request_logs")
+public class StravaRequestLog {
+    private String correlationId; // UUID único
+    private StravaRequestOutcome outcome; // SUCCESS/FAILURE
+    private String authorizationCode; // Mascarado
+    private String errorDetails;
+}
+```
+
+### Frontend Components ✅
+
+#### AuthStore (Zustand)
+```typescript
+interface AuthState {
+  syncStatus: SyncStatus | null;
+  syncStravaActivities: () => Promise<number>;
+  refreshSyncStatus: () => Promise<void>;
+  loginWithStrava: (code: string) => Promise<void>;
+}
+```
+
+#### UI Components
+- `SyncStatus.tsx` - Status e botão de sincronização Strava
+- `BottomNav.tsx` - Navegação principal com ícones
+- `LogSupplementModal.tsx` - Modal para registro de suplementação
+- `StravaCallbackPage.tsx` - Página de callback OAuth
+
+#### Services
+- `api.ts` - Cliente HTTP com interceptors JWT
+- `sync.ts` - Serviços de sincronização Strava
+
+### Configurações ✅
+
+#### Tailwind CSS - Sistema de Cores
+```javascript
+colors: {
+  primary: "#0d7ff2",
+  success: "#22c55e",
+  warning: "#f97316",
+  alert: "#ef4444",
+  "card-light": "#ffffff",
+  "card-dark": "#1f2937",
+  "text-light": "#101922",
+  "text-dark": "#f5f7f8",
+}
+```
+
+#### Logging Configuration
+```xml
+<!-- logback-spring.xml -->
+<appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  <file>logs/endura.log</file>
+  <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+    <fileNamePattern>logs/archive/endura-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+    <maxFileSize>10MB</maxFileSize>
+    <maxHistory>30</maxHistory>
+  </rollingPolicy>
+</appender>
+```
+
+---
 
 Esta especificação técnica fornece todos os detalhes necessários para implementar o projeto Endura com as tecnologias especificadas. Ela cobre desde a arquitetura até configurações específicas, padrões de código e estratégias de deploy.

@@ -23,4 +23,8 @@ public interface IntegrationRepository extends JpaRepository<Integration, Long> 
     List<Integration> findExpiredTokens();
     
     Optional<Integration> findByUserIdAndPlatform(Long userId, Integration.Platform platform);
+    
+    // Método adicional para compatibilidade com String
+    @Query("SELECT i FROM Integration i WHERE i.platform = :platform AND i.isActive = :isActive")
+    List<Integration> findByPlatformStringAndIsActive(String platform, Boolean isActive);
 }

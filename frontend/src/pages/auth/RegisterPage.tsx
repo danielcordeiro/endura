@@ -62,7 +62,12 @@ export const RegisterPage = () => {
     }
 
     try {
-      await register(formData.firstName, formData.lastName, formData.email, formData.password);
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      });
     } catch (error) {
       setErrors({ submit: error instanceof Error ? error.message : 'Erro no cadastro' });
     }

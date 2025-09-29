@@ -4,6 +4,7 @@ import { Layout } from '@components/Layout'
 import { HomePage } from '@pages/HomePage'
 import { LoginPage } from '@pages/auth/LoginPage'
 import { RegisterPage } from '@pages/auth/RegisterPage'
+import { StravaCallbackPage } from '@pages/auth/StravaCallbackPage'
 import { DashboardPage } from '@pages/dashboard/DashboardPage'
 import { WorkoutsPage } from '@pages/workouts/WorkoutsPage'
 import { SupplementsPage } from '@pages/supplements/SupplementsPage'
@@ -17,7 +18,8 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+        <Route path="/auth/strava/callback" element={<StravaCallbackPage />} />
+
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -26,7 +28,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      
+
       <Toaster
         position="top-right"
         toastOptions={{

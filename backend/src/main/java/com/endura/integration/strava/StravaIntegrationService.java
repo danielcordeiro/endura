@@ -1,267 +1,265 @@
 package com.endura.integration.strava;
 
+import com.endura.domain.integration.Integration;
+import com.endura.domain.integration.IntegrationRepository;
+import com.endura.domain.workout.Workout;
+import com.endura.domain.workout.WorkoutRepository;
+import com.endura.domain.user.User;
+import com.endura.domain.user.UserRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import com.endura.domain.integration.IntegrationRepository;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
 
-import java.time.Duration;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class StravaIntegrationService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(StravaIntegrationService.class);
+
+    @Autowired
+    private IntegrationRepository integrationRepository;
+
+    @Autowired
+    private WorkoutRepository workoutRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Value("${strava.client.id}")
+    private String clientId;
+
+    @Value("${strava.client.secret}")
+    private String clientSecret;
+
+    @Value("${strava.redirect.uri}")
+    private String redirectUri;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
-    private final WebClient webClient;
-    private final String clientId;
-    private final String clientSecret;
-    private final String baseUrl;
-    private final String authUrl;
-    private final IntegrationRepository integrationRepository;
-    
-    public StravaIntegrationService(
-            @Value("${integrations.strava.client-id}") String clientId,
-            @Value("${integrations.strava.client-secret}") String clientSecret,
-            @Value("${integrations.strava.base-url}") String baseUrl,
-            @Value("${integrations.strava.auth-url}") String authUrl,
-            WebClient.Builder webClientBuilder,
-            IntegrationRepository integrationRepository) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.baseUrl = baseUrl;
-        this.authUrl = authUrl;
-        this.integrationRepository = integrationRepository;
-        this.webClient = webClientBuilder
-                .baseUrl(baseUrl)
-                .build();
-    }
-    
-    /**
-     * Exchange authorization code for access token
-     */
-    public Mono<StravaTokenResponse> exchangeCodeForToken(String code) {
-        logger.info("Exchanging authorization code for access token");
+    public StravaTokenResponse exchangeCodeForToken(String code) {
+        String url = "https://www.strava.com/oauth/token";
         
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("code", code);
-        body.add("grant_type", "authorization_code");
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("client_id", clientId);
+        requestBody.put("client_secret", clientSecret);
+        requestBody.put("code", code);
+        requestBody.put("grant_type", "authorization_code");
         
-        return webClient.post()
-                .uri(authUrl + "/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(body))
-                .retrieve()
-                .bodyToMono(StravaTokenResponse.class)
-                .timeout(Duration.ofSeconds(10))
-                .doOnSuccess(response -> logger.info("Successfully exchanged code for token"))
-                .doOnError(error -> logger.error("Failed to exchange code for token", error));
-    }
-    
-    /**
-     * Refresh access token using refresh token
-     */
-    public Mono<StravaTokenResponse> refreshToken(String refreshToken) {
-        logger.info("Refreshing access token");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("refresh_token", refreshToken);
-        body.add("grant_type", "refresh_token");
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
         
-        return webClient.post()
-                .uri(authUrl + "/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(body))
-                .retrieve()
-                .bodyToMono(StravaTokenResponse.class)
-                .timeout(Duration.ofSeconds(10))
-                .doOnSuccess(response -> logger.info("Successfully refreshed token"))
-                .doOnError(error -> logger.error("Failed to refresh token", error));
-    }
-    
-    /**
-     * Fetch activities from Strava
-     */
-    public Flux<StravaActivity> fetchActivities(String accessToken, LocalDateTime after, int perPage) {
-        logger.info("Fetching activities from Strava after: {}", after);
-        
-        String afterTimestamp = after != null ? 
-                String.valueOf(after.toEpochSecond(java.time.ZoneOffset.UTC)) : null;
-        
-        return webClient.get()
-                .uri(uriBuilder -> {
-                    var builder = uriBuilder.path("/athlete/activities")
-                            .queryParam("per_page", Math.min(perPage, 200)); // Strava max is 200
-                    if (afterTimestamp != null) {
-                        builder.queryParam("after", afterTimestamp);
-                    }
-                    return builder.build();
-                })
-                .headers(h -> h.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToFlux(StravaActivity.class)
-                .timeout(Duration.ofSeconds(30))
-                .doOnNext(activity -> logger.debug("Fetched activity: {} - {}", activity.getId(), activity.getName()))
-                .doOnError(error -> logger.error("Failed to fetch activities", error));
-    }
-    
-    /**
-     * Fetch activities from the last 30 days
-     */
-    public Flux<StravaActivity> fetchRecentActivities(String accessToken) {
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        return fetchActivities(accessToken, thirtyDaysAgo, 50);
-    }
-    
-    /**
-     * Get detailed activity information
-     */
-    public Mono<StravaActivity> getActivity(String accessToken, Long activityId) {
-        logger.info("Fetching activity details for ID: {}", activityId);
-        
-        return webClient.get()
-                .uri("/activities/{id}", activityId)
-                .headers(h -> h.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToMono(StravaActivity.class)
-                .timeout(Duration.ofSeconds(10))
-                .doOnSuccess(activity -> logger.info("Successfully fetched activity: {}", activity.getName()))
-                .doOnError(error -> logger.error("Failed to fetch activity details for ID: {}", activityId, error));
-    }
-    
-    /**
-     * Get current athlete information
-     */
-    public Mono<StravaAthlete> getCurrentAthlete(String accessToken) {
-        logger.info("Fetching current athlete information");
-        
-        return webClient.get()
-                .uri("/athlete")
-                .headers(h -> h.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToMono(StravaAthlete.class)
-                .timeout(Duration.ofSeconds(10))
-                .doOnSuccess(athlete -> logger.info("Successfully fetched athlete: {} {}", 
-                        athlete.getFirstname(), athlete.getLastname()))
-                .doOnError(error -> logger.error("Failed to fetch athlete information", error));
-    }
-    
-    /**
-     * Build authorization URL for OAuth flow
-     */
-    public String buildAuthorizationUrl(String redirectUri, String state) {
-        return String.format("%s/authorize?client_id=%s&response_type=code&redirect_uri=%s&approval_prompt=force&scope=read,activity:read_all&state=%s",
-                authUrl, clientId, redirectUri, state);
-    }
-    
-    /**
-     * Check if token is expired or about to expire
-     */
-    public boolean isTokenExpired(Long expiresAt) {
-        if (expiresAt == null) return true;
-        
-        long currentTime = System.currentTimeMillis() / 1000;
-        long bufferTime = 300; // 5 minutes buffer
-        
-        return currentTime >= (expiresAt - bufferTime);
-    }
-    
-    /**
-     * Save Strava integration for user
-     */
-    public void saveIntegration(com.endura.domain.user.User user, StravaTokenResponse tokenResponse) {
         try {
-            // Verificar se já existe uma integração Strava para este usuário
-            var existingIntegration = integrationRepository.findByUserIdAndPlatform(
-                user.getId(), 
-                com.endura.domain.integration.Integration.Platform.STRAVA
-            );
-            
-            com.endura.domain.integration.Integration integration;
-            
-            if (existingIntegration.isPresent()) {
-                // Atualizar integração existente
-                integration = existingIntegration.get();
-                integration.setAccessToken(tokenResponse.getAccessToken());
-                integration.setRefreshToken(tokenResponse.getRefreshToken());
-                integration.setExternalUserId(tokenResponse.getAthlete().getId().toString());
-            } else {
-                // Criar nova integração
-                integration = new com.endura.domain.integration.Integration();
-                integration.setUser(user);
-                integration.setPlatform(com.endura.domain.integration.Integration.Platform.STRAVA);
-                integration.setAccessToken(tokenResponse.getAccessToken());
-                integration.setRefreshToken(tokenResponse.getRefreshToken());
-                integration.setExternalUserId(tokenResponse.getAthlete().getId().toString());
-            }
-            
-            // Calcular data de expiração (Strava tokens expiram em 6 horas)
-            if (tokenResponse.getExpiresIn() != null) {
-                integration.setExpiresAt(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresIn()));
-            }
-            
-            integration.setIsActive(true);
-            integrationRepository.save(integration);
-            
-            logger.info("Integração Strava salva com sucesso para usuário {}", user.getId());
-            
+            ResponseEntity<StravaTokenResponse> response = restTemplate.postForEntity(url, request, StravaTokenResponse.class);
+            return response.getBody();
         } catch (Exception e) {
-            logger.error("Erro ao salvar integração Strava para usuário {}: {}", user.getId(), e.getMessage());
-            throw new RuntimeException("Erro ao salvar integração Strava", e);
+            logger.error("Error exchanging code for token: {}", e.getMessage());
+            throw new RuntimeException("Failed to exchange code for token", e);
         }
     }
-    
-    /**
-     * Check if user is connected to Strava
-     */
+
+    public void saveIntegration(Long userId, StravaTokenResponse tokenResponse) {
+        Optional<Integration> existingIntegration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA);
+        Optional<User> userOptional = userRepository.findById(userId);
+        
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        
+        User user = userOptional.get();
+        Integration integration = existingIntegration.orElse(new Integration());
+        integration.setUser(user);
+        integration.setPlatform(Integration.Platform.STRAVA);
+        integration.setExternalUserId(tokenResponse.getAthlete().getId().toString());
+        integration.setAccessToken(tokenResponse.getAccessToken());
+        integration.setRefreshToken(tokenResponse.getRefreshToken());
+        integration.setExpiresAt(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresIn()));
+        integration.setIsActive(true);
+        
+        integrationRepository.save(integration);
+        logger.info("Strava integration saved for user: {}", userId);
+    }
+
     public boolean isUserConnectedToStrava(Long userId) {
+        return integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA)
+                .map(Integration::getIsActive)
+                .orElse(false);
+    }
+
+    public List<StravaActivity> fetchActivities(Long userId) {
+        Optional<Integration> integration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA);
+        
+        if (integration.isEmpty() || !integration.get().getIsActive()) {
+            throw new RuntimeException("User not connected to Strava");
+        }
+
+        Integration stravaIntegration = integration.get();
+        
+        // Check if token needs refresh
+        if (stravaIntegration.getExpiresAt().isBefore(LocalDateTime.now())) {
+            refreshToken(userId);
+            stravaIntegration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA).orElseThrow();
+        }
+
+        String url = "https://www.strava.com/api/v3/athlete/activities?per_page=50";
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(stravaIntegration.getAccessToken());
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
         try {
-            var integration = integrationRepository.findByUserIdAndPlatform(
-                userId, 
-                com.endura.domain.integration.Integration.Platform.STRAVA
-            );
-            
-            return integration.isPresent() && integration.get().getIsActive() && !integration.get().isTokenExpired();
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            return objectMapper.readValue(response.getBody(), new TypeReference<List<StravaActivity>>() {});
         } catch (Exception e) {
-            logger.error("Erro ao verificar conexão Strava para usuário {}: {}", userId, e.getMessage());
-            return false;
+            logger.error("Error fetching activities from Strava: {}", e.getMessage());
+            throw new RuntimeException("Failed to fetch activities from Strava", e);
         }
     }
-    
-    /**
-     * Disconnect user from Strava
-     */
-    public void disconnectUser(Long userId) {
+
+    public int syncUserActivities(Long userId) {
         try {
-            var integration = integrationRepository.findByUserIdAndPlatform(
-                userId, 
-                com.endura.domain.integration.Integration.Platform.STRAVA
-            );
+            List<StravaActivity> activities = fetchActivities(userId);
+            Optional<User> userOptional = userRepository.findById(userId);
             
-            if (integration.isPresent()) {
-                integration.get().setIsActive(false);
-                integrationRepository.save(integration.get());
-                logger.info("Usuário {} desconectado do Strava com sucesso", userId);
-            } else {
-                logger.warn("Nenhuma integração Strava encontrada para usuário {}", userId);
+            if (userOptional.isEmpty()) {
+                throw new RuntimeException("User not found");
+            }
+
+            User user = userOptional.get();
+            int syncedCount = 0;
+
+            for (StravaActivity activity : activities) {
+                if (!workoutRepository.existsByStravaActivityId(activity.getId())) {
+                    Workout workout = mapStravaActivityToWorkout(activity, user);
+                    workoutRepository.save(workout);
+                    syncedCount++;
+                    logger.info("Synced activity: {} for user: {}", activity.getName(), userId);
+                }
+            }
+
+            logger.info("Synced {} new activities for user: {}", syncedCount, userId);
+            return syncedCount;
+
+        } catch (Exception e) {
+            logger.error("Error syncing activities for user {}: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to sync activities", e);
+        }
+    }
+
+    private Workout mapStravaActivityToWorkout(StravaActivity activity, User user) {
+        Workout workout = new Workout();
+        workout.setUser(user);
+        workout.setTitle(activity.getName());
+        workout.setStravaActivityId(activity.getId());
+        workout.setActivityType(activity.getType());
+        
+        // Parse start date
+        if (activity.getStartDate() != null) {
+            try {
+                ZonedDateTime zonedDateTime = ZonedDateTime.parse(activity.getStartDate(), DateTimeFormatter.ISO_ZONED_DATE_TIME);
+                workout.setStartDate(zonedDateTime.toLocalDateTime());
+            } catch (Exception e) {
+                logger.warn("Failed to parse start date: {}", activity.getStartDate());
+                workout.setStartDate(LocalDateTime.now());
+            }
+        }
+        
+        workout.setDistanceMeters(activity.getDistance() != null ? BigDecimal.valueOf(activity.getDistance()) : BigDecimal.ZERO);
+        workout.setMovingTimeSeconds(activity.getMovingTime());
+        workout.setElapsedTimeSeconds(activity.getElapsedTime());
+        workout.setElevationGainMeters(activity.getTotalElevationGain() != null ? BigDecimal.valueOf(activity.getTotalElevationGain()) : BigDecimal.ZERO);
+        workout.setAverageSpeed(activity.getAverageSpeed() != null ? BigDecimal.valueOf(activity.getAverageSpeed()) : BigDecimal.ZERO);
+        workout.setMaxSpeed(activity.getMaxSpeed() != null ? BigDecimal.valueOf(activity.getMaxSpeed()) : BigDecimal.ZERO);
+        workout.setAverageHeartrate(activity.getAverageHeartrate() != null ? activity.getAverageHeartrate().intValue() : null);
+        workout.setMaxHeartrate(activity.getMaxHeartrate() != null ? activity.getMaxHeartrate().intValue() : null);
+        workout.setSyncSource("STRAVA");
+        
+        return workout;
+    }
+
+    public void refreshToken(Long userId) {
+        Optional<Integration> integration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA);
+        
+        if (integration.isEmpty()) {
+            throw new RuntimeException("No Strava integration found for user");
+        }
+
+        Integration stravaIntegration = integration.get();
+        String url = "https://www.strava.com/oauth/token";
+        
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("client_id", clientId);
+        requestBody.put("client_secret", clientSecret);
+        requestBody.put("refresh_token", stravaIntegration.getRefreshToken());
+        requestBody.put("grant_type", "refresh_token");
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
+        
+        try {
+            ResponseEntity<StravaTokenResponse> response = restTemplate.postForEntity(url, request, StravaTokenResponse.class);
+            StravaTokenResponse tokenResponse = response.getBody();
+            
+            if (tokenResponse != null) {
+                stravaIntegration.setAccessToken(tokenResponse.getAccessToken());
+                stravaIntegration.setRefreshToken(tokenResponse.getRefreshToken());
+                stravaIntegration.setExpiresAt(LocalDateTime.now().plusSeconds(tokenResponse.getExpiresIn()));
+                
+                integrationRepository.save(stravaIntegration);
+                logger.info("Token refreshed for user: {}", userId);
             }
         } catch (Exception e) {
-            logger.error("Erro ao desconectar usuário {} do Strava: {}", userId, e.getMessage());
-            throw new RuntimeException("Erro ao desconectar do Strava", e);
+            logger.error("Error refreshing token for user {}: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to refresh token", e);
+        }
+    }
+
+    public Map<String, Object> getSyncStatus(Long userId) {
+        Map<String, Object> status = new HashMap<>();
+        
+        Optional<Integration> integration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA);
+        
+        if (integration.isEmpty()) {
+            status.put("connected", false);
+            status.put("syncedWorkouts", 0);
+            return status;
+        }
+
+        Integration stravaIntegration = integration.get();
+        Long syncedWorkouts = workoutRepository.countStravaWorkoutsByUserId(userId);
+        
+        status.put("connected", stravaIntegration.getIsActive());
+        status.put("syncedWorkouts", syncedWorkouts);
+        status.put("lastSync", stravaIntegration.getUpdatedAt());
+        status.put("tokenExpires", stravaIntegration.getExpiresAt());
+        
+        return status;
+    }
+
+    public void disconnectStrava(Long userId) {
+        Optional<Integration> integration = integrationRepository.findByUserIdAndPlatform(userId, Integration.Platform.STRAVA);
+        
+        if (integration.isPresent()) {
+            Integration stravaIntegration = integration.get();
+            stravaIntegration.setIsActive(false);
+            integrationRepository.save(stravaIntegration);
+            logger.info("Strava disconnected for user: {}", userId);
         }
     }
 }

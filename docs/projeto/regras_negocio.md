@@ -38,9 +38,35 @@ Permitir que o atleta registre suplementação consumida em treinos, integrando 
   - Sódio (mg)
   - Energia (kcal)
 
+### 4. Sincronização Automática ✅ IMPLEMENTADO
+- **Sincronização Scheduled**: Executada automaticamente a cada 2 horas
+- **Refresh de Tokens**: Diário às 6:00 AM para manter conexões ativas
+- **Sincronização Manual**: Disponível via botão na interface
+- **Status Tracking**: Acompanhamento do status de sincronização por usuário
+
+### 5. Sistema de Auditoria ✅ IMPLEMENTADO
+- **Log de Requisições**: Todas as chamadas para API Strava são registradas
+- **Correlation ID**: UUID único para rastrear requisições
+- **Mascaramento**: Códigos de autorização são mascarados nos logs
+- **Timestamps**: Registro automático de criação e atualização
+
 ---
 
 ## Regras e Restrições
+
+### Sincronização
+- ✅ **Implementado**: Sincronização automática a cada 2 horas
+- ✅ **Implementado**: Prevenção de duplicatas via `stravaActivityId`
+- ✅ **Implementado**: Rate limiting respeitando limites da API Strava
+- ✅ **Implementado**: Refresh automático de tokens expirados
+
+### Suplementação
 - Só é possível lançar suplementação em atividades sincronizadas.
 - Suplementação pode ser adicionada ou editada a qualquer momento após o treino.
 - Não há obrigatoriedade de lançar suplementação (atividade pode ficar sem registro).
+
+### Auditoria e Segurança
+- ✅ **Implementado**: Todas as requisições Strava são logadas
+- ✅ **Implementado**: Códigos de autorização mascarados nos logs
+- ✅ **Implementado**: Timestamps automáticos em todas as entidades
+- ✅ **Implementado**: Correlation IDs para rastreabilidade

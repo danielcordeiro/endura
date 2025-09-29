@@ -8,15 +8,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        "primary": "#0d7ff2",
+        primary: "#0d7ff2",
         "background-light": "#f5f7f8",
         "background-dark": "#101922",
-        "success": "#22c55e",
-        "warning": "#f97316",
+        success: "#22c55e",
+        warning: "#f97316",
+        alert: "#ef4444",
         "foreground-light": "#1f2937",
         "foreground-dark": "#f9fafb",
+        "foreground-muted-light": "#6b7280",
+        "foreground-muted-dark": "#9ca3af",
         "subtle-light": "#6b7280",
         "subtle-dark": "#9ca3af",
+        "card-light": "#ffffff",
+        "card-dark": "#1f2937",
+        "surface-light": "#ffffff",
+        "surface-dark": "#1c2a38",
+        "text-light": "#101922",
+        "text-dark": "#f5f7f8",
+        "subtle-text-light": "#6b7280",
+        "subtle-text-dark": "#9ca3af",
+        "border-light": "#e5e7eb",
+        "border-dark": "#374151",
         // Mantendo cores originais para compatibilidade
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -49,14 +62,14 @@ export default {
         },
       },
       fontFamily: {
-        "display": ["Space Grotesk", "sans-serif"],
-        "sans": ["Space Grotesk", "sans-serif"]
+        display: ["Space Grotesk", "sans-serif"],
+        sans: ["Space Grotesk", "sans-serif"],
       },
       borderRadius: {
-        "DEFAULT": "0.25rem",
-        "lg": "0.5rem",
-        "xl": "0.75rem",
-        "full": "9999px"
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        full: "9999px",
       },
     },
   },

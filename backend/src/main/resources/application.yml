@@ -60,6 +60,18 @@ app:
     tokenUrl: https://www.strava.com/oauth/token
     authUrl: https://www.strava.com/oauth
     apiUrl: https://www.strava.com/api/v3
+
+# Configuração do Strava para desenvolvimento (usar pontos em vez de hífens)
+strava:
+  client:
+    id: ${STRAVA_CLIENT_ID:123456}
+    secret: ${STRAVA_CLIENT_SECRET:dummy_secret}
+  redirect:
+    uri: ${STRAVA_REDIRECT_URI:http://localhost:3000/auth/strava/callback}
+  base:
+    url: https://www.strava.com/api/v3
+  auth:
+    url: https://www.strava.com/oauth
   
   web:
     cors:

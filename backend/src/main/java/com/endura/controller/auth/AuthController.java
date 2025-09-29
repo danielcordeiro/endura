@@ -8,18 +8,23 @@ import com.endura.common.security.JwtTokenProvider;
 import com.endura.domain.user.User;
 import com.endura.domain.user.UserService;
 import com.endura.integration.strava.StravaIntegrationService;
+import com.endura.integration.strava.StravaTokenResponse;
+import com.endura.integration.strava.log.StravaRequestLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
 import java.util.Map;
 
 @RestController
@@ -40,6 +45,9 @@ public class AuthController {
     
     @Autowired
     private StravaIntegrationService stravaIntegrationService;
+
+    @Autowired
+    private StravaRequestLogService stravaRequestLogService;
     
     @Value("${app.strava.clientId}")
     private String stravaClientId;
@@ -60,7 +68,7 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             
             User user = userService.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("UsuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado"));
             
             String jwt = jwtTokenProvider.generateToken(authentication);
             String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
@@ -79,9 +87,9 @@ public class AuthController {
             return ResponseEntity.ok(authResponse);
             
         } catch (Exception e) {
-            logger.error("Erro na autenticação: ", e);
+            logger.error("Erro na autenticaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o: ", e);
             return ResponseEntity.badRequest()
-                .body(Map.of("error", "Credenciais inválidas"));
+                .body(Map.of("error", "Credenciais invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lidas"));
         }
     }
     
@@ -90,7 +98,7 @@ public class AuthController {
         try {
             if (userService.existsByEmail(registerRequest.getEmail())) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Email já está em uso"));
+                    .body(Map.of("error", "Email jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ em uso"));
             }
             
             User user = userService.createUser(
@@ -132,12 +140,12 @@ public class AuthController {
             
             if (!jwtTokenProvider.validateToken(refreshToken)) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("error", "Token de refresh inválido"));
+                    .body(Map.of("error", "Token de refresh invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido"));
             }
             
             String email = jwtTokenProvider.getUsernameFromToken(refreshToken);
             User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("UsuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado"));
             
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                 user.getEmail(), null, null
@@ -186,45 +194,75 @@ public class AuthController {
     
     @PostMapping("/strava/callback")
     public ResponseEntity<?> handleStravaCallback(@Valid @RequestBody StravaCallbackRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication != null ? authentication.getName() : null;
+        User user = null;
+
         try {
-            // Obter usuário autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String email = authentication.getName();
-            
-            User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-            
-            logger.info("Processando callback do Strava para usuário: {} com código: {}", email, request.getCode());
-            
-            // Trocar código por tokens via Strava API
-            stravaIntegrationService.exchangeCodeForToken(request.getCode())
-                .subscribe(
-                    tokenResponse -> {
-                        try {
-                            // Salvar integração no banco de dados
-                            stravaIntegrationService.saveIntegration(user, tokenResponse);
-                            logger.info("Integração Strava salva com sucesso para usuário: {}", user.getId());
-                        } catch (Exception e) {
-                            logger.error("Erro ao salvar integração Strava: ", e);
-                        }
-                    },
-                    error -> {
-                        logger.error("Erro ao trocar código Strava por tokens: ", error);
-                    }
+            if (email == null || email.isBlank()) {
+                throw new RuntimeException("Usuario nao autenticado");
+            }
+
+            user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+
+            logger.info("Processando callback do Strava para usuario: {} com codigo: {}", email, request.getCode());
+
+            StravaTokenResponse tokenResponse = stravaIntegrationService
+                .exchangeCodeForToken(request.getCode());
+
+            if (tokenResponse == null) {
+                stravaRequestLogService.logFailure(
+                    user.getId(),
+                    request.getCode(),
+                    "Resposta vazia da API do Strava",
+                    "A troca do codigo nao retornou conteudo.",
+                    HttpStatus.BAD_GATEWAY.value()
                 );
-            
+
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(Map.of("error", "Nao foi possivel conectar ao Strava no momento."));
+            }
+
+            stravaIntegrationService.saveIntegration(user.getId(), tokenResponse);
+            stravaRequestLogService.logSuccess(
+                user.getId(),
+                request.getCode(),
+                "Callback do Strava processado com sucesso."
+            );
+
             return ResponseEntity.ok(Map.of(
                 "message", "Callback do Strava processado com sucesso",
                 "stravaConnected", true
             ));
-            
+
         } catch (Exception e) {
             logger.error("Erro no callback do Strava: ", e);
-            return ResponseEntity.badRequest()
+
+            Long userId = user != null ? user.getId() : null;
+            HttpStatus statusToReturn = HttpStatus.BAD_GATEWAY;
+            int statusCode = statusToReturn.value();
+
+            if (e instanceof WebClientResponseException webClientException) {
+                statusCode = webClientException.getStatusCode().value();
+            } else {
+                statusToReturn = HttpStatus.INTERNAL_SERVER_ERROR;
+                statusCode = statusToReturn.value();
+            }
+
+            stravaRequestLogService.logFailure(
+                userId,
+                request.getCode(),
+                "Falha ao processar callback do Strava",
+                e.getMessage(),
+                statusCode
+            );
+
+            return ResponseEntity.status(statusToReturn)
                 .body(Map.of("error", "Erro ao processar callback do Strava"));
         }
     }
-    
+
     @DeleteMapping("/strava/disconnect")
     public ResponseEntity<?> disconnectStrava() {
         try {
@@ -232,9 +270,9 @@ public class AuthController {
             String email = authentication.getName();
             
             User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("UsuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado"));
             
-            stravaIntegrationService.disconnectUser(user.getId());
+            stravaIntegrationService.disconnectStrava(user.getId());
             
             return ResponseEntity.ok(Map.of(
                 "message", "Conta Strava desconectada com sucesso",
@@ -255,7 +293,7 @@ public class AuthController {
             String email = authentication.getName();
             
             User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("UsuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o encontrado"));
             
             boolean connected = stravaIntegrationService.isUserConnectedToStrava(user.getId());
             

@@ -1,177 +1,135 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { User, AuthTokens, LoginCredentials } from '../types';
+import { authService, type User } from '../services/api';
+import { syncService, type SyncStatus } from '../services/sync';
 
 interface AuthState {
   user: User | null;
-  tokens: AuthTokens | null;
-  isAuthenticated: boolean;
+  token: string | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
+  syncStatus: SyncStatus | null;
   
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
   loginWithStrava: (code: string) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<void>;
-  setUser: (user: User) => void;
-  setTokens: (tokens: AuthTokens) => void;
+  syncStravaActivities: () => Promise<number>;
+  refreshSyncStatus: () => Promise<void>;
+  setLoading: (loading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      tokens: null,
-      isAuthenticated: false,
-      isLoading: false,
+export const useAuthStore = create<AuthState>((set, get) => ({
+  user: null,
+  token: localStorage.getItem('authToken'),
+  isLoading: false,
+  isAuthenticated: !!localStorage.getItem('authToken'),
+  syncStatus: null,
 
-      login: async (credentials: LoginCredentials) => {
-        set({ isLoading: true });
-        try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(credentials),
-          });
-
-          if (!response.ok) {
-            throw new Error('Login failed');
-          }
-
-          const data = await response.json();
-          
-          set({
-            user: data.user,
-            tokens: data.tokens,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
-      },
-
-      register: async (firstName: string, lastName: string, email: string, password: string) => {
-        set({ isLoading: true });
-        try {
-          const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ firstName, lastName, email, password }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Registration failed');
-          }
-
-          const data = await response.json();
-          
-          set({
-            user: {
-              id: data.userId,
-              email: data.email,
-              firstName: data.firstName || '',
-              lastName: data.lastName || '',
-              createdAt: data.createdAt || new Date().toISOString(),
-              updatedAt: data.updatedAt || new Date().toISOString()
-            },
-            tokens: {
-              accessToken: data.token,
-              refreshToken: data.refreshToken,
-              expiresIn: data.expiresIn || 3600
-            },
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
-      },
-
-      loginWithStrava: async (code: string) => {
-        set({ isLoading: true });
-        try {
-          const response = await fetch('/api/auth/strava/callback', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Strava login failed');
-          }
-
-          const data = await response.json();
-          
-          set({
-            user: data.user,
-            tokens: data.tokens,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
-      },
-
-      logout: () => {
-        set({
-          user: null,
-          tokens: null,
-          isAuthenticated: false,
-        });
-      },
-
-      refreshToken: async () => {
-        const { tokens } = get();
-        if (!tokens?.refreshToken) return;
-
-        try {
-          const response = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken: tokens.refreshToken }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Token refresh failed');
-          }
-
-          const data = await response.json();
-          set({ tokens: data.tokens });
-        } catch (error) {
-          set({
-            user: null,
-            tokens: null,
-            isAuthenticated: false,
-          });
-          throw error;
-        }
-      },
-
-      setUser: (user: User) => set({ user }),
-      setTokens: (tokens: AuthTokens) => set({ tokens }),
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        user: state.user,
-        tokens: state.tokens,
-        isAuthenticated: state.isAuthenticated,
-      }),
+  login: async (email: string, password: string) => {
+    set({ isLoading: true });
+    try {
+      const response = await authService.login(email, password);
+      
+      localStorage.setItem('authToken', response.token);
+      
+      set({
+        user: response.user,
+        token: response.token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      
+      // Refresh sync status after login
+      get().refreshSyncStatus();
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
     }
-  )
-);
+  },
+
+  register: async (userData) => {
+    set({ isLoading: true });
+    try {
+      const response = await authService.register(userData);
+      
+      localStorage.setItem('authToken', response.token);
+      
+      set({
+        user: response.user,
+        token: response.token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  loginWithStrava: async (code: string) => {
+    set({ isLoading: true });
+    try {
+      const response = await authService.stravaCallback(code);
+      
+      localStorage.setItem('authToken', response.token);
+      
+      set({
+        user: response.user,
+        token: response.token,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      
+      // Refresh sync status after Strava login
+      get().refreshSyncStatus();
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  syncStravaActivities: async (): Promise<number> => {
+    try {
+      const response = await syncService.syncStravaActivities();
+      
+      // Refresh sync status after sync
+      await get().refreshSyncStatus();
+      
+      return response.syncedCount;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  refreshSyncStatus: async () => {
+    const { user } = get();
+    if (!user) return;
+
+    try {
+      const status = await syncService.getSyncStatus(user.id);
+      set({ syncStatus: status });
+    } catch (error) {
+      console.error('Failed to refresh sync status:', error);
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem('authToken');
+    set({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      syncStatus: null,
+    });
+  },
+
+  setLoading: (loading: boolean) => {
+    set({ isLoading: loading });
+  },
+}));
