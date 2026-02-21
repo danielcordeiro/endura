@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Fundos e Superfícies ── */
+  --color-bg-base: #090B10;
+  --color-bg-surface: #111521;
+  --color-bg-elevated: #1A2035;
+  --color-bg-input: #0F1420;
+
+  /* ── Bordas ── */
+  --color-border: #232B40;
+  --color-border-focus: #00F5C4;
+
+  /* ── Texto ── */
+  --color-text-primary: #F0F4FF;
+  --color-text-secondary: #8B95B0;
+  --color-text-muted: #4A5270;
+  --color-text-inverse: #090B10;
+
+  /* ── Primária ── */
+  --color-primary: #00F5C4;
+  --color-primary-dim: #00F5C420;
+  --color-primary-hover: #00D4AB;
+
+  /* ── Disciplinas ── */
+  --color-swim: #4D9BFF;
+  --color-bike: #F59E0B;
+  --color-run: #22C55E;
+  --color-brick: #A855F7;
+
+  /* ── Fases Nutricionais ── */
+  --color-phase-pre: #4D9BFF;
+  --color-phase-during: #00F5C4;
+  --color-phase-post: #FF6B35;
+
+  /* ── Estados e Alertas ── */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #4D9BFF;
+  --color-success-dim: #22C55E20;
+  --color-warning-dim: #F59E0B20;
+  --color-danger-dim: #EF444420;
+
+  /* ── Strava ── */
+  --color-strava: #FC4C02;
+
+  /* ── Espaçamento ── */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* ── Border Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* ── Fontes ── */
+  --font-heading: "Barlow Condensed", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* ── Global Styles ── */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Skeleton Loading ── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-surface) 25%,
+    var(--color-bg-elevated) 50%,
+    var(--color-bg-surface) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Fade In Animation ── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 300ms ease-out forwards;
+}
+
+/* ── Stagger Animation ── */
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 40ms; }
+.stagger-3 { animation-delay: 80ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 160ms; }
+.stagger-6 { animation-delay: 200ms; }
+
+/* ── Bottom Sheet Animation ── */
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 250ms ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 200ms ease-out forwards;
+}

@@ -1,13 +1,15 @@
-# Node
+# Dependencies
 node_modules/
 
-# Build
-/dist
-/build
-frontend/dist/
+# Build outputs
+dist/
+.next/
+out/
 
-# Logs
-*.log
+# Environment
+.env
+.env.*
+!.env.example
 
 # IDE
 .vscode/
@@ -17,40 +19,27 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
-# Java
-*.class
-/target/
-
-# Environment
-.env
-.env.*
-
-# Others
-*.iml
-*.swp
-*.swo
-
-# PowerShell
-*.ps1~
-
-# Docker
-*.pid
-
-# H2
-*.mv.db
-*.trace.db
-
-# Frontend
-frontend/.next/
-frontend/.cache/
-
-# Backend
-backend/.classpath
-backend/.project
-backend/.settings/
-backend/target/
-backend/logs/
+# Claude / Agent tools
+.agent/
+.agents/
+.claude/
+skills/
+skills-lock.json
 
 # Misc
 *.bak
 *.tmp
+*.swp
+*.swo
+*.tsbuildinfo
+
+# PWA
+apps/web/public/sw.js
+apps/web/public/workbox-*.js
+apps/web/public/swe-worker-*.js
+
+# Drizzle
+apps/api/drizzle/meta/
+
+# pnpm
+.pnpm-debug.log

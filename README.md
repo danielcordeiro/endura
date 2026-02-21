@@ -1,58 +1,21 @@
-# Endura Project
+# Endura
 
-## Quick Start
+Plataforma de performance para triatletas — planejamento e documentação de produto.
 
-### Prerequisites
-- Node.js 18+
-- Java 17+
-- Docker & Docker Compose
-- PostgreSQL (or use Docker)
+## Documentação
 
-### Development Setup
+- [Documento Mestre de Produto (MVP v2.0)](docs/Endura_MVP.md) — visão, roadmap e especificações completas
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/danielcordeiro/endura.git
-   cd endura
-   ```
+### Detalhes por fase
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   cp frontend/.env.example frontend/.env
-   # Edit the .env files with your configuration
-   ```
-
-3. **Run with Docker (Recommended)**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Or run manually**
-   ```bash
-   # Backend
-   cd backend
-   mvn spring-boot:run
-   
-   # Frontend (new terminal)
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-### Access the Application
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080/api
-- API Documentation: http://localhost:8080/swagger-ui/index.html
-
-### Project Structure
-```
-endura/
-├── frontend/          # React 18 + TypeScript + Vite
-├── backend/           # Spring Boot + Java 17
-├── docs/              # Project documentation
-├── docker-compose.yml # Development environment
-└── README.md
-```
-
-For detailed documentation, see [docs/README.md](docs/README.md)
+| Documento | Descrição |
+|---|---|
+| [Regras de Negócio — Fase 1](docs/projeto/regras_negocio.md) | MVP: sincronização e registro de suplementação |
+| [Regras de Negócio — Fase 2](docs/projeto/regras_negocio_fase2.md) | IA: OCR, NLP e insights |
+| [Regras de Negócio — Fase 3](docs/projeto/regras_negocio_fase3.md) | Módulo treinador |
+| [Integração — Fase 1](docs/projeto/integracao.md) | Strava OAuth e fluxo de dados |
+| [Integração — Fase 2](docs/projeto/integracao_fase2.md) | OCR, NLP e clima histórico |
+| [Integração — Fase 3](docs/projeto/integracao_fase3.md) | Permissões treinador-atleta |
+| [Layout/UX — Fase 1](docs/projeto/layout_frontend.md) | Telas do MVP |
+| [Layout/UX — Fase 2](docs/projeto/layout_frontend_fase2.md) | Telas com IA |
+| [Layout/UX — Fase 3](docs/projeto/layout_frontend_fase3.md) | Telas do treinador |

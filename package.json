@@ -1,0 +1,21 @@
+{
+  "name": "endura",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma de performance para triatletas",
+  "scripts": {
+    "dev": "pnpm --filter @endura/api dev & pnpm --filter @endura/web dev",
+    "dev:api": "pnpm --filter @endura/api dev",
+    "dev:web": "pnpm --filter @endura/web dev",
+    "build": "pnpm --filter @endura/types build && pnpm --filter @endura/api build && pnpm --filter @endura/web build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["bcrypt", "esbuild", "sharp"]
+  }
+}
