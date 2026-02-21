@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { RefreshCw, Waves, Bike, Footprints, Inbox } from 'lucide-react';
+import { RefreshCw, Waves, Bike, Footprints, Inbox, Activity } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,7 +19,7 @@ type Discipline = 'swim' | 'bike' | 'run' | 'brick';
 type Period = '7' | '30' | '90';
 type DisciplineFilter = 'all' | Discipline;
 
-interface Activity {
+interface ActivityItem {
   id: string;
   title: string;
   discipline: Discipline;
@@ -30,7 +30,7 @@ interface Activity {
 }
 
 interface ActivitiesPage {
-  data: Activity[];
+  data: ActivityItem[];
   meta: {
     page: number;
     limit: number;
@@ -42,22 +42,22 @@ interface ActivitiesPage {
 /* ---------- Constants ---------- */
 
 const periodOptions: { value: Period; label: string }[] = [
-  { value: '7', label: '7 DIAS' },
-  { value: '30', label: '30 DIAS' },
-  { value: '90', label: '90D' },
+  { value: '7', label: '7 dias' },
+  { value: '30', label: '30 dias' },
+  { value: '90', label: '90 dias' },
 ];
 
-const disciplineOptions: { value: DisciplineFilter; label: string; icon?: typeof Waves }[] = [
-  { value: 'all', label: 'TODOS' },
-  { value: 'swim', label: 'SWIM', icon: Waves },
-  { value: 'bike', label: 'BIKE', icon: Bike },
-  { value: 'run', label: 'RUN', icon: Footprints },
+const disciplineOptions: { value: DisciplineFilter; label: string; icon?: typeof Waves; color?: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'swim', label: 'Swim', icon: Waves, color: 'text-swim' },
+  { value: 'bike', label: 'Bike', icon: Bike, color: 'text-bike' },
+  { value: 'run', label: 'Run', icon: Footprints, color: 'text-run' },
 ];
 
 /* ---------- Helpers ---------- */
 
-function groupByMonth(activities: Activity[]): Record<string, Activity[]> {
-  const groups: Record<string, Activity[]> = {};
+function groupByMonth(activities: ActivityItem[]): Record<string, ActivityItem[]> {
+  const groups: Record<string, ActivityItem[]> = {};
   for (const act of activities) {
     const key = format(parseISO(act.date), 'MMMM yyyy', { locale: ptBR });
     if (!groups[key]) groups[key] = [];
@@ -70,14 +70,44 @@ function groupByMonth(activities: Activity[]): Record<string, Activity[]> {
 
 function SkeletonRow() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-bg-surface border border-border animate-pulse">
-      <div className="w-10 h-10 rounded-full bg-bg-elevated shrink-0" />
+    <div className="flex items-center gap-3 p-4 card animate-pulse">
+      <div className="w-10 h-10 rounded-xl bg-bg-elevated shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-4 w-3/5 rounded bg-bg-elevated" />
         <div className="h-3 w-2/5 rounded bg-bg-elevated" />
-        <div className="h-2 w-1/4 rounded bg-bg-elevated" />
       </div>
     </div>
+  );
+}
+
+/* ---------- Filter chip ---------- */
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+  icon: Icon,
+  iconColor,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  icon?: typeof Waves;
+  iconColor?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-body text-[13px] font-medium transition-all duration-200 whitespace-nowrap',
+        active
+          ? 'bg-primary/15 text-primary border border-primary/25'
+          : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated hover:text-text-primary',
+      )}
+    >
+      {Icon && <Icon size={14} className={active ? 'text-primary' : iconColor} />}
+      {children}
+    </button>
   );
 }
 
@@ -147,48 +177,41 @@ export default function AtividadesPage() {
   );
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-6 space-y-5">
       {/* Title */}
-      <h1 className="font-heading font-bold text-[28px] text-text-primary">Atividades</h1>
+      <h1 className="font-heading font-bold text-[28px] text-text-primary tracking-tight">
+        Atividades
+      </h1>
 
-      {/* Period filter */}
-      <div className="flex gap-2">
-        {periodOptions.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setPeriod(opt.value)}
-            className={cn(
-              'px-4 py-2 rounded-full font-body text-[13px] font-semibold uppercase tracking-wider transition-colors',
-              period === opt.value
-                ? 'bg-primary text-text-inverse'
-                : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated',
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Discipline filter */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {disciplineOptions.map((opt) => {
-          const Icon = opt.icon;
-          return (
-            <button
+      {/* Filters */}
+      <div className="space-y-3">
+        {/* Period filter */}
+        <div className="flex gap-2">
+          {periodOptions.map((opt) => (
+            <FilterChip
               key={opt.value}
-              onClick={() => setDiscipline(opt.value)}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-body text-[12px] font-medium uppercase tracking-wider transition-colors whitespace-nowrap',
-                discipline === opt.value
-                  ? 'bg-primary text-text-inverse'
-                  : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated',
-              )}
+              active={period === opt.value}
+              onClick={() => setPeriod(opt.value)}
             >
-              {Icon && <Icon size={14} />}
               {opt.label}
-            </button>
-          );
-        })}
+            </FilterChip>
+          ))}
+        </div>
+
+        {/* Discipline filter */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {disciplineOptions.map((opt) => (
+            <FilterChip
+              key={opt.value}
+              active={discipline === opt.value}
+              onClick={() => setDiscipline(opt.value)}
+              icon={opt.icon}
+              iconColor={opt.color}
+            >
+              {opt.label}
+            </FilterChip>
+          ))}
+        </div>
       </div>
 
       {/* Error state */}
@@ -198,14 +221,12 @@ export default function AtividadesPage() {
         </AlertBanner>
       )}
 
-      {/* Sync error */}
+      {/* Sync alerts */}
       {syncMutation.isError && (
         <AlertBanner variant="danger">
           Erro ao sincronizar com Strava. Tente novamente.
         </AlertBanner>
       )}
-
-      {/* Sync success */}
       {syncMutation.isSuccess && (
         <AlertBanner variant="success">
           Sincronizacao concluida com sucesso.
@@ -215,7 +236,7 @@ export default function AtividadesPage() {
       {/* Loading state */}
       {isLoading && (
         <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <SkeletonRow key={i} />
           ))}
         </div>
@@ -223,12 +244,12 @@ export default function AtividadesPage() {
 
       {/* Activities grouped by month */}
       {!isLoading && allActivities.length > 0 && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {Object.entries(grouped).map(([month, activities]) => (
             <Fragment key={month}>
-              {/* Sticky month header */}
-              <div className="sticky top-0 z-10 -mx-4 px-4 py-2 bg-bg-base/90 backdrop-blur-sm">
-                <h2 className="font-heading font-semibold text-[16px] text-text-secondary uppercase tracking-wider">
+              {/* Month header */}
+              <div className="sticky top-0 z-10 -mx-5 px-5 py-2 bg-bg-base/90 backdrop-blur-sm">
+                <h2 className="font-heading font-semibold text-[13px] text-text-muted uppercase tracking-[0.1em]">
                   {month}
                 </h2>
               </div>
@@ -257,6 +278,7 @@ export default function AtividadesPage() {
                 variant="ghost"
                 onClick={() => fetchNextPage()}
                 loading={isFetchingNextPage}
+                className="h-10 text-[13px]"
               >
                 Carregar mais
               </Button>
@@ -267,27 +289,44 @@ export default function AtividadesPage() {
 
       {/* Empty state */}
       {!isLoading && allActivities.length === 0 && !isError && (
-        <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-bg-surface flex items-center justify-center">
-            <Inbox size={32} className="text-text-muted" />
+        <div className="flex flex-col items-center justify-center py-20 space-y-5">
+          <div className="w-20 h-20 rounded-2xl bg-bg-surface border border-border flex items-center justify-center">
+            <Activity size={36} className="text-text-muted" strokeWidth={1.5} />
           </div>
-          <p className="font-body text-[15px] text-text-secondary text-center max-w-[260px]">
-            Nenhuma atividade encontrada. Conecte o Strava para importar.
-          </p>
+          <div className="text-center space-y-1.5">
+            <p className="font-heading font-bold text-[18px] text-text-primary">
+              Nenhuma atividade
+            </p>
+            <p className="font-body text-[14px] text-text-muted max-w-[260px]">
+              Conecte o Strava nas configuracoes para importar seus treinos automaticamente.
+            </p>
+          </div>
+
+          <Button
+            variant="secondary"
+            onClick={() => syncMutation.mutate()}
+            loading={syncMutation.isPending}
+            className="h-10 text-[12px] px-5"
+          >
+            <RefreshCw size={14} />
+            Sincronizar manualmente
+          </Button>
         </div>
       )}
 
-      {/* Manual sync button */}
-      <div className="flex justify-center pt-4">
-        <Button
-          variant="ghost"
-          onClick={() => syncMutation.mutate()}
-          loading={syncMutation.isPending}
-        >
-          <RefreshCw size={16} />
-          Sincronizar manualmente
-        </Button>
-      </div>
+      {/* Manual sync button (when has activities) */}
+      {!isLoading && allActivities.length > 0 && (
+        <div className="flex justify-center pb-2">
+          <button
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="font-body text-[13px] text-text-muted hover:text-text-secondary transition-colors flex items-center gap-1.5"
+          >
+            <RefreshCw size={13} className={syncMutation.isPending ? 'animate-spin' : ''} />
+            Sincronizar
+          </button>
+        </div>
+      )}
     </div>
   );
 }

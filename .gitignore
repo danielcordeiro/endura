@@ -43,3 +43,6 @@ apps/api/drizzle/meta/
 
 # pnpm
 .pnpm-debug.log
+
+# npm (projeto usa pnpm)
+package-lock.json

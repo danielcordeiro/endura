@@ -17,8 +17,8 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-bg-elevated border-t border-border pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-14">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 glass-nav pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {tabs.map(({ href, label, icon: Icon }) => {
           const isActive = pathname.startsWith(href);
           return (
@@ -26,15 +26,24 @@ export function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px]',
-                'transition-colors duration-150',
-                isActive ? 'text-primary' : 'text-text-muted',
+                'relative flex flex-col items-center justify-center gap-1 w-16 py-1.5',
+                'transition-all duration-200',
+                isActive ? 'text-primary' : 'text-text-muted hover:text-text-secondary',
               )}
             >
-              <Icon size={22} />
+              {/* Active indicator bar */}
               {isActive && (
-                <span className="font-body text-[10px] font-medium">{label}</span>
+                <span className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-[2px] bg-primary rounded-full" />
               )}
+              <Icon size={22} strokeWidth={isActive ? 2.2 : 1.8} />
+              <span
+                className={cn(
+                  'font-body text-[10px] leading-none tracking-wide',
+                  isActive ? 'font-semibold' : 'font-medium opacity-70',
+                )}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

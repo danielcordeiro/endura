@@ -108,49 +108,94 @@ export default function OnboardingPage() {
   async function handleSubmit() {
     setIsSubmitting(true);
     try {
+      // Mapeia valores do frontend para o formato da API
+      const levelMap: Record<string, string> = {
+        BEGINNER: 'iniciante',
+        INTERMEDIATE: 'intermediario',
+        COMPETITIVE: 'competitivo',
+      };
+      const distanceMap: Record<string, string> = {
+        SPRINT: 'sprint',
+        OLYMPIC: 'olympic',
+        HALF: '70.3',
+        FULL: 'full',
+      };
+
+      // Converte pace "min:seg" para segundos
+      function paceToSeconds(pace: string): number | null {
+        if (!pace) return null;
+        const parts = pace.split(':');
+        if (parts.length !== 2) return null;
+        const mins = parseInt(parts[0], 10);
+        const secs = parseInt(parts[1], 10);
+        if (isNaN(mins) || isNaN(secs)) return null;
+        return mins * 60 + secs;
+      }
+
+      // Converte tempo alvo "h:mm:ss" para segundos
+      function timeToSeconds(time: string): number | null {
+        if (!time) return null;
+        const parts = time.split(':');
+        if (parts.length === 3) {
+          return parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + parseInt(parts[2], 10);
+        }
+        if (parts.length === 2) {
+          return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+        }
+        return null;
+      }
+
       // 1) POST athlete profile
       await apiFetch('/api/athlete/profile', {
         method: 'POST',
         token: token ?? undefined,
         body: JSON.stringify({
-          level: data.level,
-          weakestDiscipline: data.weakestDiscipline,
+          level: data.level ? levelMap[data.level] ?? data.level.toLowerCase() : 'iniciante',
+          weakestDiscipline: data.weakestDiscipline?.toLowerCase() ?? null,
           availableDays: data.availableDays,
           weeklyHours: data.weeklyHours,
-          weight: data.weight ? parseFloat(data.weight) : null,
-          height: data.height ? parseFloat(data.height) : null,
+          weightKg: data.weight ? parseFloat(data.weight) : null,
+          heightCm: data.height ? parseInt(data.height, 10) : null,
           maxHr: data.maxHr ? parseInt(data.maxHr, 10) : null,
-          ftp: data.ftp ? parseInt(data.ftp, 10) : null,
-          pace5k: data.pace5k || null,
+          ftpWatts: data.ftp ? parseInt(data.ftp, 10) : null,
+          run5kPaceSec: paceToSeconds(data.pace5k),
           hasPool: data.hasPool,
           hasBikeTrainer: data.hasBikeTrainer,
           hasTreadmill: data.hasTreadmill,
-          dietaryRestrictions: data.dietaryRestrictions || null,
+          dietaryRestrictions: data.dietaryRestrictions
+            ? data.dietaryRestrictions.split(',').map((s) => s.trim()).filter(Boolean)
+            : null,
           ownedProducts: data.ownedProducts,
           giSensitivity: data.giSensitivity,
-          highSweatRate: data.highSweatRate,
+          sweatRateHigh: data.highSweatRate,
           crampsHistory: data.crampsHistory,
         }),
       });
 
-      // 2) POST race goal
-      await apiFetch('/api/athlete/race-goal', {
-        method: 'POST',
-        token: token ?? undefined,
-        body: JSON.stringify({
-          distance: data.raceDistance,
-          raceDate: data.raceDate || null,
-          goalType: data.raceGoalType,
-          targetTime: data.raceGoalType === 'TIME' ? data.targetTime : null,
-          raceName: data.raceName || null,
-        }),
-      });
+      // 2) POST race goal (só se selecionou distância e data)
+      if (data.raceDistance && data.raceDate) {
+        await apiFetch('/api/athlete/race-goal', {
+          method: 'POST',
+          token: token ?? undefined,
+          body: JSON.stringify({
+            distance: distanceMap[data.raceDistance] ?? data.raceDistance.toLowerCase(),
+            raceDate: data.raceDate,
+            goal: data.raceGoalType.toLowerCase(),
+            targetTime: data.raceGoalType === 'TIME' ? timeToSeconds(data.targetTime) : null,
+            raceName: data.raceName || null,
+          }),
+        });
+      }
 
-      // 3) POST generate plan
-      await apiFetch('/api/plan/generate', {
-        method: 'POST',
-        token: token ?? undefined,
-      });
+      // 3) POST generate plan (não bloqueia se IA não estiver configurada)
+      try {
+        await apiFetch('/api/plan/generate', {
+          method: 'POST',
+          token: token ?? undefined,
+        });
+      } catch {
+        // IA pode não estar configurada — segue em frente
+      }
 
       router.push('/dashboard');
     } catch (err) {

@@ -191,10 +191,12 @@ export default function DashboardPage() {
 
   const { data, isLoading, isError } = useQuery<DashboardSummary>({
     queryKey: ['dashboard-summary'],
-    queryFn: () =>
-      apiFetch<DashboardSummary>('/api/dashboard/summary', {
+    queryFn: async () => {
+      const res = await apiFetch<{ data: DashboardSummary }>('/api/dashboard/summary', {
         token: token ?? undefined,
-      }),
+      });
+      return res.data;
+    },
     staleTime: 5 * 60 * 1000,
     enabled: !!token,
   });
@@ -224,10 +226,12 @@ export default function DashboardPage() {
 
   const { raceGoal, currentPlan, currentWeek, todayWorkout, alerts } = data;
   const firstName = user?.name?.split(' ')[0] ?? '';
+  const week = currentWeek ?? { workoutsPlanned: 0, workoutsCompleted: 0, tssEstimate: 0, volumeHours: 0 };
   const consistency =
-    currentWeek.workoutsPlanned > 0
-      ? Math.round((currentWeek.workoutsCompleted / currentWeek.workoutsPlanned) * 100)
+    week.workoutsPlanned > 0
+      ? Math.round((week.workoutsCompleted / week.workoutsPlanned) * 100)
       : 0;
+  const hasOnboarding = !!alerts?.find((a) => a.type === 'onboarding');
 
   return (
     <div className="space-y-6 pt-6 pb-6">
@@ -242,6 +246,26 @@ export default function DashboardPage() {
           </p>
         )}
       </div>
+
+      {/* ── Onboarding CTA ── */}
+      {hasOnboarding && (
+        <Link
+          href="/onboarding"
+          className="block bg-primary/10 border border-primary/30 rounded-lg p-5 animate-fade-in-up stagger-2 hover:bg-primary/15 transition-colors"
+          style={{ opacity: 0 }}
+        >
+          <h2 className="font-heading text-[18px] font-bold text-primary">
+            Complete seu perfil
+          </h2>
+          <p className="font-body text-[14px] text-text-secondary mt-1">
+            Configure seu perfil atletico e prova alvo para receber treinos personalizados.
+          </p>
+          <span className="inline-flex items-center gap-1 font-body text-[13px] font-semibold text-primary mt-3">
+            Configurar agora
+            <ChevronRight size={14} />
+          </span>
+        </Link>
+      )}
 
       {/* ── Race Countdown ── */}
       {raceGoal && (
@@ -376,7 +400,7 @@ export default function DashboardPage() {
         <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
           <StatCard
             label="TSS Semanal"
-            value={currentWeek.tssEstimate}
+            value={week.tssEstimate}
             unit="tss"
             variant="highlight"
           />
@@ -384,14 +408,14 @@ export default function DashboardPage() {
         <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
           <StatCard
             label="Treinos"
-            value={`${currentWeek.workoutsCompleted}/${currentWeek.workoutsPlanned}`}
+            value={`${week.workoutsCompleted}/${week.workoutsPlanned}`}
             context="concluidos"
           />
         </div>
         <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
           <StatCard
             label="Volume"
-            value={currentWeek.volumeHours.toFixed(1)}
+            value={week.volumeHours.toFixed(1)}
             unit="horas"
           />
         </div>
@@ -406,12 +430,12 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Alerts ── */}
-      {alerts.length > 0 && (
+      {alerts.filter((a) => a.type !== 'onboarding').length > 0 && (
         <div className="space-y-3 animate-fade-in-up stagger-6" style={{ opacity: 0 }}>
           <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary">
             Alertas
           </p>
-          {alerts.map((alert, i) => (
+          {alerts.filter((a) => a.type !== 'onboarding').map((alert, i) => (
             <AlertBanner key={`${alert.type}-${i}`} variant={alertLevelToVariant(alert.level)}>
               {alert.message}
             </AlertBanner>

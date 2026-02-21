@@ -51,23 +51,13 @@ export default function LoginPage() {
     return Object.keys(errs).length === 0;
   }
 
-  async function checkProfileAndRedirect(authToken: string) {
-    try {
-      await apiFetch('/api/athlete/profile', { token: authToken });
-      router.push('/dashboard');
-    } catch {
-      router.push('/onboarding');
-    }
-  }
-
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
     if (!validateLogin()) return;
     setErrors({});
     try {
       await login(email, password);
-      const currentToken = useAuthStore.getState().token;
-      if (currentToken) await checkProfileAndRedirect(currentToken);
+      router.push('/dashboard');
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'message' in err
@@ -83,7 +73,7 @@ export default function LoginPage() {
     setErrors({});
     try {
       await register(email, password, name);
-      router.push('/onboarding');
+      router.push('/dashboard');
     } catch (err: unknown) {
       const message =
         err && typeof err === 'object' && 'message' in err

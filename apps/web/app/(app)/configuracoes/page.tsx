@@ -13,6 +13,8 @@ import {
   CheckCircle,
   XCircle,
   Link as LinkIcon,
+  UserCog,
+  Lock,
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -44,14 +46,23 @@ interface RaceGoal {
 
 function SettingsSkeleton() {
   return (
-    <div className="py-6 space-y-6 animate-pulse">
-      <div className="h-8 w-48 rounded bg-bg-surface" />
-      <div className="h-24 rounded-lg bg-bg-surface" />
-      <div className="h-20 rounded-lg bg-bg-surface" />
-      <div className="h-4 w-32 rounded bg-bg-surface" />
-      <div className="h-36 rounded-lg bg-bg-surface" />
-      <div className="h-36 rounded-lg bg-bg-surface" />
+    <div className="py-6 space-y-5 animate-pulse">
+      <div className="h-7 w-44 rounded-md bg-bg-surface" />
+      <div className="h-[88px] rounded-xl bg-bg-surface" />
+      <div className="h-4 w-28 rounded bg-bg-surface mt-2" />
+      <div className="h-[104px] rounded-xl bg-bg-surface" />
+      <div className="h-[104px] rounded-xl bg-bg-surface" />
     </div>
+  );
+}
+
+/* ---------- Section header ---------- */
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-heading font-semibold text-[13px] text-text-muted uppercase tracking-[0.1em] px-1">
+      {children}
+    </h2>
   );
 }
 
@@ -80,7 +91,7 @@ function IntegrationCard({
 }) {
   if (isLoading) {
     return (
-      <div className="p-4 bg-bg-surface border border-border rounded-lg animate-pulse">
+      <div className="card p-4 animate-pulse">
         <div className="h-5 w-24 rounded bg-bg-elevated mb-3" />
         <div className="h-4 w-32 rounded bg-bg-elevated" />
       </div>
@@ -88,34 +99,35 @@ function IntegrationCard({
   }
 
   const connected = status?.connected ?? false;
-  const lastSync = status?.lastSync;
 
   return (
-    <div className="p-4 bg-bg-surface border border-border rounded-lg space-y-3">
+    <div className="card p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          {icon}
+        <div className="flex items-center gap-3">
+          <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', brandColor || 'bg-primary/15')}>
+            {icon}
+          </div>
           <span className="font-body font-semibold text-[15px] text-text-primary">
             {name}
           </span>
         </div>
         <span
           className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-body text-[11px] font-medium uppercase tracking-wider',
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-body text-[11px] font-medium tracking-wide',
             connected
-              ? 'bg-success/15 text-success'
-              : 'bg-text-muted/15 text-text-muted',
+              ? 'bg-success/12 text-success'
+              : 'bg-text-muted/10 text-text-muted',
           )}
         >
           {connected ? (
             <>
-              <CheckCircle size={12} />
+              <CheckCircle size={11} />
               Ativo
             </>
           ) : (
             <>
-              <XCircle size={12} />
+              <XCircle size={11} />
               Inativo
             </>
           )}
@@ -123,12 +135,12 @@ function IntegrationCard({
       </div>
 
       {/* Last sync */}
-      {connected && lastSync && (
+      {connected && status?.lastSync && (
         <div className="flex items-center gap-1.5 text-text-muted">
           <Clock size={12} />
           <span className="font-body text-[12px]">
-            Ultima sync:{' '}
-            {format(parseISO(lastSync), "dd/MM/yyyy 'as' HH:mm", {
+            Sync:{' '}
+            {format(parseISO(status.lastSync), "dd/MM 'as' HH:mm", {
               locale: ptBR,
             })}
           </span>
@@ -143,16 +155,16 @@ function IntegrationCard({
               variant="secondary"
               onClick={onSync}
               loading={isSyncing}
-              className="h-9 text-[12px] px-4"
+              className="h-9 text-[11px] px-3 rounded-lg"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={13} />
               Sincronizar
             </Button>
             <button
               onClick={onDisconnect}
-              className="font-body text-[13px] text-danger hover:text-danger/80 transition-colors ml-auto flex items-center gap-1"
+              className="font-body text-[12px] text-danger/70 hover:text-danger transition-colors ml-auto flex items-center gap-1"
             >
-              <Unlink size={14} />
+              <Unlink size={13} />
               Desconectar
             </button>
           </>
@@ -160,14 +172,41 @@ function IntegrationCard({
           <Button
             variant="primary"
             onClick={onConnect}
-            className={cn('h-9 text-[12px] px-4', brandColor)}
+            className="h-9 text-[11px] px-4 rounded-lg"
           >
-            <LinkIcon size={14} />
+            <LinkIcon size={13} />
             Conectar
           </Button>
         )}
       </div>
     </div>
+  );
+}
+
+/* ---------- Menu item ---------- */
+
+function MenuItem({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof UserCog;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-3 w-full p-4 bg-bg-surface border border-border rounded-xl hover:bg-bg-elevated transition-colors group"
+    >
+      <div className="w-9 h-9 rounded-lg bg-bg-elevated flex items-center justify-center text-text-secondary group-hover:text-text-primary transition-colors">
+        <Icon size={18} />
+      </div>
+      <span className="font-body text-[15px] text-text-primary flex-1 text-left">
+        {label}
+      </span>
+      <ChevronRight size={16} className="text-text-muted group-hover:text-text-secondary transition-colors" />
+    </button>
   );
 }
 
@@ -299,20 +338,20 @@ export default function ConfiguracoesPage() {
   return (
     <div className="py-6 space-y-6">
       {/* Title */}
-      <h1 className="font-heading font-bold text-[28px] text-text-primary">
+      <h1 className="font-heading font-bold text-[28px] text-text-primary tracking-tight">
         Configuracoes
       </h1>
 
       {/* User info card */}
-      <div className="flex items-center gap-4 p-4 bg-bg-surface border border-border rounded-lg">
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/15 text-primary shrink-0">
-          <User size={24} />
+      <div className="card p-5 flex items-center gap-4">
+        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 text-primary shrink-0">
+          <User size={26} strokeWidth={1.8} />
         </div>
         <div className="min-w-0">
-          <p className="font-body font-semibold text-[16px] text-text-primary truncate">
+          <p className="font-heading font-bold text-[18px] text-text-primary truncate leading-tight">
             {user?.name ?? 'Atleta'}
           </p>
-          <p className="font-body text-[13px] text-text-secondary truncate">
+          <p className="font-body text-[13px] text-text-muted truncate mt-0.5">
             {user?.email ?? '---'}
           </p>
         </div>
@@ -320,25 +359,25 @@ export default function ConfiguracoesPage() {
 
       {/* Race goal card */}
       {raceGoal && (
-        <div className="flex items-center gap-4 p-4 bg-bg-surface border border-border rounded-lg">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-warning/15 text-warning shrink-0">
-            <Trophy size={24} />
+        <div className="card card-glow p-5 flex items-center gap-4">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning/10 text-warning shrink-0">
+            <Trophy size={26} strokeWidth={1.8} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-body font-semibold text-[16px] text-text-primary truncate">
+            <p className="font-heading font-bold text-[16px] text-text-primary truncate leading-tight">
               {raceGoal.raceName}
             </p>
-            <p className="font-body text-[13px] text-text-secondary">
+            <p className="font-body text-[12px] text-text-muted mt-0.5">
               {format(parseISO(raceGoal.raceDate), "dd 'de' MMMM 'de' yyyy", {
                 locale: ptBR,
               })}
             </p>
           </div>
-          <div className="text-center shrink-0">
-            <p className="font-mono font-bold text-[28px] text-primary leading-none">
+          <div className="text-center shrink-0 pl-2">
+            <p className="font-mono font-bold text-[32px] text-primary leading-none">
               {daysUntilRace}
             </p>
-            <p className="font-body text-[11px] text-text-muted uppercase tracking-wider">
+            <p className="font-body text-[10px] text-text-muted uppercase tracking-wider mt-0.5">
               dias
             </p>
           </div>
@@ -347,9 +386,7 @@ export default function ConfiguracoesPage() {
 
       {/* Integrations section */}
       <div className="space-y-3">
-        <h2 className="font-heading font-semibold text-[18px] text-text-primary">
-          Integracoes
-        </h2>
+        <SectionHeader>Integracoes</SectionHeader>
 
         {/* Sync error alerts */}
         {stravaSyncMutation.isError && (
@@ -367,7 +404,7 @@ export default function ConfiguracoesPage() {
         <IntegrationCard
           name="Strava"
           icon={
-            <svg className="w-5 h-5 text-strava" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
             </svg>
           }
@@ -384,11 +421,9 @@ export default function ConfiguracoesPage() {
         <IntegrationCard
           name="intervals.icu"
           icon={
-            <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center">
-              <span className="font-mono text-[10px] font-bold text-primary">i</span>
-            </div>
+            <span className="font-mono text-[11px] font-bold text-primary">i.cu</span>
           }
-          brandColor=""
+          brandColor="bg-primary/15"
           status={intervalsQuery.data?.data}
           isLoading={intervalsQuery.isLoading}
           onSync={() => intervalsSyncMutation.mutate()}
@@ -400,43 +435,27 @@ export default function ConfiguracoesPage() {
 
       {/* Account section */}
       <div className="space-y-3">
-        <h2 className="font-heading font-semibold text-[18px] text-text-primary">
-          Conta
-        </h2>
+        <SectionHeader>Conta</SectionHeader>
 
-        <button
+        <MenuItem
+          icon={UserCog}
+          label="Editar perfil atletico"
           onClick={() => router.push('/onboarding')}
-          className="flex items-center justify-between w-full p-4 bg-bg-surface border border-border rounded-lg hover:bg-bg-elevated transition-colors"
-        >
-          <span className="font-body text-[15px] text-text-primary">
-            Editar perfil atletico
-          </span>
-          <ChevronRight size={18} className="text-text-muted" />
-        </button>
-
-        <button
-          onClick={() => {
-            /* placeholder for password change flow */
-          }}
-          className="flex items-center justify-between w-full p-4 bg-bg-surface border border-border rounded-lg hover:bg-bg-elevated transition-colors"
-        >
-          <span className="font-body text-[15px] text-text-primary">
-            Alterar senha
-          </span>
-          <ChevronRight size={18} className="text-text-muted" />
-        </button>
+        />
+        <MenuItem
+          icon={Lock}
+          label="Alterar senha"
+          onClick={() => {}}
+        />
       </div>
 
       {/* Logout */}
-      <div className="pt-4">
+      <div className="pt-2">
         <Button variant="danger" fullWidth onClick={handleLogout}>
-          <LogOut size={18} />
+          <LogOut size={16} />
           Sair
         </Button>
       </div>
-
-      {/* Spacer for bottom nav */}
-      <div className="h-4" />
     </div>
   );
 }
