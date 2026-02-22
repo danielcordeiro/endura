@@ -69,7 +69,10 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
 
         return reply.send({
           data: result.items,
-          meta: result.meta,
+          meta: {
+            ...result.meta,
+            hasMore: result.meta.page < result.meta.totalPages,
+          },
         });
       } catch (err) {
         await handleError(err, request, reply);

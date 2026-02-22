@@ -10,6 +10,8 @@ import nutritionRoutes from './modules/nutrition/nutrition.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 import { startStravaSyncJob } from './jobs/strava-sync.job.js';
 import { startTokenRefreshJob } from './jobs/token-refresh.job.js';
+import { db } from './lib/db.js';
+import { sql } from 'drizzle-orm';
 
 const app = Fastify({
   logger: {
@@ -37,7 +39,12 @@ await app.register(cors, {
 
 // ── Health check ──────────────────────────────────────────────────
 app.get('/health', async () => {
-  return { ok: true, timestamp: new Date().toISOString() };
+  try {
+    await db.execute(sql`SELECT 1`);
+    return { ok: true, db: 'connected', timestamp: new Date().toISOString() };
+  } catch (err) {
+    return { ok: false, db: 'error', error: String(err), timestamp: new Date().toISOString() };
+  }
 });
 
 // ── Rotas ─────────────────────────────────────────────────────────
