@@ -7,6 +7,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { callbackQuery } from './integration.schemas.js';
 import { authenticate } from '../auth/auth.middleware.js';
 import { generateTokens } from '../auth/auth.service.js';
+import { syncUserActivities } from './strava-sync.service.js';
 import type {
   ConnectResponse,
   StatusResponse,
@@ -302,9 +303,19 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       );
     }
 
-    request.log.info({ provider: PROVIDER }, 'Sync manual solicitado');
-    return reply.code(202).send({
-      data: { message: 'Sincronizacao agendada', status: 'accepted' },
-    } satisfies SyncAcceptedResponse);
+    request.log.info({ provider: PROVIDER }, 'Sync manual iniciado');
+
+    try {
+      const synced = await syncUserActivities(request.userId);
+      request.log.info({ provider: PROVIDER, synced }, 'Sync manual concluido');
+      return reply.send({
+        data: { message: `${synced} atividades sincronizadas`, synced },
+      });
+    } catch (err) {
+      request.log.error(err, 'Erro no sync manual');
+      return reply.code(500).send(
+        errorPayload('ERR_SYNC_FAILED', 'Erro ao sincronizar atividades', 500),
+      );
+    }
   });
 }

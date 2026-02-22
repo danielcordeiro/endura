@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 const tabs = [
   { href: '/dashboard', label: 'Início', icon: 'home' },
+  { href: '/atividades', label: 'Atividades', icon: 'directions_run' },
   { href: '/treino', label: 'Treino', icon: 'fitness_center' },
   { href: '/nutricao', label: 'Nutrição', icon: 'restaurant' },
   { href: '/configuracoes', label: 'Perfil', icon: 'person' },
