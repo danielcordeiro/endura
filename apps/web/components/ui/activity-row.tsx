@@ -1,6 +1,5 @@
 'use client';
 
-import { Waves, Bike, Footprints, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Discipline = 'swim' | 'bike' | 'run' | 'brick';
@@ -16,18 +15,18 @@ interface ActivityRowProps {
   className?: string;
 }
 
-const iconMap: Record<Discipline, typeof Waves> = {
-  swim: Waves,
-  bike: Bike,
-  run: Footprints,
-  brick: Zap,
+const iconMap: Record<Discipline, string> = {
+  swim: 'pool',
+  bike: 'directions_bike',
+  run: 'directions_run',
+  brick: 'bolt',
 };
 
-const colorMap: Record<Discipline, string> = {
-  swim: 'text-swim bg-swim/15',
-  bike: 'text-bike bg-bike/15',
-  run: 'text-run bg-run/15',
-  brick: 'text-brick bg-brick/15',
+const colorMap: Record<Discipline, { bg: string; text: string }> = {
+  swim: { bg: 'bg-cyan-500/20', text: 'text-cyan-400' },
+  bike: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
+  run: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
+  brick: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
 };
 
 export function ActivityRow({
@@ -40,48 +39,47 @@ export function ActivityRow({
   onClick,
   className,
 }: ActivityRowProps) {
-  const Icon = iconMap[discipline];
   const colors = colorMap[discipline];
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        'flex items-center gap-3 w-full text-left p-3 rounded-lg',
-        'bg-bg-surface border border-border',
-        'hover:bg-bg-elevated transition-colors duration-150',
-        'active:scale-[0.99]',
+        'flex items-center gap-4 w-full text-left p-4 rounded-2xl',
+        'bg-bg-surface border border-slate-800/50',
+        'hover:border-primary/30 transition-all duration-150',
+        'active:scale-[0.98]',
         className,
       )}
     >
       {/* Icon */}
-      <div className={cn('flex items-center justify-center w-10 h-10 rounded-full shrink-0', colors)}>
-        <Icon size={20} />
+      <div className={cn('flex items-center justify-center w-12 h-12 rounded-full shrink-0', colors.bg, colors.text)}>
+        <span className="material-symbols-outlined">{iconMap[discipline]}</span>
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="font-body font-semibold text-[15px] text-text-primary truncate">{title}</p>
-        <p className="font-body text-[12px] text-text-secondary mt-0.5">
-          {date} · {duration}{distance ? ` · ${distance}` : ''}
-        </p>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span
-            className={cn(
-              'w-2 h-2 rounded-full',
-              hasNutrition ? 'bg-success' : 'bg-text-muted',
+        <div className="flex justify-between items-start">
+          <h3 className="font-semibold text-white truncate pr-2">{title}</h3>
+          <div className="flex flex-col items-end shrink-0">
+            {distance && (
+              <span className="text-sm font-bold text-white">
+                {distance}
+              </span>
             )}
-          />
-          <span className="font-body text-[11px] text-text-muted">
-            {hasNutrition ? 'Nutricao registrada' : 'Sem nutricao'}
-          </span>
+            <span className="text-xs text-slate-400">{duration}</span>
+          </div>
+        </div>
+        <div className="flex items-center mt-1 gap-2">
+          <span className="text-xs text-slate-400">{date}</span>
+          {hasNutrition && (
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-700">
+              <span className="material-symbols-outlined text-[14px] text-green-500">nutrition</span>
+              <span className="text-[10px] font-medium text-green-400 uppercase tracking-wide">Nutrição</span>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Chevron */}
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-text-muted shrink-0">
-        <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
     </button>
   );
 }

@@ -2,26 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  User,
-  Trophy,
-  RefreshCw,
-  Unlink,
-  ChevronRight,
-  LogOut,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Link as LinkIcon,
-  UserCog,
-  Lock,
-} from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { AlertBanner } from '@/components/ui/alert-banner';
 
 /* ---------- Types ---------- */
@@ -46,23 +31,20 @@ interface RaceGoal {
 
 function SettingsSkeleton() {
   return (
-    <div className="py-6 space-y-5 animate-pulse">
-      <div className="h-7 w-44 rounded-md bg-bg-surface" />
-      <div className="h-[88px] rounded-xl bg-bg-surface" />
-      <div className="h-4 w-28 rounded bg-bg-surface mt-2" />
-      <div className="h-[104px] rounded-xl bg-bg-surface" />
-      <div className="h-[104px] rounded-xl bg-bg-surface" />
+    <div className="py-6 space-y-6 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="h-8 w-24 rounded-lg bg-slate-800/60" />
+        <div className="h-10 w-10 rounded-full bg-slate-800/60" />
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-24 h-24 rounded-full bg-slate-800/60" />
+        <div className="h-5 w-32 rounded bg-slate-800/60" />
+        <div className="h-4 w-44 rounded bg-slate-800/60" />
+      </div>
+      <div className="h-[140px] rounded-2xl bg-slate-800/60" />
+      <div className="h-[88px] rounded-2xl bg-slate-800/60" />
+      <div className="h-[88px] rounded-2xl bg-slate-800/60" />
     </div>
-  );
-}
-
-/* ---------- Section header ---------- */
-
-function SectionHeader({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="font-heading font-semibold text-[13px] text-text-muted uppercase tracking-[0.1em] px-1">
-      {children}
-    </h2>
   );
 }
 
@@ -71,7 +53,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 function IntegrationCard({
   name,
   icon,
-  brandColor,
+  brandBg,
   status,
   isLoading,
   onSync,
@@ -81,7 +63,7 @@ function IntegrationCard({
 }: {
   name: string;
   icon: React.ReactNode;
-  brandColor: string;
+  brandBg: string;
   status?: IntegrationStatus['data'];
   isLoading: boolean;
   onSync: () => void;
@@ -91,9 +73,9 @@ function IntegrationCard({
 }) {
   if (isLoading) {
     return (
-      <div className="card p-4 animate-pulse">
-        <div className="h-5 w-24 rounded bg-bg-elevated mb-3" />
-        <div className="h-4 w-32 rounded bg-bg-elevated" />
+      <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 animate-pulse">
+        <div className="h-5 w-24 rounded bg-slate-800/60 mb-3" />
+        <div className="h-4 w-32 rounded bg-slate-800/60" />
       </div>
     );
   }
@@ -101,44 +83,38 @@ function IntegrationCard({
   const connected = status?.connected ?? false;
 
   return (
-    <div className="card p-4 space-y-3">
+    <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center', brandColor || 'bg-primary/15')}>
+          <div
+            className={cn(
+              'w-10 h-10 rounded-full flex items-center justify-center',
+              brandBg,
+            )}
+          >
             {icon}
           </div>
-          <span className="font-body font-semibold text-[15px] text-text-primary">
+          <span className="font-semibold text-[15px] text-slate-100">
             {name}
           </span>
         </div>
-        <span
-          className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-body text-[11px] font-medium tracking-wide',
-            connected
-              ? 'bg-success/12 text-success'
-              : 'bg-text-muted/10 text-text-muted',
-          )}
-        >
-          {connected ? (
-            <>
-              <CheckCircle size={11} />
-              Ativo
-            </>
-          ) : (
-            <>
-              <XCircle size={11} />
-              Inativo
-            </>
-          )}
-        </span>
+        {connected && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs font-medium text-emerald-400">Ativo</span>
+          </div>
+        )}
+        {!connected && (
+          <span className="text-xs font-medium text-slate-500">Inativo</span>
+        )}
       </div>
 
       {/* Last sync */}
       {connected && status?.lastSync && (
-        <div className="flex items-center gap-1.5 text-text-muted">
-          <Clock size={12} />
-          <span className="font-body text-[12px]">
+        <div className="flex items-center gap-1.5 text-slate-500">
+          <span className="material-symbols-outlined text-xs">schedule</span>
+          <span className="text-xs">
             Sync:{' '}
             {format(parseISO(status.lastSync), "dd/MM 'as' HH:mm", {
               locale: ptBR,
@@ -151,32 +127,42 @@ function IntegrationCard({
       <div className="flex items-center gap-2">
         {connected ? (
           <>
-            <Button
-              variant="secondary"
+            <button
               onClick={onSync}
-              loading={isSyncing}
-              className="h-9 text-[11px] px-3 rounded-lg"
+              disabled={isSyncing}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
+                'text-xs font-semibold text-slate-100',
+                'bg-[#283139] border border-slate-700/50',
+                'hover:bg-slate-700/40 transition-colors',
+                'disabled:opacity-40',
+              )}
             >
-              <RefreshCw size={13} />
+              <span className={cn('material-symbols-outlined text-sm', isSyncing && 'animate-spin')}>
+                sync
+              </span>
               Sincronizar
-            </Button>
+            </button>
             <button
               onClick={onDisconnect}
-              className="font-body text-[12px] text-danger/70 hover:text-danger transition-colors ml-auto flex items-center gap-1"
+              className="ml-auto text-xs text-red-400/70 hover:text-red-400 transition-colors flex items-center gap-1"
             >
-              <Unlink size={13} />
+              <span className="material-symbols-outlined text-sm">link_off</span>
               Desconectar
             </button>
           </>
         ) : (
-          <Button
-            variant="primary"
+          <button
             onClick={onConnect}
-            className="h-9 text-[11px] px-4 rounded-lg"
+            className={cn(
+              'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
+              'text-xs font-semibold text-white',
+              'bg-primary hover:bg-blue-600 transition-colors',
+            )}
           >
-            <LinkIcon size={13} />
+            <span className="material-symbols-outlined text-sm">link</span>
             Conectar
-          </Button>
+          </button>
         )}
       </div>
     </div>
@@ -186,26 +172,28 @@ function IntegrationCard({
 /* ---------- Menu item ---------- */
 
 function MenuItem({
-  icon: Icon,
+  icon,
   label,
   onClick,
 }: {
-  icon: typeof UserCog;
+  icon: string;
   label: string;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 w-full p-4 bg-bg-surface border border-border rounded-xl hover:bg-bg-elevated transition-colors group"
+      className="flex items-center gap-3 w-full px-4 py-3.5 hover:bg-[#283139] transition-colors group"
     >
-      <div className="w-9 h-9 rounded-lg bg-bg-elevated flex items-center justify-center text-text-secondary group-hover:text-text-primary transition-colors">
-        <Icon size={18} />
+      <div className="w-9 h-9 rounded-xl bg-[#283139] flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors">
+        <span className="material-symbols-outlined text-lg">{icon}</span>
       </div>
-      <span className="font-body text-[15px] text-text-primary flex-1 text-left">
+      <span className="text-[15px] text-slate-100 flex-1 text-left">
         {label}
       </span>
-      <ChevronRight size={16} className="text-text-muted group-hover:text-text-secondary transition-colors" />
+      <span className="material-symbols-outlined text-lg text-slate-500 group-hover:text-slate-400 transition-colors">
+        chevron_right
+      </span>
     </button>
   );
 }
@@ -337,56 +325,75 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="py-6 space-y-6">
-      {/* Title */}
-      <h1 className="font-heading font-bold text-[28px] text-text-primary tracking-tight">
-        Configuracoes
-      </h1>
-
-      {/* User info card */}
-      <div className="card p-5 flex items-center gap-4">
-        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 text-primary shrink-0">
-          <User size={26} strokeWidth={1.8} />
-        </div>
-        <div className="min-w-0">
-          <p className="font-heading font-bold text-[18px] text-text-primary truncate leading-tight">
-            {user?.name ?? 'Atleta'}
-          </p>
-          <p className="font-body text-[13px] text-text-muted truncate mt-0.5">
-            {user?.email ?? '---'}
-          </p>
-        </div>
+      {/* ── Header: Title + Settings gear ── */}
+      <div className="flex items-center justify-between animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+        <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-slate-100 tracking-tight">
+          Perfil
+        </h1>
+        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors">
+          <span className="material-symbols-outlined text-xl">settings</span>
+        </button>
       </div>
 
-      {/* Race goal card */}
+      {/* ── Avatar + User Info ── */}
+      <div className="flex flex-col items-center animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+        <div className="relative">
+          <div className="w-24 h-24 rounded-full bg-[#1c262f] border-2 border-slate-700/50 flex items-center justify-center">
+            <span className="material-symbols-outlined text-4xl text-slate-400">person</span>
+          </div>
+          {/* Edit badge */}
+          <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <span className="material-symbols-outlined text-sm text-white">edit</span>
+          </button>
+        </div>
+        <h2 className="font-[var(--font-heading)] font-bold text-lg text-slate-100 mt-3">
+          {user?.name ?? 'Atleta'}
+        </h2>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {user?.email ?? '---'}
+        </p>
+      </div>
+
+      {/* ── Race Target Card ── */}
       {raceGoal && (
-        <div className="card card-glow p-5 flex items-center gap-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning/10 text-warning shrink-0">
-            <Trophy size={26} strokeWidth={1.8} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-heading font-bold text-[16px] text-text-primary truncate leading-tight">
-              {raceGoal.raceName}
-            </p>
-            <p className="font-body text-[12px] text-text-muted mt-0.5">
-              {format(parseISO(raceGoal.raceDate), "dd 'de' MMMM 'de' yyyy", {
-                locale: ptBR,
-              })}
-            </p>
-          </div>
-          <div className="text-center shrink-0 pl-2">
-            <p className="font-mono font-bold text-[32px] text-primary leading-none">
-              {daysUntilRace}
-            </p>
-            <p className="font-body text-[10px] text-text-muted uppercase tracking-wider mt-0.5">
-              dias
-            </p>
+        <div
+          className="relative rounded-2xl border border-slate-800/50 overflow-hidden animate-fade-in-up stagger-2"
+          style={{ opacity: 0 }}
+        >
+          {/* Background gradient overlay (simulating bg image + gradient) */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-[#1c262f] to-[#1c262f]" />
+          <div className="relative p-5 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                Prova Alvo
+              </span>
+              <p className="font-[var(--font-heading)] font-bold text-lg text-slate-100 truncate leading-tight mt-1">
+                {raceGoal.raceName}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                {format(parseISO(raceGoal.raceDate), "dd 'de' MMMM 'de' yyyy", {
+                  locale: ptBR,
+                })}
+              </p>
+            </div>
+            {/* Days badge */}
+            <div className="shrink-0 text-center bg-[#101a22]/80 rounded-2xl px-4 py-3 border border-slate-800/50">
+              <p className="font-[var(--font-mono)] font-bold text-3xl text-primary leading-none">
+                {daysUntilRace}
+              </p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">
+                dias
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Integrations section */}
-      <div className="space-y-3">
-        <SectionHeader>Integracoes</SectionHeader>
+      {/* ── Integrations section ── */}
+      <div className="space-y-3 animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+          Integracoes
+        </p>
 
         {/* Sync error alerts */}
         {stravaSyncMutation.isError && (
@@ -404,11 +411,9 @@ export default function ConfiguracoesPage() {
         <IntegrationCard
           name="Strava"
           icon={
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
-            </svg>
+            <span className="font-bold text-sm text-white">ST</span>
           }
-          brandColor="bg-strava"
+          brandBg="bg-[#fc4c02]"
           status={stravaQuery.data?.data}
           isLoading={stravaQuery.isLoading}
           onSync={() => stravaSyncMutation.mutate()}
@@ -421,9 +426,9 @@ export default function ConfiguracoesPage() {
         <IntegrationCard
           name="intervals.icu"
           icon={
-            <span className="font-mono text-[11px] font-bold text-primary">i.cu</span>
+            <span className="font-[var(--font-mono)] text-[11px] font-bold text-primary">i.cu</span>
           }
-          brandColor="bg-primary/15"
+          brandBg="bg-primary/15"
           status={intervalsQuery.data?.data}
           isLoading={intervalsQuery.isLoading}
           onSync={() => intervalsSyncMutation.mutate()}
@@ -433,29 +438,48 @@ export default function ConfiguracoesPage() {
         />
       </div>
 
-      {/* Account section */}
-      <div className="space-y-3">
-        <SectionHeader>Conta</SectionHeader>
+      {/* ── Account section ── */}
+      <div className="space-y-1 animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
+        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">
+          Conta
+        </p>
 
-        <MenuItem
-          icon={UserCog}
-          label="Editar perfil atletico"
-          onClick={() => router.push('/onboarding')}
-        />
-        <MenuItem
-          icon={Lock}
-          label="Alterar senha"
-          onClick={() => {}}
-        />
+        <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] overflow-hidden divide-y divide-slate-800/50">
+          <MenuItem
+            icon="manage_accounts"
+            label="Editar perfil atletico"
+            onClick={() => router.push('/onboarding')}
+          />
+          <MenuItem
+            icon="lock"
+            label="Alterar senha"
+            onClick={() => {}}
+          />
+        </div>
       </div>
 
-      {/* Logout */}
-      <div className="pt-2">
-        <Button variant="danger" fullWidth onClick={handleLogout}>
-          <LogOut size={16} />
+      {/* ── Logout ── */}
+      <div className="pt-2 animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'w-full h-14 rounded-full',
+            'inline-flex items-center justify-center gap-2',
+            'text-sm font-semibold text-red-500',
+            'border border-red-500/30',
+            'hover:bg-red-500/10 transition-colors',
+            'active:scale-[0.98]',
+          )}
+        >
+          <span className="material-symbols-outlined text-lg">logout</span>
           Sair
-        </Button>
+        </button>
       </div>
+
+      {/* ── Version ── */}
+      <p className="text-center text-xs text-slate-600 pb-4">
+        Endura v1.0.0
+      </p>
     </div>
   );
 }

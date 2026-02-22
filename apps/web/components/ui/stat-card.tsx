@@ -2,45 +2,36 @@
 
 import { cn } from '@/lib/utils';
 
-type StatCardVariant = 'default' | 'highlight' | 'warn' | 'danger';
-
 interface StatCardProps {
   label: string;
   value: string | number;
   unit?: string;
   context?: string;
-  variant?: StatCardVariant;
+  icon?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-const variantBorder: Record<StatCardVariant, string> = {
-  default: '',
-  highlight: 'border-l-3 border-l-primary',
-  warn: 'border-l-3 border-l-warning',
-  danger: 'border-l-3 border-l-danger',
-};
-
-export function StatCard({ label, value, unit, context, variant = 'default', className }: StatCardProps) {
+export function StatCard({ label, value, unit, context, icon, className, children }: StatCardProps) {
   return (
     <div
       className={cn(
-        'bg-bg-surface border border-border rounded-lg p-4',
-        'transition-transform duration-150 ease-out hover:scale-[1.02] hover:brightness-105',
-        variantBorder[variant],
+        'bg-bg-surface rounded-3xl border border-slate-800/50 p-4 flex flex-col gap-3',
         className,
       )}
     >
-      <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary">
+      <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider">
+        {icon && <span className="material-symbols-outlined text-base">{icon}</span>}
         {label}
-      </p>
-      <p className="font-mono font-bold text-[32px] leading-tight text-text-primary mt-1">
+      </div>
+      <div className="text-2xl font-bold text-white font-[var(--font-mono)]">
         {value}
-      </p>
-      {(unit || context) && (
-        <p className="font-body text-[12px] text-text-muted mt-0.5">
-          {unit}{unit && context ? ' · ' : ''}{context}
-        </p>
+        {unit && <span className="text-lg text-slate-500 font-normal ml-0.5">{unit}</span>}
+      </div>
+      {context && (
+        <div className="text-xs text-slate-500 mt-auto">{context}</div>
       )}
+      {children && <div className="mt-auto">{children}</div>}
     </div>
   );
 }

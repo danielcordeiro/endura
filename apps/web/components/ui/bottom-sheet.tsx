@@ -36,7 +36,7 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 animate-fade-in"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
@@ -44,24 +44,24 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
       <div
         className={cn(
           'absolute bottom-0 left-0 right-0',
-          'bg-bg-elevated rounded-t-xl',
-          'animate-slide-up',
-          'max-h-[85vh] overflow-y-auto',
+          'bg-[#111518] rounded-t-[2rem]',
+          'shadow-2xl animate-slide-up',
+          'max-h-[90vh] overflow-hidden flex flex-col',
           className,
         )}
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-8 h-1 rounded-full bg-border" />
+        <div className="w-full flex justify-center pt-3 pb-2 cursor-grab">
+          <div className="h-1.5 w-12 rounded-full bg-slate-600/50" />
         </div>
 
         {title && (
-          <h2 className="font-heading font-semibold text-[22px] text-text-primary px-4 pb-3">
+          <h2 className="text-white text-2xl font-bold text-center mb-4 tracking-tight px-6">
             {title}
           </h2>
         )}
 
-        <div className="px-4 pb-8">{children}</div>
+        <div className="flex-1 overflow-y-auto px-6 pb-8">{children}</div>
       </div>
     </div>
   );

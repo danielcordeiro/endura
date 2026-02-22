@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { RefreshCw, Waves, Bike, Footprints, Inbox, Activity } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -42,16 +41,16 @@ interface ActivitiesPage {
 /* ---------- Constants ---------- */
 
 const periodOptions: { value: Period; label: string }[] = [
-  { value: '7', label: '7 dias' },
-  { value: '30', label: '30 dias' },
-  { value: '90', label: '90 dias' },
+  { value: '7', label: '7d' },
+  { value: '30', label: '30d' },
+  { value: '90', label: '90d' },
 ];
 
-const disciplineOptions: { value: DisciplineFilter; label: string; icon?: typeof Waves; color?: string }[] = [
+const disciplineOptions: { value: DisciplineFilter; label: string; icon?: string }[] = [
   { value: 'all', label: 'Todos' },
-  { value: 'swim', label: 'Swim', icon: Waves, color: 'text-swim' },
-  { value: 'bike', label: 'Bike', icon: Bike, color: 'text-bike' },
-  { value: 'run', label: 'Run', icon: Footprints, color: 'text-run' },
+  { value: 'swim', label: 'Swim', icon: 'pool' },
+  { value: 'bike', label: 'Bike', icon: 'directions_bike' },
+  { value: 'run', label: 'Run', icon: 'directions_run' },
 ];
 
 /* ---------- Helpers ---------- */
@@ -70,44 +69,17 @@ function groupByMonth(activities: ActivityItem[]): Record<string, ActivityItem[]
 
 function SkeletonRow() {
   return (
-    <div className="flex items-center gap-3 p-4 card animate-pulse">
-      <div className="w-10 h-10 rounded-xl bg-bg-elevated shrink-0" />
-      <div className="flex-1 space-y-2">
-        <div className="h-4 w-3/5 rounded bg-bg-elevated" />
-        <div className="h-3 w-2/5 rounded bg-bg-elevated" />
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#1c262f] border border-slate-800/50 animate-pulse">
+      <div className="w-12 h-12 rounded-full bg-[#283139] shrink-0" />
+      <div className="flex-1 space-y-2.5">
+        <div className="h-4 w-3/5 rounded-lg bg-[#283139]" />
+        <div className="h-3 w-2/5 rounded-lg bg-[#283139]" />
+      </div>
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <div className="h-4 w-12 rounded-lg bg-[#283139]" />
+        <div className="h-3 w-10 rounded-lg bg-[#283139]" />
       </div>
     </div>
-  );
-}
-
-/* ---------- Filter chip ---------- */
-
-function FilterChip({
-  active,
-  onClick,
-  children,
-  icon: Icon,
-  iconColor,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  icon?: typeof Waves;
-  iconColor?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-body text-[13px] font-medium transition-all duration-200 whitespace-nowrap',
-        active
-          ? 'bg-primary/15 text-primary border border-primary/25'
-          : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated hover:text-text-primary',
-      )}
-    >
-      {Icon && <Icon size={14} className={active ? 'text-primary' : iconColor} />}
-      {children}
-    </button>
   );
 }
 
@@ -177,41 +149,59 @@ export default function AtividadesPage() {
   );
 
   return (
-    <div className="py-6 space-y-5">
-      {/* Title */}
-      <h1 className="font-heading font-bold text-[28px] text-text-primary tracking-tight">
-        Atividades
-      </h1>
+    <div className="py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading font-bold text-3xl text-slate-100 tracking-tight">
+          Atividades
+        </h1>
+        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors">
+          <span className="material-symbols-outlined text-[20px]">settings</span>
+        </button>
+      </div>
 
-      {/* Filters */}
-      <div className="space-y-3">
-        {/* Period filter */}
-        <div className="flex gap-2">
-          {periodOptions.map((opt) => (
-            <FilterChip
-              key={opt.value}
-              active={period === opt.value}
-              onClick={() => setPeriod(opt.value)}
-            >
-              {opt.label}
-            </FilterChip>
-          ))}
-        </div>
+      {/* Period segmented control */}
+      <div className="bg-[#1c262f] p-1 rounded-xl flex">
+        {periodOptions.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setPeriod(opt.value)}
+            className={cn(
+              'flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+              period === opt.value
+                ? 'bg-[#1d8fed] text-white shadow-md shadow-[#1d8fed]/25'
+                : 'text-slate-400 hover:text-slate-200',
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
-        {/* Discipline filter */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {disciplineOptions.map((opt) => (
-            <FilterChip
-              key={opt.value}
-              active={discipline === opt.value}
-              onClick={() => setDiscipline(opt.value)}
-              icon={opt.icon}
-              iconColor={opt.color}
-            >
-              {opt.label}
-            </FilterChip>
-          ))}
-        </div>
+      {/* Discipline pill filters */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {disciplineOptions.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setDiscipline(opt.value)}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0',
+              discipline === opt.value
+                ? 'bg-[#1d8fed]/15 text-[#1d8fed] border border-[#1d8fed]/30'
+                : 'bg-[#1c262f] text-slate-400 border border-slate-800/50 hover:bg-[#283139] hover:text-slate-200',
+            )}
+          >
+            {opt.icon && (
+              <span className={cn(
+                'material-symbols-outlined text-[16px]',
+                discipline === opt.value ? 'text-[#1d8fed]' : 'text-slate-500',
+              )}>
+                {opt.icon}
+              </span>
+            )}
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {/* Error state */}
@@ -244,12 +234,12 @@ export default function AtividadesPage() {
 
       {/* Activities grouped by month */}
       {!isLoading && allActivities.length > 0 && (
-        <div className="space-y-5">
+        <div className="space-y-2">
           {Object.entries(grouped).map(([month, activities]) => (
             <Fragment key={month}>
-              {/* Month header */}
-              <div className="sticky top-0 z-10 -mx-5 px-5 py-2 bg-bg-base/90 backdrop-blur-sm">
-                <h2 className="font-heading font-semibold text-[13px] text-text-muted uppercase tracking-[0.1em]">
+              {/* Sticky month header */}
+              <div className="sticky top-0 z-10 -mx-5 px-5 py-2.5 bg-[#101a22]/95 backdrop-blur-md">
+                <h2 className="font-heading font-semibold text-[12px] text-slate-500 uppercase tracking-[0.12em]">
                   {month}
                 </h2>
               </div>
@@ -273,12 +263,12 @@ export default function AtividadesPage() {
 
           {/* Load more */}
           {hasNextPage && (
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center pt-4">
               <Button
                 variant="ghost"
                 onClick={() => fetchNextPage()}
                 loading={isFetchingNextPage}
-                className="h-10 text-[13px]"
+                className="h-11 text-[13px] rounded-full"
               >
                 Carregar mais
               </Button>
@@ -289,15 +279,17 @@ export default function AtividadesPage() {
 
       {/* Empty state */}
       {!isLoading && allActivities.length === 0 && !isError && (
-        <div className="flex flex-col items-center justify-center py-20 space-y-5">
-          <div className="w-20 h-20 rounded-2xl bg-bg-surface border border-border flex items-center justify-center">
-            <Activity size={36} className="text-text-muted" strokeWidth={1.5} />
+        <div className="flex flex-col items-center justify-center py-20 space-y-6">
+          <div className="w-20 h-20 rounded-2xl bg-[#1c262f] border border-slate-800/50 flex items-center justify-center">
+            <span className="material-symbols-outlined text-[36px] text-slate-500">
+              directions_run
+            </span>
           </div>
-          <div className="text-center space-y-1.5">
-            <p className="font-heading font-bold text-[18px] text-text-primary">
+          <div className="text-center space-y-2">
+            <p className="font-heading font-bold text-lg text-slate-100">
               Nenhuma atividade
             </p>
-            <p className="font-body text-[14px] text-text-muted max-w-[260px]">
+            <p className="font-body text-sm text-slate-500 max-w-[260px]">
               Conecte o Strava nas configuracoes para importar seus treinos automaticamente.
             </p>
           </div>
@@ -306,24 +298,37 @@ export default function AtividadesPage() {
             variant="secondary"
             onClick={() => syncMutation.mutate()}
             loading={syncMutation.isPending}
-            className="h-10 text-[12px] px-5"
+            className="h-11 text-[13px] px-6 rounded-full"
           >
-            <RefreshCw size={14} />
+            <span className="material-symbols-outlined text-[18px]">sync</span>
             Sincronizar manualmente
           </Button>
         </div>
       )}
 
-      {/* Manual sync button (when has activities) */}
+      {/* FAB - Sync button (when has activities) */}
       {!isLoading && allActivities.length > 0 && (
-        <div className="flex justify-center pb-2">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20">
           <button
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
-            className="font-body text-[13px] text-text-muted hover:text-text-secondary transition-colors flex items-center gap-1.5"
+            className={cn(
+              'inline-flex items-center gap-2 px-5 py-3 rounded-full',
+              'bg-[#1c262f] border border-slate-800/50',
+              'text-slate-300 text-[13px] font-medium',
+              'shadow-lg shadow-black/30',
+              'hover:bg-[#283139] hover:text-slate-100 transition-all duration-200',
+              'active:scale-[0.97]',
+              'disabled:opacity-50',
+            )}
           >
-            <RefreshCw size={13} className={syncMutation.isPending ? 'animate-spin' : ''} />
-            Sincronizar
+            <span className={cn(
+              'material-symbols-outlined text-[18px]',
+              syncMutation.isPending && 'animate-spin',
+            )}>
+              sync
+            </span>
+            Sincronizar Manualmente
           </button>
         </div>
       )}

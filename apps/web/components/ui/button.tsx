@@ -13,32 +13,31 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: [
-    'bg-primary text-text-inverse font-bold',
-    'shadow-[0_2px_12px_rgba(0,245,196,0.25)]',
-    'hover:brightness-110 hover:shadow-[0_2px_20px_rgba(0,245,196,0.35)]',
-    'active:scale-[0.97] active:shadow-[0_1px_8px_rgba(0,245,196,0.2)]',
+    'bg-primary text-white font-bold',
+    'shadow-lg shadow-primary/25',
+    'hover:bg-blue-600',
+    'active:scale-[0.98]',
   ].join(' '),
   secondary: [
-    'bg-bg-surface border border-border text-text-primary',
-    'shadow-[0_1px_3px_rgba(0,0,0,0.2)]',
-    'hover:bg-bg-elevated hover:border-text-muted/30',
-    'active:scale-[0.97]',
+    'bg-bg-surface border border-slate-700/50 text-text-primary',
+    'hover:bg-bg-elevated',
+    'active:scale-[0.98]',
   ].join(' '),
   ghost: [
     'bg-transparent text-text-secondary',
-    'hover:bg-bg-surface hover:text-text-primary',
-    'active:scale-[0.97]',
+    'hover:bg-white/5 hover:text-text-primary',
+    'active:scale-[0.98]',
   ].join(' '),
   danger: [
-    'bg-danger/15 text-danger border border-danger/25',
-    'hover:bg-danger/25',
-    'active:scale-[0.97]',
+    'bg-transparent text-danger border border-danger/30',
+    'hover:bg-danger/10 hover:border-danger/50',
+    'active:scale-[0.98]',
   ].join(' '),
   strava: [
     'bg-strava text-white font-bold',
-    'shadow-[0_2px_12px_rgba(252,76,2,0.25)]',
-    'hover:brightness-110 hover:shadow-[0_2px_20px_rgba(252,76,2,0.35)]',
-    'active:scale-[0.97]',
+    'shadow-lg shadow-strava/25',
+    'hover:brightness-110',
+    'active:scale-[0.98]',
   ].join(' '),
 };
 
@@ -50,8 +49,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={cn(
           'inline-flex items-center justify-center gap-2',
-          'font-body font-semibold text-[14px] uppercase tracking-[0.06em]',
-          'h-12 px-6 rounded-xl',
+          'font-semibold text-[14px] tracking-wide',
+          'h-14 px-6 rounded-full',
           'transition-all duration-200 ease-out',
           'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
           'disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none',

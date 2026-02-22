@@ -30,7 +30,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--color-primary-dim)"
+          stroke="rgba(29,143,237,0.15)"
           strokeWidth={strokeWidth}
         />
         {/* Fill */}
@@ -48,11 +48,11 @@ export function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono font-bold text-[24px] text-text-primary">
+        <span className="font-[var(--font-mono)] font-bold text-[24px] text-white">
           {Math.round(progress)}%
         </span>
         {label && (
-          <span className="font-body text-[12px] text-text-muted">{label}</span>
+          <span className="text-[12px] text-slate-500">{label}</span>
         )}
       </div>
     </div>

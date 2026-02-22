@@ -40,19 +40,19 @@ export function NutritionTimeline({ items, className }: NutritionTimelineProps) 
     <div className={cn('relative', className)}>
       {/* Phase labels */}
       <div className="flex justify-between mb-2">
-        <span className="font-body text-[11px] font-medium uppercase tracking-wider text-phase-pre">PRE</span>
-        <span className="font-body text-[11px] font-medium uppercase tracking-wider text-phase-during">DURANTE</span>
-        <span className="font-body text-[11px] font-medium uppercase tracking-wider text-phase-post">POS</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-phase-pre">PRE</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-phase-during">DURANTE</span>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-phase-post">PÓS</span>
       </div>
 
       {/* Timeline line */}
-      <div className="relative h-px bg-border my-3">
+      <div className="relative h-px bg-slate-700/50 my-3">
         {/* Dots */}
         <div className="absolute inset-0 flex items-center justify-between px-1">
           {sorted.map((item, i) => (
             <div
               key={i}
-              className={cn('w-2.5 h-2.5 rounded-full -mt-px', phaseColor[item.phase])}
+              className={cn('w-3 h-3 rounded-full -mt-px ring-2 ring-[#101a22]', phaseColor[item.phase])}
               style={{
                 position: 'absolute',
                 left: `${((i) / Math.max(sorted.length - 1, 1)) * 100}%`,
@@ -76,10 +76,10 @@ export function NutritionTimeline({ items, className }: NutritionTimelineProps) 
               maxWidth: 80,
             }}
           >
-            <p className="font-mono text-[11px] text-text-muted">{formatOffset(item.minuteOffset)}</p>
-            <p className="font-body text-[11px] text-text-secondary truncate">{item.product}</p>
+            <p className="font-[var(--font-mono)] text-[11px] text-slate-500">{formatOffset(item.minuteOffset)}</p>
+            <p className="text-[11px] text-slate-400 truncate">{item.product}</p>
             {item.detail && (
-              <p className="font-body text-[10px] text-text-muted truncate">{item.detail}</p>
+              <p className="text-[10px] text-slate-500 truncate">{item.detail}</p>
             )}
           </div>
         ))}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Waves, Bike, Footprints, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Discipline = 'swim' | 'bike' | 'run' | 'brick';
@@ -11,29 +10,31 @@ interface DisciplineBadgeProps {
   className?: string;
 }
 
-const config: Record<Discipline, { label: string; icon: typeof Waves; colorClass: string; bgClass: string }> = {
-  swim: { label: 'SWIM', icon: Waves, colorClass: 'text-swim', bgClass: 'bg-swim/15' },
-  bike: { label: 'BIKE', icon: Bike, colorClass: 'text-bike', bgClass: 'bg-bike/15' },
-  run: { label: 'RUN', icon: Footprints, colorClass: 'text-run', bgClass: 'bg-run/15' },
-  brick: { label: 'BRICK', icon: Zap, colorClass: 'text-brick', bgClass: 'bg-brick/15' },
+const config: Record<Discipline, { label: string; icon: string; colorClass: string; bgClass: string }> = {
+  swim: { label: 'SWIM', icon: 'pool', colorClass: 'text-swim', bgClass: 'bg-swim/20' },
+  bike: { label: 'BIKE', icon: 'directions_bike', colorClass: 'text-bike', bgClass: 'bg-bike/20' },
+  run: { label: 'RUN', icon: 'directions_run', colorClass: 'text-run', bgClass: 'bg-run/20' },
+  brick: { label: 'BRICK', icon: 'bolt', colorClass: 'text-brick', bgClass: 'bg-brick/20' },
 };
 
 export function DisciplineBadge({ discipline, size = 'sm', className }: DisciplineBadgeProps) {
-  const { label, icon: Icon, colorClass, bgClass } = config[discipline];
-  const iconSize = size === 'sm' ? 14 : 18;
+  const { label, icon, colorClass, bgClass } = config[discipline];
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full',
-        'font-body text-[11px] font-medium uppercase tracking-[0.08em]',
+        'inline-flex items-center gap-1.5 rounded-full border',
+        'text-[11px] font-bold uppercase tracking-wider',
         size === 'sm' ? 'px-2.5 py-1' : 'px-3 py-1.5',
         bgClass,
         colorClass,
+        `border-${discipline}/30`,
         className,
       )}
     >
-      <Icon size={iconSize} />
+      <span className={cn('material-symbols-outlined', size === 'sm' ? 'text-sm' : 'text-lg')}>
+        {icon}
+      </span>
       {label}
     </span>
   );

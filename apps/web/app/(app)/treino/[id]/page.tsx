@@ -3,26 +3,12 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Watch,
-  Check,
-  AlertCircle,
-  Clock,
-  Route,
-  Gauge,
-  Droplets,
-  Zap,
-  Flame,
-  Pill,
-} from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DisciplineBadge } from '@/components/ui/discipline-badge';
 import { NutritionTimeline } from '@/components/ui/nutrition-timeline';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 /* ── Types ── */
 
@@ -86,82 +72,80 @@ function formatDate(dateStr: string): string {
 
 function WorkoutDetailSkeleton() {
   return (
-    <div className="space-y-6 pt-4 pb-6">
-      {/* Back button */}
-      <div className="skeleton h-5 w-24 rounded" />
+    <div className="space-y-6 pt-4 pb-28">
+      {/* Top nav */}
+      <div className="flex items-center justify-between">
+        <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
+        <div className="h-4 w-36 rounded bg-slate-800/60 animate-pulse" />
+        <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
+      </div>
 
       {/* Badge + title */}
       <div className="space-y-3">
-        <div className="skeleton h-7 w-20 rounded-full" />
-        <div className="skeleton h-8 w-64 rounded" />
-        <div className="skeleton h-4 w-48 rounded" />
+        <div className="h-7 w-20 rounded-full bg-slate-800/60 animate-pulse" />
+        <div className="h-9 w-64 rounded-lg bg-slate-800/60 animate-pulse" />
+        <div className="h-4 w-48 rounded bg-slate-800/60 animate-pulse" />
       </div>
 
       {/* Stat row */}
       <div className="grid grid-cols-3 gap-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-bg-surface border border-border rounded-lg p-4 space-y-2">
-            <div className="skeleton h-3 w-14 rounded" />
-            <div className="skeleton h-6 w-16 rounded" />
+          <div
+            key={i}
+            className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-2 animate-pulse"
+          >
+            <div className="h-3 w-14 rounded bg-slate-800/60" />
+            <div className="h-6 w-16 rounded bg-slate-800/60" />
           </div>
         ))}
       </div>
 
       {/* Sections */}
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="bg-bg-surface border border-border rounded-lg p-4 space-y-2">
-          <div className="skeleton h-5 w-32 rounded" />
-          <div className="skeleton h-4 w-full rounded" />
+        <div
+          key={i}
+          className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-2 animate-pulse"
+        >
+          <div className="h-5 w-32 rounded bg-slate-800/60" />
+          <div className="h-4 w-full rounded bg-slate-800/60" />
         </div>
       ))}
-
-      {/* Buttons */}
-      <div className="skeleton h-[52px] w-full rounded-md" />
-      <div className="skeleton h-[52px] w-full rounded-md" />
     </div>
   );
 }
 
-/* ── Collapsible Section ── */
+/* ── Structure Card ── */
 
-function CollapsibleSection({
-  title,
+function StructureCard({
+  label,
   content,
-  defaultOpen = false,
+  borderColor,
+  icon,
 }: {
-  title: string;
+  label: string;
   content: string | undefined | null;
-  defaultOpen?: boolean;
+  borderColor: string;
+  icon: string;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
-
   if (!content) return null;
 
   return (
-    <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className={cn(
-          'flex items-center justify-between w-full p-4',
-          'hover:bg-bg-elevated transition-colors duration-150',
-        )}
-      >
-        <span className="font-heading text-[16px] font-bold text-text-primary">
-          {title}
-        </span>
-        {open ? (
-          <ChevronUp size={18} className="text-text-muted" />
-        ) : (
-          <ChevronDown size={18} className="text-text-muted" />
-        )}
-      </button>
-      {open && (
-        <div className="px-4 pb-4 animate-fade-in">
-          <p className="font-body text-[14px] text-text-secondary whitespace-pre-line leading-relaxed">
-            {content}
-          </p>
-        </div>
+    <div
+      className={cn(
+        'rounded-xl border border-slate-800/50 bg-[#1c262f] p-4',
+        'border-l-[3px]',
+        borderColor,
       )}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span className="material-symbols-outlined text-base text-slate-400">{icon}</span>
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          {label}
+        </span>
+      </div>
+      <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
+        {content}
+      </p>
     </div>
   );
 }
@@ -194,7 +178,7 @@ function SendToWatchButton({
   if (sentSuccess) {
     return (
       <Button variant="secondary" fullWidth disabled className="gap-2">
-        <Check size={18} />
+        <span className="material-symbols-outlined text-lg">check</span>
         Enviado
       </Button>
     );
@@ -209,7 +193,7 @@ function SendToWatchButton({
         loading={mutation.isPending}
         className="gap-2"
       >
-        <AlertCircle size={18} />
+        <span className="material-symbols-outlined text-lg">error</span>
         Tentar novamente
       </Button>
     );
@@ -221,9 +205,9 @@ function SendToWatchButton({
       fullWidth
       onClick={() => mutation.mutate()}
       loading={mutation.isPending}
-      className="gap-2"
+      className="gap-2 uppercase tracking-wide"
     >
-      <Watch size={18} />
+      <span className="material-symbols-outlined text-lg">watch</span>
       ENVIAR AO RELOGIO
     </Button>
   );
@@ -253,44 +237,46 @@ function NutritionDetailPanel({ items }: { items: NutritionItem[] }) {
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'flex items-center gap-1.5',
-          'font-body text-[13px] font-semibold text-primary',
-          'hover:text-primary-hover transition-colors mt-3',
+          'text-[13px] font-semibold text-primary',
+          'hover:text-blue-400 transition-colors mt-3',
         )}
       >
         {expanded ? 'Ocultar detalhes' : 'Ver protocolo completo'}
-        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        <span className="material-symbols-outlined text-sm">
+          {expanded ? 'expand_less' : 'expand_more'}
+        </span>
       </button>
 
       {expanded && (
         <div className="space-y-4 mt-4 animate-fade-in">
           {grouped.map((group) => (
             <div key={group.key}>
-              <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                 {group.label}
               </p>
               <div className="space-y-2">
                 {group.items.map((item, i) => (
                   <div
                     key={i}
-                    className="bg-bg-elevated rounded-lg p-3 flex items-start justify-between"
+                    className="bg-[#283139] rounded-xl p-3 flex items-start justify-between"
                   >
                     <div>
-                      <p className="font-body text-[14px] font-medium text-text-primary">
+                      <p className="text-sm font-medium text-slate-100">
                         {item.product}
                       </p>
-                      <p className="font-mono text-[11px] text-text-muted mt-0.5">
+                      <p className="font-[var(--font-mono)] text-[11px] text-slate-500 mt-0.5">
                         {item.minuteOffset > 0 ? '+' : ''}
                         {item.minuteOffset}min
                       </p>
                     </div>
                     <div className="flex items-center gap-3 text-right">
                       {item.carbsG != null && (
-                        <span className="font-mono text-[11px] text-text-secondary">
+                        <span className="font-[var(--font-mono)] text-[11px] text-slate-400">
                           {item.carbsG}g carb
                         </span>
                       )}
                       {item.kcal != null && (
-                        <span className="font-mono text-[11px] text-text-secondary">
+                        <span className="font-[var(--font-mono)] text-[11px] text-slate-400">
                           {item.kcal}kcal
                         </span>
                       )}
@@ -349,16 +335,14 @@ export default function TreinoDetailPage() {
       <div className="pt-6 space-y-4">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1 font-body text-[14px] text-text-secondary hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-100 transition-colors"
         >
-          <ChevronLeft size={18} />
+          <span className="material-symbols-outlined text-lg">arrow_back</span>
           Voltar
         </button>
-        <div className="bg-danger-dim border-l-3 border-l-danger rounded-lg p-4">
-          <p className="font-body text-[14px] text-text-primary">
-            Nao foi possivel carregar os detalhes do treino.
-          </p>
-        </div>
+        <AlertBanner variant="danger">
+          Nao foi possivel carregar os detalhes do treino.
+        </AlertBanner>
       </div>
     );
   }
@@ -375,88 +359,113 @@ export default function TreinoDetailPage() {
     })) ?? [];
 
   return (
-    <div className="space-y-6 pt-4 pb-6">
-      {/* ── Back Button ── */}
-      <button
-        onClick={() => router.back()}
-        className="inline-flex items-center gap-1 font-body text-[14px] text-text-secondary hover:text-text-primary transition-colors animate-fade-in-up stagger-1"
+    <div className="space-y-6 pt-4 pb-28">
+      {/* ── Fixed Top Nav ── */}
+      <div
+        className="flex items-center justify-between animate-fade-in-up stagger-1"
         style={{ opacity: 0 }}
       >
-        <ChevronLeft size={18} />
-        Voltar
-      </button>
+        <button
+          onClick={() => router.back()}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+        >
+          <span className="material-symbols-outlined text-xl">arrow_back</span>
+        </button>
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+          Detalhes do Treino
+        </span>
+        <button
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+        >
+          <span className="material-symbols-outlined text-xl">share</span>
+        </button>
+      </div>
 
       {/* ── Header ── */}
       <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <DisciplineBadge discipline={discipline} size="md" className="mb-3" />
-        <h1 className="font-heading text-[28px] font-bold text-text-primary leading-tight">
+        <h1 className="font-[var(--font-heading)] text-3xl font-bold text-slate-100 leading-tight">
           {data.title}
         </h1>
-        <p className="font-body text-[14px] text-text-secondary mt-1 capitalize">
-          {formatDate(data.scheduledDate)}
-        </p>
+        <div className="flex items-center gap-2 mt-2 text-slate-400">
+          <span className="material-symbols-outlined text-base">calendar_today</span>
+          <span className="text-sm capitalize">{formatDate(data.scheduledDate)}</span>
+        </div>
         {data.description && (
-          <p className="font-body text-[14px] text-text-muted mt-2">
+          <p className="text-sm text-slate-500 mt-2">
             {data.description}
           </p>
         )}
       </div>
 
-      {/* ── Stat Row: 3 cards ── */}
+      {/* ── Stats Grid: 3 cols ── */}
       <div
         className="grid grid-cols-3 gap-3 animate-fade-in-up stagger-2"
         style={{ opacity: 0 }}
       >
-        <div className="bg-bg-surface border border-border rounded-lg p-4 text-center">
-          <Clock size={16} className="mx-auto text-text-muted mb-1" />
-          <p className="font-mono font-bold text-[20px] text-text-primary">
+        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+            timer
+          </span>
+          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
             {formatDuration(data.durationMin)}
           </p>
-          <p className="font-body text-[11px] text-text-muted uppercase tracking-wider">
+          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
             Duracao
           </p>
         </div>
 
-        <div className="bg-bg-surface border border-border rounded-lg p-4 text-center">
-          <Route size={16} className="mx-auto text-text-muted mb-1" />
-          <p className="font-mono font-bold text-[20px] text-text-primary">
+        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+            straighten
+          </span>
+          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
             {distanceFormatted ?? '--'}
           </p>
-          <p className="font-body text-[11px] text-text-muted uppercase tracking-wider">
+          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
             Distancia
           </p>
         </div>
 
-        <div className="bg-bg-surface border border-border rounded-lg p-4 text-center">
-          <Gauge size={16} className="mx-auto text-text-muted mb-1" />
-          <p className="font-mono font-bold text-[20px] text-text-primary">
+        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+            speed
+          </span>
+          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
             {data.intensityZone ?? '--'}
           </p>
-          <p className="font-body text-[11px] text-text-muted uppercase tracking-wider">
+          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
             Zona
           </p>
         </div>
       </div>
 
-      {/* ── Structure Sections ── */}
+      {/* ── Structure Section ── */}
       {data.structure && (
         <div
           className="space-y-3 animate-fade-in-up stagger-3"
           style={{ opacity: 0 }}
         >
-          <CollapsibleSection
-            title="Aquecimento"
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+            Estrutura
+          </p>
+          <StructureCard
+            label="Aquecimento"
             content={data.structure.warmup}
-            defaultOpen
+            borderColor="border-l-emerald-500"
+            icon="wb_sunny"
           />
-          <CollapsibleSection
-            title="Principal"
+          <StructureCard
+            label="Principal"
             content={data.structure.main}
-            defaultOpen
+            borderColor="border-l-primary"
+            icon="fitness_center"
           />
-          <CollapsibleSection
-            title="Desaquecimento"
+          <StructureCard
+            label="Desaquecimento"
             content={data.structure.cooldown}
+            borderColor="border-l-blue-300"
+            icon="ac_unit"
           />
         </div>
       )}
@@ -467,35 +476,35 @@ export default function TreinoDetailPage() {
           className="animate-fade-in-up stagger-4"
           style={{ opacity: 0 }}
         >
-          <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary mb-3">
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">
             Nutricao
           </p>
 
           {/* Summary row */}
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-4 flex-wrap">
             <div className="flex items-center gap-1.5">
-              <Zap size={14} className="text-text-muted" />
-              <span className="font-mono text-[12px] text-text-secondary">
+              <span className="material-symbols-outlined text-sm text-slate-500">bolt</span>
+              <span className="font-[var(--font-mono)] text-xs text-slate-400">
                 {data.nutritionProtocol.totalCarbsG}g carbs
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Droplets size={14} className="text-text-muted" />
-              <span className="font-mono text-[12px] text-text-secondary">
+              <span className="material-symbols-outlined text-sm text-slate-500">water_drop</span>
+              <span className="font-[var(--font-mono)] text-xs text-slate-400">
                 {data.nutritionProtocol.totalSodiumMg}mg sodio
               </span>
             </div>
             {data.nutritionProtocol.totalCaffeineMg > 0 && (
               <div className="flex items-center gap-1.5">
-                <Pill size={14} className="text-text-muted" />
-                <span className="font-mono text-[12px] text-text-secondary">
+                <span className="material-symbols-outlined text-sm text-slate-500">medication</span>
+                <span className="font-[var(--font-mono)] text-xs text-slate-400">
                   {data.nutritionProtocol.totalCaffeineMg}mg cafeina
                 </span>
               </div>
             )}
             <div className="flex items-center gap-1.5">
-              <Flame size={14} className="text-text-muted" />
-              <span className="font-mono text-[12px] text-text-secondary">
+              <span className="material-symbols-outlined text-sm text-slate-500">local_fire_department</span>
+              <span className="font-[var(--font-mono)] text-xs text-slate-400">
                 {data.nutritionProtocol.totalKcal}kcal
               </span>
             </div>
@@ -507,33 +516,34 @@ export default function TreinoDetailPage() {
         </div>
       )}
 
-      {/* ── Action Buttons ── */}
+      {/* ── Fixed Bottom Action Buttons ── */}
       <div
-        className="space-y-3 animate-fade-in-up stagger-5"
-        style={{ opacity: 0 }}
+        className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#101a22] via-[#101a22] to-transparent"
       >
-        <SendToWatchButton workoutId={data.id} alreadySent={data.sentToWatch} />
+        <div className="max-w-lg mx-auto space-y-2">
+          <SendToWatchButton workoutId={data.id} alreadySent={data.sentToWatch} />
 
-        <Button
-          variant="ghost"
-          fullWidth
-          onClick={() => completeMutation.mutate()}
-          loading={completeMutation.isPending}
-          disabled={completeMutation.isSuccess}
-          className="gap-2"
-        >
-          {completeMutation.isSuccess ? (
-            <>
-              <Check size={18} />
-              Concluido
-            </>
-          ) : (
-            <>
-              <Check size={18} />
-              Marcar como concluido
-            </>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            fullWidth
+            onClick={() => completeMutation.mutate()}
+            loading={completeMutation.isPending}
+            disabled={completeMutation.isSuccess}
+            className="gap-2"
+          >
+            {completeMutation.isSuccess ? (
+              <>
+                <span className="material-symbols-outlined text-lg">check_circle</span>
+                Concluido
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-lg">check_circle</span>
+                Marcar como concluido
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

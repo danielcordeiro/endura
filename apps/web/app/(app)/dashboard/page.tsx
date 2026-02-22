@@ -3,18 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Moon,
-  ChevronRight,
-  Watch,
-  Check,
-  AlertCircle,
-} from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatCard } from '@/components/ui/stat-card';
-import { DisciplineBadge } from '@/components/ui/discipline-badge';
 import { AlertBanner } from '@/components/ui/alert-banner';
 
 /* ── Types ── */
@@ -72,38 +64,78 @@ function alertLevelToVariant(level: string): 'warning' | 'success' | 'danger' | 
   return map[level] ?? 'info';
 }
 
+function getUserInitials(name: string | null): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+const disciplineColors: Record<string, { bg: string; text: string }> = {
+  swim: { bg: 'bg-swim/20', text: 'text-swim' },
+  bike: { bg: 'bg-bike/20', text: 'text-bike' },
+  run: { bg: 'bg-run/20', text: 'text-run' },
+  brick: { bg: 'bg-brick/20', text: 'text-brick' },
+};
+
+const disciplineIcons: Record<string, string> = {
+  swim: 'pool',
+  bike: 'directions_bike',
+  run: 'directions_run',
+  brick: 'bolt',
+};
+
 /* ── Skeleton Components ── */
 
-function GreetingSkeleton() {
+function HeaderSkeleton() {
   return (
-    <div className="space-y-2 pt-6 pb-2">
-      <div className="skeleton h-5 w-48 rounded" />
-      <div className="skeleton h-3 w-32 rounded" />
+    <div className="sticky top-0 z-10 bg-bg-base/80 backdrop-blur-xl pt-4 pb-3 flex items-center gap-4">
+      <div className="skeleton h-12 w-12 rounded-full" />
+      <div className="flex-1 space-y-2">
+        <div className="skeleton h-5 w-40 rounded" />
+        <div className="skeleton h-3 w-24 rounded" />
+      </div>
+      <div className="skeleton h-10 w-10 rounded-full" />
     </div>
   );
 }
 
 function RaceCountdownSkeleton() {
   return (
-    <div className="bg-bg-surface border border-border rounded-lg p-6 space-y-4">
-      <div className="skeleton h-6 w-20 rounded-full" />
-      <div className="skeleton h-16 w-28 rounded" />
-      <div className="skeleton h-4 w-44 rounded" />
-      <div className="skeleton h-2 w-full rounded-full" />
+    <div className="rounded-[2rem] bg-bg-surface p-6 shadow-xl ring-1 ring-white/5 space-y-4">
+      <div className="skeleton h-7 w-40 rounded-full" />
+      <div className="flex items-end justify-between">
+        <div className="skeleton h-14 w-32 rounded" />
+        <div className="space-y-1.5 text-right">
+          <div className="skeleton h-4 w-28 rounded" />
+          <div className="skeleton h-3 w-20 rounded ml-auto" />
+        </div>
+      </div>
+      <div className="skeleton h-3 w-full rounded-full" />
     </div>
   );
 }
 
 function TodayWorkoutSkeleton() {
   return (
-    <div className="bg-bg-surface border border-border rounded-lg p-5 space-y-3">
-      <div className="skeleton h-6 w-20 rounded-full" />
-      <div className="skeleton h-5 w-56 rounded" />
-      <div className="skeleton h-4 w-36 rounded" />
-      <div className="skeleton h-3 w-full rounded" />
-      <div className="flex gap-3 mt-3">
-        <div className="skeleton h-[52px] flex-1 rounded-md" />
-        <div className="skeleton h-[52px] w-32 rounded-md" />
+    <div className="space-y-3">
+      <div className="skeleton h-4 w-32 rounded" />
+      <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 space-y-4">
+        <div className="rounded-[1.8rem] bg-bg-elevated p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="skeleton h-10 w-10 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <div className="skeleton h-5 w-48 rounded" />
+              <div className="skeleton h-3 w-24 rounded" />
+            </div>
+          </div>
+          <div className="flex gap-1.5 h-12">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton flex-1 rounded" />
+            ))}
+          </div>
+        </div>
+        <div className="skeleton h-14 w-full rounded-full" />
       </div>
     </div>
   );
@@ -113,12 +145,50 @@ function StatsGridSkeleton() {
   return (
     <div className="grid grid-cols-2 gap-3">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-bg-surface border border-border rounded-lg p-4 space-y-2">
+        <div key={i} className="rounded-3xl bg-bg-surface border border-slate-800/50 p-4 space-y-3">
           <div className="skeleton h-3 w-16 rounded" />
           <div className="skeleton h-8 w-12 rounded" />
           <div className="skeleton h-3 w-20 rounded" />
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ── Workout Structure Bar Chart ── */
+
+function WorkoutStructureChart({
+  structure,
+  discipline,
+}: {
+  structure: { warmup: string; main: string; cooldown: string };
+  discipline: string;
+}) {
+  const segments = [
+    { key: 'warmup', label: 'Aquecimento', intensity: 0.3, blocks: 2 },
+    { key: 'main', label: 'Principal', intensity: 1, blocks: 5 },
+    { key: 'cooldown', label: 'Volta calma', intensity: 0.2, blocks: 2 },
+  ];
+
+  const colors = disciplineColors[discipline] ?? disciplineColors.run;
+
+  return (
+    <div className="flex items-end gap-1 h-12 mt-2">
+      {segments.map((seg) =>
+        Array.from({ length: seg.blocks }).map((_, i) => (
+          <div
+            key={`${seg.key}-${i}`}
+            className={cn(
+              'flex-1 rounded-sm transition-all',
+              colors.bg,
+            )}
+            style={{
+              height: `${Math.max(20, seg.intensity * 100)}%`,
+              opacity: seg.key === 'main' ? 0.9 : 0.45,
+            }}
+          />
+        )),
+      )}
     </div>
   );
 }
@@ -151,7 +221,7 @@ function SendToWatchButton({
   if (sentSuccess) {
     return (
       <Button variant="secondary" disabled className="gap-2">
-        <Check size={18} />
+        <span className="material-symbols-outlined text-lg">check</span>
         Enviado
       </Button>
     );
@@ -165,7 +235,7 @@ function SendToWatchButton({
         loading={mutation.isPending}
         className="gap-2"
       >
-        <AlertCircle size={18} />
+        <span className="material-symbols-outlined text-lg">error</span>
         Tentar novamente
       </Button>
     );
@@ -178,7 +248,7 @@ function SendToWatchButton({
       loading={mutation.isPending}
       className="gap-2"
     >
-      <Watch size={18} />
+      <span className="material-symbols-outlined text-lg">watch</span>
       Enviar ao relogio
     </Button>
   );
@@ -204,8 +274,8 @@ export default function DashboardPage() {
   /* ── Loading ── */
   if (isLoading) {
     return (
-      <div className="space-y-6 pt-2 pb-6">
-        <GreetingSkeleton />
+      <div className="space-y-6 pb-6">
+        <HeaderSkeleton />
         <RaceCountdownSkeleton />
         <TodayWorkoutSkeleton />
         <StatsGridSkeleton />
@@ -234,90 +304,101 @@ export default function DashboardPage() {
   const hasOnboarding = !!alerts?.find((a) => a.type === 'onboarding');
 
   return (
-    <div className="space-y-6 pt-6 pb-6">
-      {/* ── Greeting ── */}
-      <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
-        <h1 className="font-heading text-[28px] font-bold text-text-primary leading-tight">
-          {getGreeting()}, {firstName}
-        </h1>
-        {currentPlan && (
-          <p className="font-body text-[14px] text-text-secondary mt-1">
-            Semana {currentPlan.weekNumber} &middot; Fase {currentPlan.phase}
-          </p>
-        )}
+    <div className="space-y-6 pb-6">
+      {/* ── Header ── */}
+      <div className="sticky top-0 z-10 bg-bg-base/80 backdrop-blur-xl pt-4 pb-3 animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-heading font-bold text-sm shrink-0">
+            {getUserInitials(user?.name ?? null)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="font-heading text-lg font-bold text-slate-100 leading-tight truncate">
+              {getGreeting()}, {firstName}
+            </h1>
+            <p className="text-sm text-slate-400">Vamos treinar?</p>
+          </div>
+          <Link
+            href="/configuracoes"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors active:scale-[0.98] shrink-0"
+          >
+            <span className="material-symbols-outlined text-xl">settings</span>
+          </Link>
+        </div>
       </div>
 
       {/* ── Onboarding CTA ── */}
       {hasOnboarding && (
         <Link
           href="/onboarding"
-          className="block bg-primary/10 border border-primary/30 rounded-lg p-5 animate-fade-in-up stagger-2 hover:bg-primary/15 transition-colors"
+          className="block rounded-2xl bg-primary/10 border border-primary/30 p-5 animate-fade-in-up stagger-2 hover:bg-primary/15 transition-colors active:scale-[0.98]"
           style={{ opacity: 0 }}
         >
-          <h2 className="font-heading text-[18px] font-bold text-primary">
+          <h2 className="font-heading text-lg font-bold text-primary">
             Complete seu perfil
           </h2>
-          <p className="font-body text-[14px] text-text-secondary mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Configure seu perfil atletico e prova alvo para receber treinos personalizados.
           </p>
-          <span className="inline-flex items-center gap-1 font-body text-[13px] font-semibold text-primary mt-3">
+          <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary mt-3">
             Configurar agora
-            <ChevronRight size={14} />
+            <span className="material-symbols-outlined text-base">chevron_right</span>
           </span>
         </Link>
       )}
 
-      {/* ── Race Countdown ── */}
+      {/* ── Race Context Card ── */}
       {raceGoal && (
         <div
-          className="bg-bg-surface border border-border rounded-lg p-6 animate-fade-in-up stagger-2"
+          className="rounded-[2rem] bg-bg-surface p-6 shadow-xl ring-1 ring-white/5 animate-fade-in-up stagger-2"
           style={{ opacity: 0 }}
         >
-          {currentPlan && (
-            <span
-              className={cn(
-                'inline-block px-3 py-1 rounded-full',
-                'font-body text-[11px] font-semibold uppercase tracking-[0.08em]',
-                'bg-primary/15 text-primary mb-3',
-              )}
-            >
-              {currentPlan.phase}
-            </span>
-          )}
-
-          <div className="flex items-baseline gap-2">
-            <span className="font-mono font-bold text-[64px] leading-none text-primary">
-              {raceGoal.daysRemaining}
-            </span>
+          <div className="flex items-start justify-between gap-3 mb-5">
+            {currentPlan && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                </span>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                  {currentPlan.phase} &middot; Semana {currentPlan.weekNumber}
+                </span>
+              </span>
+            )}
+            {raceGoal.name && (
+              <div className="text-right shrink-0">
+                <p className="text-sm font-semibold text-slate-100">{raceGoal.name}</p>
+                <p className="text-xs text-slate-500">
+                  {new Date(raceGoal.date).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </p>
+              </div>
+            )}
           </div>
 
-          <p className="font-body text-[15px] text-text-secondary mt-1">
-            DIAS para a prova
-          </p>
-
-          {raceGoal.name && (
-            <p className="font-body text-[13px] text-text-muted mt-0.5">
-              {raceGoal.name} &middot;{' '}
-              {new Date(raceGoal.date).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-              })}
-            </p>
-          )}
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="font-mono font-bold text-5xl leading-none text-slate-100">
+              {raceGoal.daysRemaining}
+            </span>
+            <span className="font-mono font-bold text-xl text-slate-100">DIAS</span>
+          </div>
+          <p className="text-sm text-slate-500 mb-5">para a prova</p>
 
           {currentPlan && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="font-body text-[11px] text-text-muted uppercase tracking-wider">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-slate-500 uppercase tracking-wider">
                   Progresso do plano
                 </span>
-                <span className="font-mono text-[12px] text-text-secondary">
+                <span className="font-mono text-xs text-slate-400">
                   {currentPlan.percentComplete}%
                 </span>
               </div>
-              <div className="h-2 bg-bg-elevated rounded-full overflow-hidden">
+              <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-gradient-to-r from-blue-600 to-primary rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${currentPlan.percentComplete}%` }}
                 />
               </div>
@@ -328,81 +409,107 @@ export default function DashboardPage() {
 
       {/* ── Today's Workout ── */}
       <div
-        className="bg-bg-surface border border-border rounded-lg p-5 animate-fade-in-up stagger-3"
+        className="animate-fade-in-up stagger-3"
         style={{ opacity: 0 }}
       >
-        <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary mb-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 ml-1">
           Treino de hoje
         </p>
 
         {todayWorkout ? (
-          <>
-            <div className="flex items-center gap-3 mb-2">
-              <DisciplineBadge
-                discipline={todayWorkout.discipline as 'swim' | 'bike' | 'run' | 'brick'}
-              />
-              <h2 className="font-heading text-[20px] font-bold text-text-primary leading-tight">
-                {todayWorkout.title}
-              </h2>
-            </div>
+          <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+            <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-[1.8rem] p-5">
+              <div className="flex items-start gap-4">
+                <div className={cn(
+                  'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
+                  disciplineColors[todayWorkout.discipline]?.bg ?? 'bg-slate-700',
+                )}>
+                  <span className={cn(
+                    'material-symbols-outlined text-2xl',
+                    disciplineColors[todayWorkout.discipline]?.text ?? 'text-slate-400',
+                  )}>
+                    {disciplineIcons[todayWorkout.discipline] ?? 'fitness_center'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h2 className="font-heading text-lg font-bold text-slate-100 leading-tight">
+                        {todayWorkout.title}
+                      </h2>
+                      {todayWorkout.structure && (
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Z2-Z3
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-semibold text-slate-100">
+                        {formatDuration(todayWorkout.durationMin)}
+                      </p>
+                      {todayWorkout.distanceM != null && (
+                        <p className="text-xs text-slate-500">
+                          {formatDistance(todayWorkout.distanceM)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-            <p className="font-body text-[14px] text-text-secondary">
-              {formatDuration(todayWorkout.durationMin)}
-              {todayWorkout.distanceM != null && (
-                <> &middot; {formatDistance(todayWorkout.distanceM)}</>
+              {todayWorkout.structure && (
+                <WorkoutStructureChart
+                  structure={todayWorkout.structure}
+                  discipline={todayWorkout.discipline}
+                />
               )}
-            </p>
 
-            {todayWorkout.structure && (
-              <p className="font-body text-[13px] text-text-muted mt-2 line-clamp-2">
-                {todayWorkout.structure.main}
-              </p>
-            )}
+              {todayWorkout.structure && (
+                <p className="text-xs text-slate-500 mt-3 line-clamp-2 leading-relaxed">
+                  {todayWorkout.structure.main}
+                </p>
+              )}
+            </div>
 
             <div className="flex items-center gap-3 mt-4">
               <Link
                 href={`/treino/${todayWorkout.id}`}
-                className={cn(
-                  'inline-flex items-center gap-1.5',
-                  'font-body text-[14px] font-semibold text-primary',
-                  'hover:text-primary-hover transition-colors',
-                )}
+                className="flex-1"
               >
-                Ver detalhes
-                <ChevronRight size={16} />
+                <button className="w-full h-14 rounded-full bg-white text-slate-900 font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+                  <span className="material-symbols-outlined text-lg">play_arrow</span>
+                  Iniciar Treino
+                </button>
               </Link>
-
-              <div className="ml-auto">
-                <SendToWatchButton
-                  workoutId={todayWorkout.id}
-                  alreadySent={todayWorkout.sentToWatch}
-                />
-              </div>
+              <SendToWatchButton
+                workoutId={todayWorkout.id}
+                alreadySent={todayWorkout.sentToWatch}
+              />
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex flex-col items-center text-center py-6">
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-bg-elevated mb-3">
-              <Moon size={28} className="text-text-muted" />
+          <div className="rounded-[2rem] bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
+              <span className="material-symbols-outlined text-3xl text-slate-500">bedtime</span>
             </div>
-            <h2 className="font-heading text-[20px] font-bold text-text-primary">
+            <h2 className="font-heading text-xl font-bold text-slate-100">
               Dia de descanso
             </h2>
-            <p className="font-body text-[14px] text-text-secondary mt-1 max-w-[260px]">
+            <p className="text-sm text-slate-400 mt-2 max-w-[260px]">
               Aproveite para recuperar. Amanha voce volta mais forte.
             </p>
           </div>
         )}
       </div>
 
-      {/* ── Stat Cards (2x2 grid) ── */}
+      {/* ── Stats Grid (2x2) ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
           <StatCard
             label="TSS Semanal"
             value={week.tssEstimate}
             unit="tss"
-            variant="highlight"
+            icon="bolt"
           />
         </div>
         <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
@@ -410,6 +517,7 @@ export default function DashboardPage() {
             label="Treinos"
             value={`${week.workoutsCompleted}/${week.workoutsPlanned}`}
             context="concluidos"
+            icon="fitness_center"
           />
         </div>
         <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
@@ -417,6 +525,7 @@ export default function DashboardPage() {
             label="Volume"
             value={week.volumeHours.toFixed(1)}
             unit="horas"
+            icon="schedule"
           />
         </div>
         <div className="animate-fade-in-up stagger-6" style={{ opacity: 0 }}>
@@ -424,7 +533,7 @@ export default function DashboardPage() {
             label="Consistencia"
             value={`${consistency}`}
             unit="%"
-            variant={consistency >= 80 ? 'highlight' : consistency >= 50 ? 'warn' : 'danger'}
+            icon="check_circle"
           />
         </div>
       </div>
@@ -432,7 +541,7 @@ export default function DashboardPage() {
       {/* ── Alerts ── */}
       {alerts.filter((a) => a.type !== 'onboarding').length > 0 && (
         <div className="space-y-3 animate-fade-in-up stagger-6" style={{ opacity: 0 }}>
-          <p className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">
             Alertas
           </p>
           {alerts.filter((a) => a.type !== 'onboarding').map((alert, i) => (

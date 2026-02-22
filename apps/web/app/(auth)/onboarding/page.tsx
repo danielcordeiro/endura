@@ -17,20 +17,15 @@ type RaceGoalType = 'FINISH' | 'TIME';
 type NutritionProduct = 'Gel' | 'Isotonico' | 'Barra' | 'Capsula de sal' | 'Cafeina';
 
 interface OnboardingData {
-  // Step 1 - Perfil Atletico
   level: Level | null;
   weakestDiscipline: Discipline | null;
   availableDays: number[];
   weeklyHours: number;
-
-  // Step 2 - Prova Alvo
   raceDistance: RaceDistance | null;
   raceDate: string;
   raceGoalType: RaceGoalType;
   targetTime: string;
   raceName: string;
-
-  // Step 3 - Dados Fisiologicos
   weight: string;
   height: string;
   maxHr: string;
@@ -39,15 +34,11 @@ interface OnboardingData {
   hasPool: boolean;
   hasBikeTrainer: boolean;
   hasTreadmill: boolean;
-
-  // Step 4 - Nutricao
   dietaryRestrictions: string;
   ownedProducts: NutritionProduct[];
   giSensitivity: boolean;
   highSweatRate: boolean;
   crampsHistory: boolean;
-
-  // Step 5 - Integracoes
   stravaConnected: boolean;
   intervalsConnected: boolean;
 }
@@ -108,7 +99,6 @@ export default function OnboardingPage() {
   async function handleSubmit() {
     setIsSubmitting(true);
     try {
-      // Mapeia valores do frontend para o formato da API
       const levelMap: Record<string, string> = {
         BEGINNER: 'iniciante',
         INTERMEDIATE: 'intermediario',
@@ -121,7 +111,6 @@ export default function OnboardingPage() {
         FULL: 'full',
       };
 
-      // Converte pace "min:seg" para segundos
       function paceToSeconds(pace: string): number | null {
         if (!pace) return null;
         const parts = pace.split(':');
@@ -132,7 +121,6 @@ export default function OnboardingPage() {
         return mins * 60 + secs;
       }
 
-      // Converte tempo alvo "h:mm:ss" para segundos
       function timeToSeconds(time: string): number | null {
         if (!time) return null;
         const parts = time.split(':');
@@ -145,7 +133,6 @@ export default function OnboardingPage() {
         return null;
       }
 
-      // 1) POST athlete profile
       await apiFetch('/api/athlete/profile', {
         method: 'POST',
         token: token ?? undefined,
@@ -172,7 +159,6 @@ export default function OnboardingPage() {
         }),
       });
 
-      // 2) POST race goal (só se selecionou distância e data)
       if (data.raceDistance && data.raceDate) {
         await apiFetch('/api/athlete/race-goal', {
           method: 'POST',
@@ -187,7 +173,6 @@ export default function OnboardingPage() {
         });
       }
 
-      // 3) POST generate plan (não bloqueia se IA não estiver configurada)
       try {
         await apiFetch('/api/plan/generate', {
           method: 'POST',
@@ -205,22 +190,16 @@ export default function OnboardingPage() {
   }
 
   const inputClass =
-    'w-full h-12 px-4 bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted font-body text-[15px] outline-none transition-colors focus:border-border-focus';
+    'w-full h-14 px-5 bg-[#1c262f] border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 text-[15px] outline-none transition-colors focus:border-primary';
 
   /* ─── Loading overlay ─── */
   if (isSubmitting) {
     return (
       <div className="w-full max-w-[440px] flex flex-col items-center justify-center gap-6 py-20 animate-fade-in">
-        <svg
-          className="animate-spin h-10 w-10 text-primary"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <p className="text-text-secondary text-base text-center">
+        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+          <span className="material-symbols-outlined text-primary text-3xl animate-spin">progress_activity</span>
+        </div>
+        <p className="text-slate-400 text-base text-center">
           Gerando seu plano personalizado...
         </p>
       </div>
@@ -231,40 +210,35 @@ export default function OnboardingPage() {
     <div className="w-full max-w-[440px] animate-fade-in-up">
       {/* Logo */}
       <div className="text-center mb-6">
-        <h1 className="font-heading font-bold text-[36px] leading-none text-primary tracking-tight">
-          ENDURA
-        </h1>
+        <div className="flex items-center justify-center gap-2">
+          <span className="material-symbols-outlined text-primary text-3xl">bolt</span>
+          <h1 className="font-bold text-[32px] leading-none text-white tracking-tight">
+            ENDURA
+          </h1>
+        </div>
       </div>
 
       {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 mb-8">
+      <div className="flex items-center justify-center gap-2.5 mb-8">
         {Array.from({ length: TOTAL_STEPS }, (_, i) => (
           <div
             key={i}
             className={cn(
-              'w-2.5 h-2.5 rounded-full transition-all',
-              i + 1 <= step ? 'bg-primary' : 'bg-border',
+              'rounded-full transition-all',
+              i + 1 <= step
+                ? 'w-3 h-3 bg-primary shadow-lg shadow-primary/30'
+                : 'w-2.5 h-2.5 bg-slate-700',
             )}
           />
         ))}
       </div>
 
       {/* Steps */}
-      {step === 1 && (
-        <Step1 data={data} update={update} inputClass={inputClass} />
-      )}
-      {step === 2 && (
-        <Step2 data={data} update={update} inputClass={inputClass} />
-      )}
-      {step === 3 && (
-        <Step3 data={data} update={update} inputClass={inputClass} />
-      )}
-      {step === 4 && (
-        <Step4 data={data} update={update} inputClass={inputClass} />
-      )}
-      {step === 5 && (
-        <Step5 data={data} update={update} />
-      )}
+      {step === 1 && <Step1 data={data} update={update} inputClass={inputClass} />}
+      {step === 2 && <Step2 data={data} update={update} inputClass={inputClass} />}
+      {step === 3 && <Step3 data={data} update={update} inputClass={inputClass} />}
+      {step === 4 && <Step4 data={data} update={update} inputClass={inputClass} />}
+      {step === 5 && <Step5 data={data} update={update} />}
 
       {/* Navigation */}
       <div className="mt-8 flex items-center gap-3">
@@ -272,24 +246,24 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={back}
-            className="flex items-center justify-center w-12 h-12 rounded-md border border-border text-text-secondary hover:bg-bg-surface transition-colors"
+            className="flex items-center justify-center w-14 h-14 rounded-full border border-slate-700/50 text-slate-400 hover:bg-[#1c262f] transition-colors"
             aria-label="Voltar"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+            <span className="material-symbols-outlined">arrow_back</span>
           </button>
         )}
 
         {step < TOTAL_STEPS && (
           <Button type="button" fullWidth onClick={next}>
             Continuar
+            <span className="material-symbols-outlined text-xl ml-1">arrow_forward</span>
           </Button>
         )}
 
         {step === TOTAL_STEPS && (
           <Button type="button" fullWidth onClick={handleSubmit}>
             Gerar meu plano
+            <span className="material-symbols-outlined text-xl ml-1">auto_awesome</span>
           </Button>
         )}
       </div>
@@ -308,24 +282,24 @@ interface StepProps {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Step 1 — Perfil Atletico
+   Step 1 — Perfil Atlético
    ═══════════════════════════════════════════════════════ */
 
-const LEVELS: { value: Level; label: string; desc: string }[] = [
-  { value: 'BEGINNER', label: 'Iniciante', desc: 'Primeiras provas ou ate 1 ano' },
-  { value: 'INTERMEDIATE', label: 'Intermediario', desc: '1-3 anos de experiencia' },
-  { value: 'COMPETITIVE', label: 'Competitivo', desc: 'Focado em resultado e tempo' },
+const LEVELS: { value: Level; label: string; desc: string; emoji: string }[] = [
+  { value: 'BEGINNER', label: 'Iniciante', desc: 'Primeiras provas ou até 1 ano', emoji: '🌱' },
+  { value: 'INTERMEDIATE', label: 'Intermediário', desc: '1-3 anos de experiência', emoji: '🔥' },
+  { value: 'COMPETITIVE', label: 'Competitivo', desc: 'Focado em resultado e tempo', emoji: '🏆' },
 ];
 
-const DISCIPLINES: { value: Discipline; label: string; color: string }[] = [
-  { value: 'SWIM', label: 'SWIM', color: 'bg-swim' },
-  { value: 'BIKE', label: 'BIKE', color: 'bg-bike' },
-  { value: 'RUN', label: 'RUN', color: 'bg-run' },
+const DISCIPLINES: { value: Discipline; label: string; icon: string; color: string }[] = [
+  { value: 'SWIM', label: 'SWIM', icon: 'pool', color: 'bg-cyan-500' },
+  { value: 'BIKE', label: 'BIKE', icon: 'directions_bike', color: 'bg-blue-500' },
+  { value: 'RUN', label: 'RUN', icon: 'directions_run', color: 'bg-orange-500' },
 ];
 
 const DAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
-function Step1({ data, update, inputClass }: StepProps) {
+function Step1({ data, update }: StepProps) {
   function toggleDay(dayIndex: number) {
     const days = data.availableDays.includes(dayIndex)
       ? data.availableDays.filter((d) => d !== dayIndex)
@@ -335,13 +309,13 @@ function Step1({ data, update, inputClass }: StepProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-heading font-bold text-xl text-text-primary uppercase tracking-wide">
-        Perfil Atletico
+      <h2 className="font-bold text-2xl text-white tracking-tight">
+        Perfil Atlético
       </h2>
 
-      {/* Level */}
+      {/* Level — radio cards with emoji */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">Nivel</label>
+        <label className="text-slate-400 text-sm font-medium">Nível</label>
         <div className="space-y-2">
           {LEVELS.map((lvl) => (
             <button
@@ -349,64 +323,68 @@ function Step1({ data, update, inputClass }: StepProps) {
               type="button"
               onClick={() => update({ level: lvl.value })}
               className={cn(
-                'w-full text-left p-4 rounded-md border transition-all',
-                'bg-bg-surface',
+                'w-full text-left p-4 rounded-2xl border transition-all flex items-center gap-4',
+                'bg-[#1c262f]',
                 data.level === lvl.value
-                  ? 'border-primary bg-primary-dim'
-                  : 'border-border hover:border-border-focus',
+                  ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
+                  : 'border-slate-700/50 hover:border-slate-600',
               )}
             >
-              <span className="block text-text-primary font-semibold text-[15px]">
-                {lvl.label}
-              </span>
-              <span className="block text-text-muted text-[13px] mt-0.5">
-                {lvl.desc}
-              </span>
+              <span className="text-2xl">{lvl.emoji}</span>
+              <div>
+                <span className="block text-white font-semibold text-[15px]">
+                  {lvl.label}
+                </span>
+                <span className="block text-slate-500 text-[13px] mt-0.5">
+                  {lvl.desc}
+                </span>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Weakest discipline */}
+      {/* Weakest discipline — segmented pill */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
+        <label className="text-slate-400 text-sm font-medium">
           Disciplina mais fraca
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-[#1c262f] border border-slate-700/50 p-1.5 rounded-full">
           {DISCIPLINES.map((d) => (
             <button
               key={d.value}
               type="button"
               onClick={() => update({ weakestDiscipline: d.value })}
               className={cn(
-                'flex-1 h-10 rounded-md text-sm font-bold uppercase tracking-wider transition-all border',
+                'flex-1 h-11 rounded-full text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5',
                 data.weakestDiscipline === d.value
-                  ? `${d.color} text-white border-transparent`
-                  : 'bg-bg-surface border-border text-text-secondary hover:border-border-focus',
+                  ? `${d.color} text-white shadow-md`
+                  : 'text-slate-400 hover:text-white',
               )}
             >
+              <span className="material-symbols-outlined text-lg">{d.icon}</span>
               {d.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Available days */}
+      {/* Available days — circles */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
-          Dias disponiveis
+        <label className="text-slate-400 text-sm font-medium">
+          Dias disponíveis
         </label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-between">
           {DAY_LABELS.map((label, i) => (
             <button
               key={i}
               type="button"
               onClick={() => toggleDay(i)}
               className={cn(
-                'w-10 h-10 rounded-full text-sm font-semibold transition-all',
+                'w-11 h-11 rounded-full text-sm font-semibold transition-all',
                 data.availableDays.includes(i)
-                  ? 'bg-primary text-text-inverse'
-                  : 'bg-bg-surface border border-border text-text-muted hover:border-border-focus',
+                  ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                  : 'bg-[#1c262f] border border-slate-700/50 text-slate-500 hover:border-slate-600',
               )}
             >
               {label}
@@ -415,9 +393,9 @@ function Step1({ data, update, inputClass }: StepProps) {
         </div>
       </div>
 
-      {/* Weekly hours */}
-      <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
+      {/* Weekly hours — range slider */}
+      <div className="space-y-3">
+        <label className="text-slate-400 text-sm font-medium">
           Horas semanais: <span className="text-primary font-bold">{data.weeklyHours}h</span>
         </label>
         <input
@@ -426,9 +404,9 @@ function Step1({ data, update, inputClass }: StepProps) {
           max={25}
           value={data.weeklyHours}
           onChange={(e) => update({ weeklyHours: parseInt(e.target.value, 10) })}
-          className="w-full h-2 rounded-full appearance-none bg-border accent-primary cursor-pointer"
+          className="w-full h-2 rounded-full appearance-none bg-slate-700 accent-primary cursor-pointer"
         />
-        <div className="flex justify-between text-[12px] text-text-muted">
+        <div className="flex justify-between text-[12px] text-slate-500">
           <span>3h</span>
           <span>25h</span>
         </div>
@@ -441,23 +419,23 @@ function Step1({ data, update, inputClass }: StepProps) {
    Step 2 — Prova Alvo
    ═══════════════════════════════════════════════════════ */
 
-const RACE_DISTANCES: { value: RaceDistance; label: string; detail: string }[] = [
-  { value: 'SPRINT', label: 'Sprint', detail: '750m / 20km / 5km' },
-  { value: 'OLYMPIC', label: 'Olimpico', detail: '1.5km / 40km / 10km' },
-  { value: 'HALF', label: '70.3', detail: '1.9km / 90km / 21.1km' },
-  { value: 'FULL', label: 'Full', detail: '3.8km / 180km / 42.2km' },
+const RACE_DISTANCES: { value: RaceDistance; label: string; detail: string; emoji: string }[] = [
+  { value: 'SPRINT', label: 'Sprint', detail: '750m / 20km / 5km', emoji: '⚡' },
+  { value: 'OLYMPIC', label: 'Olímpico', detail: '1.5km / 40km / 10km', emoji: '🏅' },
+  { value: 'HALF', label: '70.3', detail: '1.9km / 90km / 21.1km', emoji: '💪' },
+  { value: 'FULL', label: 'Full', detail: '3.8km / 180km / 42.2km', emoji: '🦾' },
 ];
 
 function Step2({ data, update, inputClass }: StepProps) {
   return (
     <div className="space-y-6">
-      <h2 className="font-heading font-bold text-xl text-text-primary uppercase tracking-wide">
+      <h2 className="font-bold text-2xl text-white tracking-tight">
         Prova Alvo
       </h2>
 
-      {/* Distance grid */}
+      {/* Distance grid — emoji cards */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">Distancia</label>
+        <label className="text-slate-400 text-sm font-medium">Distância</label>
         <div className="grid grid-cols-2 gap-2">
           {RACE_DISTANCES.map((rd) => (
             <button
@@ -465,16 +443,17 @@ function Step2({ data, update, inputClass }: StepProps) {
               type="button"
               onClick={() => update({ raceDistance: rd.value })}
               className={cn(
-                'p-4 rounded-md border text-left transition-all bg-bg-surface',
+                'p-4 rounded-2xl border text-left transition-all bg-[#1c262f]',
                 data.raceDistance === rd.value
-                  ? 'border-primary bg-primary-dim'
-                  : 'border-border hover:border-border-focus',
+                  ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
+                  : 'border-slate-700/50 hover:border-slate-600',
               )}
             >
-              <span className="block text-text-primary font-bold text-[15px]">
+              <span className="text-xl mb-2 block">{rd.emoji}</span>
+              <span className="block text-white font-bold text-[15px]">
                 {rd.label}
               </span>
-              <span className="block text-text-muted text-[12px] mt-1">
+              <span className="block text-slate-500 text-[12px] mt-1">
                 {rd.detail}
               </span>
             </button>
@@ -484,7 +463,7 @@ function Step2({ data, update, inputClass }: StepProps) {
 
       {/* Race date */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">Data da prova</label>
+        <label className="text-slate-400 text-sm font-medium">Data da prova</label>
         <input
           type="date"
           value={data.raceDate}
@@ -493,18 +472,18 @@ function Step2({ data, update, inputClass }: StepProps) {
         />
       </div>
 
-      {/* Goal type */}
+      {/* Goal type — segmented pill */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">Objetivo</label>
-        <div className="flex gap-2">
+        <label className="text-slate-400 text-sm font-medium">Objetivo</label>
+        <div className="flex gap-1 bg-[#1c262f] border border-slate-700/50 p-1.5 rounded-full">
           <button
             type="button"
             onClick={() => update({ raceGoalType: 'FINISH' })}
             className={cn(
-              'flex-1 h-12 rounded-md text-sm font-semibold uppercase tracking-wider transition-all border',
+              'flex-1 h-11 rounded-full text-sm font-semibold transition-all',
               data.raceGoalType === 'FINISH'
-                ? 'border-primary bg-primary-dim text-primary'
-                : 'bg-bg-surface border-border text-text-secondary hover:border-border-focus',
+                ? 'bg-primary text-white shadow-md'
+                : 'text-slate-400 hover:text-white',
             )}
           >
             Terminar
@@ -513,10 +492,10 @@ function Step2({ data, update, inputClass }: StepProps) {
             type="button"
             onClick={() => update({ raceGoalType: 'TIME' })}
             className={cn(
-              'flex-1 h-12 rounded-md text-sm font-semibold uppercase tracking-wider transition-all border',
+              'flex-1 h-11 rounded-full text-sm font-semibold transition-all',
               data.raceGoalType === 'TIME'
-                ? 'border-primary bg-primary-dim text-primary'
-                : 'bg-bg-surface border-border text-text-secondary hover:border-border-focus',
+                ? 'bg-primary text-white shadow-md'
+                : 'text-slate-400 hover:text-white',
             )}
           >
             Bater tempo
@@ -527,7 +506,7 @@ function Step2({ data, update, inputClass }: StepProps) {
       {/* Target time (conditional) */}
       {data.raceGoalType === 'TIME' && (
         <div className="space-y-2">
-          <label className="text-text-secondary text-sm font-medium">Tempo alvo</label>
+          <label className="text-slate-400 text-sm font-medium">Tempo alvo</label>
           <input
             type="text"
             placeholder="Ex: 5:30:00"
@@ -540,12 +519,12 @@ function Step2({ data, update, inputClass }: StepProps) {
 
       {/* Race name (optional) */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
-          Nome da prova <span className="text-text-muted">(opcional)</span>
+        <label className="text-slate-400 text-sm font-medium">
+          Nome da prova <span className="text-slate-600">(opcional)</span>
         </label>
         <input
           type="text"
-          placeholder="Ex: Ironman 70.3 Florianopolis"
+          placeholder="Ex: Ironman 70.3 Florianópolis"
           value={data.raceName}
           onChange={(e) => update({ raceName: e.target.value })}
           className={inputClass}
@@ -556,19 +535,19 @@ function Step2({ data, update, inputClass }: StepProps) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Step 3 — Dados Fisiologicos
+   Step 3 — Dados Fisiológicos
    ═══════════════════════════════════════════════════════ */
 
 function Step3({ data, update, inputClass }: StepProps) {
   return (
     <div className="space-y-6">
-      <h2 className="font-heading font-bold text-xl text-text-primary uppercase tracking-wide">
-        Dados Fisiologicos
+      <h2 className="font-bold text-2xl text-white tracking-tight">
+        Dados Fisiológicos
       </h2>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-text-secondary text-sm font-medium">Peso (kg)</label>
+        <div className="space-y-1.5">
+          <label className="text-slate-400 text-sm font-medium">Peso (kg)</label>
           <input
             type="number"
             step="0.1"
@@ -578,8 +557,8 @@ function Step3({ data, update, inputClass }: StepProps) {
             className={inputClass}
           />
         </div>
-        <div className="space-y-1">
-          <label className="text-text-secondary text-sm font-medium">Altura (cm)</label>
+        <div className="space-y-1.5">
+          <label className="text-slate-400 text-sm font-medium">Altura (cm)</label>
           <input
             type="number"
             placeholder="175"
@@ -591,8 +570,8 @@ function Step3({ data, update, inputClass }: StepProps) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-text-secondary text-sm font-medium">FC max (bpm)</label>
+        <div className="space-y-1.5">
+          <label className="text-slate-400 text-sm font-medium">FC máx (bpm)</label>
           <input
             type="number"
             placeholder="185"
@@ -601,9 +580,9 @@ function Step3({ data, update, inputClass }: StepProps) {
             className={inputClass}
           />
         </div>
-        <div className="space-y-1">
-          <label className="text-text-secondary text-sm font-medium">
-            FTP (W) <span className="text-text-muted text-[11px]">opc.</span>
+        <div className="space-y-1.5">
+          <label className="text-slate-400 text-sm font-medium">
+            FTP (W) <span className="text-slate-600 text-[11px]">opc.</span>
           </label>
           <input
             type="number"
@@ -615,8 +594,8 @@ function Step3({ data, update, inputClass }: StepProps) {
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-text-secondary text-sm font-medium">Pace 5K (min:seg)</label>
+      <div className="space-y-1.5">
+        <label className="text-slate-400 text-sm font-medium">Pace 5K (min:seg)</label>
         <input
           type="text"
           placeholder="5:30"
@@ -628,21 +607,24 @@ function Step3({ data, update, inputClass }: StepProps) {
 
       {/* Equipment */}
       <div className="space-y-3">
-        <label className="text-text-secondary text-sm font-medium">Equipamentos</label>
+        <label className="text-slate-400 text-sm font-medium">Equipamentos</label>
         <ToggleCheckbox
           checked={data.hasPool}
           onChange={(v) => update({ hasPool: v })}
           label="Acesso a piscina"
+          icon="pool"
         />
         <ToggleCheckbox
           checked={data.hasBikeTrainer}
           onChange={(v) => update({ hasBikeTrainer: v })}
           label="Rolo / bike trainer"
+          icon="two_wheeler"
         />
         <ToggleCheckbox
           checked={data.hasTreadmill}
           onChange={(v) => update({ hasTreadmill: v })}
           label="Esteira"
+          icon="directions_run"
         />
       </div>
     </div>
@@ -650,7 +632,7 @@ function Step3({ data, update, inputClass }: StepProps) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Step 4 — Nutricao
+   Step 4 — Nutrição
    ═══════════════════════════════════════════════════════ */
 
 const NUTRITION_PRODUCTS: NutritionProduct[] = [
@@ -671,28 +653,28 @@ function Step4({ data, update, inputClass }: StepProps) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-heading font-bold text-xl text-text-primary uppercase tracking-wide">
-        Nutricao
+      <h2 className="font-bold text-2xl text-white tracking-tight">
+        Nutrição
       </h2>
 
       {/* Dietary restrictions */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
-          Restricoes alimentares
+        <label className="text-slate-400 text-sm font-medium">
+          Restrições alimentares
         </label>
         <input
           type="text"
-          placeholder="Ex: vegetariano, lactose, gluten..."
+          placeholder="Ex: vegetariano, lactose, glúten..."
           value={data.dietaryRestrictions}
           onChange={(e) => update({ dietaryRestrictions: e.target.value })}
           className={inputClass}
         />
       </div>
 
-      {/* Owned products */}
+      {/* Owned products — pill buttons */}
       <div className="space-y-2">
-        <label className="text-text-secondary text-sm font-medium">
-          Produtos que ja possui
+        <label className="text-slate-400 text-sm font-medium">
+          Produtos que já possui
         </label>
         <div className="flex flex-wrap gap-2">
           {NUTRITION_PRODUCTS.map((product) => (
@@ -701,10 +683,10 @@ function Step4({ data, update, inputClass }: StepProps) {
               type="button"
               onClick={() => toggleProduct(product)}
               className={cn(
-                'px-4 h-9 rounded-full text-[13px] font-medium transition-all border',
+                'px-5 h-10 rounded-full text-[13px] font-medium transition-all border',
                 data.ownedProducts.includes(product)
-                  ? 'bg-primary text-text-inverse border-transparent'
-                  : 'bg-bg-surface border-border text-text-secondary hover:border-border-focus',
+                  ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20'
+                  : 'bg-[#1c262f] border-slate-700/50 text-slate-400 hover:border-slate-600',
               )}
             >
               {product}
@@ -715,21 +697,24 @@ function Step4({ data, update, inputClass }: StepProps) {
 
       {/* Boolean toggles */}
       <div className="space-y-3">
-        <label className="text-text-secondary text-sm font-medium">Historico</label>
+        <label className="text-slate-400 text-sm font-medium">Histórico</label>
         <ToggleCheckbox
           checked={data.giSensitivity}
           onChange={(v) => update({ giSensitivity: v })}
           label="Sensibilidade gastrointestinal"
+          icon="gastroenterology"
         />
         <ToggleCheckbox
           checked={data.highSweatRate}
           onChange={(v) => update({ highSweatRate: v })}
           label="Alta taxa de sudorese"
+          icon="water_drop"
         />
         <ToggleCheckbox
           checked={data.crampsHistory}
           onChange={(v) => update({ crampsHistory: v })}
-          label="Historico de caibras"
+          label="Histórico de câibras"
+          icon="flash_on"
         />
       </div>
     </div>
@@ -737,7 +722,7 @@ function Step4({ data, update, inputClass }: StepProps) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   Step 5 — Integracoes
+   Step 5 — Integrações
    ═══════════════════════════════════════════════════════ */
 
 function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
@@ -751,41 +736,39 @@ function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
 
   return (
     <div className="space-y-6">
-      <h2 className="font-heading font-bold text-xl text-text-primary uppercase tracking-wide">
-        Integracoes
+      <h2 className="font-bold text-2xl text-white tracking-tight">
+        Integrações
       </h2>
-      <p className="text-text-secondary text-sm">
+      <p className="text-slate-400 text-sm">
         Conecte suas contas para sincronizar treinos automaticamente.
       </p>
 
       {/* Strava */}
       <div
         className={cn(
-          'p-4 rounded-md border transition-all bg-bg-surface',
-          data.stravaConnected ? 'border-success' : 'border-border',
+          'p-5 rounded-2xl border transition-all bg-[#1c262f]',
+          data.stravaConnected ? 'border-green-500/50' : 'border-slate-700/50',
         )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-strava flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-[#FC4C02] flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
               </svg>
             </div>
             <div>
-              <p className="text-text-primary font-semibold text-[15px]">Strava</p>
-              <p className="text-text-muted text-[12px]">Sincronize treinos e atividades</p>
+              <p className="text-white font-semibold text-[15px]">Strava</p>
+              <p className="text-slate-500 text-[12px]">Sincronize treinos e atividades</p>
             </div>
           </div>
           {data.stravaConnected ? (
-            <div className="flex items-center gap-1.5 text-success text-[13px] font-medium">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+            <div className="flex items-center gap-1.5 text-green-400 text-[13px] font-medium">
+              <span className="material-symbols-outlined text-base">check_circle</span>
               Conectado
             </div>
           ) : (
-            <Button variant="strava" onClick={handleConnectStrava} className="h-9 px-4 text-[13px]">
+            <Button variant="strava" onClick={handleConnectStrava} className="h-10 px-5 text-[13px]">
               Conectar
             </Button>
           )}
@@ -795,29 +778,27 @@ function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
       {/* intervals.icu */}
       <div
         className={cn(
-          'p-4 rounded-md border transition-all bg-bg-surface',
-          data.intervalsConnected ? 'border-success' : 'border-border',
+          'p-5 rounded-2xl border transition-all bg-[#1c262f]',
+          data.intervalsConnected ? 'border-green-500/50' : 'border-slate-700/50',
         )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-info flex items-center justify-center">
-              <span className="text-white font-mono font-bold text-[14px]">i.cu</span>
+            <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center">
+              <span className="text-white font-[var(--font-mono)] font-bold text-[14px]">i.cu</span>
             </div>
             <div>
-              <p className="text-text-primary font-semibold text-[15px]">intervals.icu</p>
-              <p className="text-text-muted text-[12px]">Metricas avancadas de treino</p>
+              <p className="text-white font-semibold text-[15px]">intervals.icu</p>
+              <p className="text-slate-500 text-[12px]">Métricas avançadas de treino</p>
             </div>
           </div>
           {data.intervalsConnected ? (
-            <div className="flex items-center gap-1.5 text-success text-[13px] font-medium">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+            <div className="flex items-center gap-1.5 text-green-400 text-[13px] font-medium">
+              <span className="material-symbols-outlined text-base">check_circle</span>
               Conectado
             </div>
           ) : (
-            <Button variant="secondary" onClick={handleConnectIntervals} className="h-9 px-4 text-[13px]">
+            <Button variant="secondary" onClick={handleConnectIntervals} className="h-10 px-5 text-[13px]">
               Conectar
             </Button>
           )}
@@ -828,7 +809,7 @@ function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
       <div className="text-center">
         <button
           type="button"
-          className="text-text-muted text-sm hover:text-text-secondary transition-colors underline underline-offset-4"
+          className="text-slate-500 text-sm hover:text-slate-300 transition-colors underline underline-offset-4"
         >
           Pular por enquanto
         </button>
@@ -845,32 +826,42 @@ function ToggleCheckbox({
   checked,
   onChange,
   label,
+  icon,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  icon?: string;
 }) {
   return (
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="flex items-center gap-3 w-full text-left group"
+      className={cn(
+        'flex items-center gap-3 w-full text-left p-3.5 rounded-2xl border transition-all',
+        checked
+          ? 'bg-primary/10 border-primary/30'
+          : 'bg-[#1c262f] border-slate-700/50 hover:border-slate-600',
+      )}
     >
       <div
         className={cn(
-          'w-5 h-5 rounded flex items-center justify-center border transition-all flex-shrink-0',
+          'w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0',
           checked
             ? 'bg-primary border-primary'
-            : 'bg-bg-input border-border group-hover:border-border-focus',
+            : 'bg-[#283139] border-slate-600',
         )}
       >
         {checked && (
-          <svg className="w-3 h-3 text-text-inverse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
+          <span className="material-symbols-outlined text-white text-base">check</span>
         )}
       </div>
-      <span className="text-text-primary text-[14px]">{label}</span>
+      {icon && (
+        <span className={cn('material-symbols-outlined text-lg', checked ? 'text-primary' : 'text-slate-500')}>
+          {icon}
+        </span>
+      )}
+      <span className={cn('text-[14px]', checked ? 'text-white' : 'text-slate-400')}>{label}</span>
     </button>
   );
 }

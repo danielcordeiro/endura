@@ -1,19 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import { Barlow_Condensed, DM_Sans, JetBrains_Mono } from 'next/font/google';
+import { Lexend, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 
-const barlowCondensed = Barlow_Condensed({
+const lexend = Lexend({
   subsets: ['latin'],
-  weight: ['600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-heading',
-  display: 'swap',
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-body',
   display: 'swap',
 });
 
@@ -39,7 +32,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#00F5C4',
+  themeColor: '#1d8fed',
 };
 
 export default function RootLayout({
@@ -50,9 +43,15 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${barlowCondensed.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      className={`dark ${lexend.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-[var(--font-heading)] antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
