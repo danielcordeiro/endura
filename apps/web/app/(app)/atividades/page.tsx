@@ -15,7 +15,7 @@ import { AlertBanner } from '@/components/ui/alert-banner';
 /* ---------- Types ---------- */
 
 type Discipline = 'swim' | 'bike' | 'run' | 'brick';
-type Period = '7' | '30' | '90';
+type Period = '7d' | '30d' | '90d';
 type DisciplineFilter = 'all' | Discipline;
 
 interface ActivityItem {
@@ -41,9 +41,9 @@ interface ActivitiesPage {
 /* ---------- Constants ---------- */
 
 const periodOptions: { value: Period; label: string }[] = [
-  { value: '7', label: '7d' },
-  { value: '30', label: '30d' },
-  { value: '90', label: '90d' },
+  { value: '7d', label: '7d' },
+  { value: '30d', label: '30d' },
+  { value: '90d', label: '90d' },
 ];
 
 const disciplineOptions: { value: DisciplineFilter; label: string; icon?: string }[] = [
@@ -90,7 +90,7 @@ export default function AtividadesPage() {
   const { token } = useAuthStore();
   const queryClient = useQueryClient();
 
-  const [period, setPeriod] = useState<Period>('30');
+  const [period, setPeriod] = useState<Period>('30d');
   const [discipline, setDiscipline] = useState<DisciplineFilter>('all');
 
   /* Infinite query */
@@ -155,7 +155,10 @@ export default function AtividadesPage() {
         <h1 className="font-heading font-bold text-3xl text-slate-100 tracking-tight">
           Atividades
         </h1>
-        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors">
+        <button
+          onClick={() => router.push('/configuracoes')}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+        >
           <span className="material-symbols-outlined text-[20px]">settings</span>
         </button>
       </div>
