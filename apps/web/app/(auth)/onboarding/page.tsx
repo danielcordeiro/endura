@@ -727,11 +727,11 @@ function Step4({ data, update, inputClass }: StepProps) {
 
 function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
   function handleConnectStrava() {
-    window.location.href = `${API_URL}/api/integrations/strava/authorize`;
+    window.location.href = `${API_URL}/api/integrations/strava/connect`;
   }
 
   function handleConnectIntervals() {
-    window.location.href = `${API_URL}/api/integrations/intervals/authorize`;
+    window.location.href = `${API_URL}/api/integrations/intervals/connect`;
   }
 
   return (

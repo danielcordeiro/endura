@@ -83,7 +83,7 @@ export default function LoginPage() {
   }
 
   function handleStravaLogin() {
-    window.location.href = `${API_URL}/api/integrations/strava/authorize`;
+    window.location.href = `${API_URL}/api/integrations/strava/connect`;
   }
 
   function switchTab(tab: Tab) {
