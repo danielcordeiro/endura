@@ -313,8 +313,14 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       });
     } catch (err) {
       request.log.error(err, 'Erro no sync manual');
+      const detail =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? String((err as { message: unknown }).message)
+            : 'Erro desconhecido';
       return reply.code(500).send(
-        errorPayload('ERR_SYNC_FAILED', 'Erro ao sincronizar atividades', 500),
+        errorPayload('ERR_SYNC_FAILED', `Erro ao sincronizar: ${detail}`, 500),
       );
     }
   });

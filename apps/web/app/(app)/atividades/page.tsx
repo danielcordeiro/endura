@@ -214,7 +214,7 @@ export default function AtividadesPage() {
       {/* Sync alerts */}
       {syncMutation.isError && (
         <AlertBanner variant="danger">
-          Erro ao sincronizar com Strava. Tente novamente.
+          {(syncMutation.error as { message?: string })?.message ?? 'Erro ao sincronizar com Strava. Tente novamente.'}
         </AlertBanner>
       )}
       {syncMutation.isSuccess && (
