@@ -7,6 +7,17 @@ import { buildNutritionProtocolPrompt } from './prompts/nutrition-protocol.promp
 
 // ── Tipos para resposta do Claude ───────────────────────────────
 
+interface ChatAdaptation {
+  workoutId: string | null;
+  action: string;
+  changes: Record<string, unknown>;
+}
+
+interface ChatAdaptResponse {
+  response: string;
+  adaptations: ChatAdaptation[];
+}
+
 interface WorkoutStructure {
   warmup: string;
   main: string;
@@ -388,18 +399,7 @@ Retorne SEMPRE um JSON com esta estrutura:
 
 Se nao houver adaptacoes (apenas conversa), retorne "adaptations" como array vazio.`;
 
-  interface Adaptation {
-    workoutId: string | null;
-    action: string;
-    changes: Record<string, unknown>;
-  }
-
-  interface ChatResponse {
-    response: string;
-    adaptations: Adaptation[];
-  }
-
-  const chatResult = await generateStructuredJSON<ChatResponse>({
+  const chatResult = await generateStructuredJSON<ChatAdaptResponse>({
     model: CLAUDE_MODELS.SONNET,
     system: systemPrompt,
     prompt: message,

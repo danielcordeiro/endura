@@ -1,0 +1,92 @@
+# Render Blueprint - Endura
+# Docs: https://docs.render.com/blueprint-spec
+#
+# Para usar:
+#   1. Push este arquivo para o repositório
+#   2. No Render Dashboard: New > Blueprint > selecione o repo
+#   3. O Render cria todos os serviços automaticamente
+#
+# IMPORTANTE: Após o deploy, configure manualmente as variáveis
+# marcadas com "CHANGE_ME" no dashboard do Render.
+
+services:
+  # ── API (Fastify) ────────────────────────────────────────────────
+  - type: web
+    name: endura-api
+    runtime: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    startCommand: cd apps/api && node dist/src/server.js
+    preDeployCommand: cd apps/api && npx drizzle-kit migrate
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false
+        # Se usar banco do Render, descomente a linha abaixo e comente a de cima:
+        # fromDatabase:
+        #   name: endura-db
+        #   property: connectionString
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: ENCRYPTION_KEY
+        generateValue: true  # Render gera automaticamente um valor aleatório
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: endura-web
+          property: host
+          # Render injeta a URL do serviço web (ex: https://endura-web.onrender.com)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # ── Strava (opcional) ──
+      - key: STRAVA_CLIENT_ID
+        sync: false
+      - key: STRAVA_CLIENT_SECRET
+        sync: false
+      - key: STRAVA_REDIRECT_URI
+        sync: false
+      # ── Intervals.icu (opcional) ──
+      - key: INTERVALS_CLIENT_ID
+        sync: false
+      - key: INTERVALS_CLIENT_SECRET
+        sync: false
+      - key: INTERVALS_REDIRECT_URI
+        sync: false
+      - key: INTERVALS_WEBHOOK_SECRET
+        sync: false
+
+  # ── Web (Next.js) ────────────────────────────────────────────────
+  - type: web
+    name: endura-web
+    runtime: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    startCommand: cd apps/web && npx next start -p $PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: endura-api
+          property: host
+          # Render injeta a URL do serviço API (ex: https://endura-api.onrender.com)
+
+# ── Banco de dados (opcional - descomente se quiser usar Render PostgreSQL) ──
+# databases:
+#   - name: endura-db
+#     plan: starter  # free (90 dias) ou starter ($7/mês)
+#     region: oregon
+#     postgresMajorVersion: "16"
