@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, FormEvent, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 
@@ -17,9 +17,10 @@ interface FormErrors {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
-  const { login, register, isLoading } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { login, register, setAuth, isLoading } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<Tab>('login');
   const [name, setName] = useState('');
@@ -27,6 +28,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Captura tokens da URL após login via Strava OAuth
+  useEffect(() => {
+    const stravaStatus = searchParams.get('strava');
+    const token = searchParams.get('token');
+    const userId = searchParams.get('userId');
+
+    if (stravaStatus === 'success' && token && userId) {
+      setAuth(
+        {
+          id: userId,
+          email: searchParams.get('email') ?? '',
+          name: searchParams.get('name') || null,
+          role: searchParams.get('role') ?? 'athlete',
+        },
+        token,
+      );
+      router.push('/dashboard');
+    }
+  }, [searchParams, setAuth, router]);
 
   function validateLogin(): boolean {
     const errs: FormErrors = {};
@@ -83,7 +104,7 @@ export default function LoginPage() {
   }
 
   function handleStravaLogin() {
-    window.location.href = `${API_URL}/api/integrations/strava/connect`;
+    window.location.href = `${API_URL}/api/auth/strava`;
   }
 
   function switchTab(tab: Tab) {
@@ -268,5 +289,13 @@ export default function LoginPage() {
         </form>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
   );
 }
