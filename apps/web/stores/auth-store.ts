@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { apiFetch } from '@/lib/utils';
 
 interface User {
@@ -30,7 +31,7 @@ interface AuthResponse {
   };
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>()(persist((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -109,4 +110,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: null, token: null, isAuthenticated: false });
     }
   },
+}), {
+  name: 'endura-auth',
+  partialize: (state) => ({
+    user: state.user,
+    token: state.token,
+    isAuthenticated: state.isAuthenticated,
+  }),
 }));
