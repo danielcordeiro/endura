@@ -21,7 +21,7 @@ type DisciplineFilter = 'all' | Discipline;
 interface ActivityItem {
   id: string;
   title: string;
-  discipline: Discipline;
+  discipline: string;
   date: string;
   duration: string;
   distance?: string;

@@ -2,11 +2,9 @@
 
 import { cn } from '@/lib/utils';
 
-type Discipline = 'swim' | 'bike' | 'run' | 'brick';
-
 interface ActivityRowProps {
   title: string;
-  discipline: Discipline;
+  discipline: string;
   date: string;
   duration: string;
   distance?: string;
@@ -15,19 +13,21 @@ interface ActivityRowProps {
   className?: string;
 }
 
-const iconMap: Record<Discipline, string> = {
+const iconMap: Record<string, string> = {
   swim: 'pool',
   bike: 'directions_bike',
   run: 'directions_run',
   brick: 'bolt',
 };
 
-const colorMap: Record<Discipline, { bg: string; text: string }> = {
+const colorMap: Record<string, { bg: string; text: string }> = {
   swim: { bg: 'bg-cyan-500/20', text: 'text-cyan-400' },
   bike: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
   run: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
   brick: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
 };
+
+const defaultColors = { bg: 'bg-slate-500/20', text: 'text-slate-400' };
 
 export function ActivityRow({
   title,
@@ -39,7 +39,7 @@ export function ActivityRow({
   onClick,
   className,
 }: ActivityRowProps) {
-  const colors = colorMap[discipline];
+  const colors = colorMap[discipline] ?? defaultColors;
 
   return (
     <button
@@ -54,7 +54,7 @@ export function ActivityRow({
     >
       {/* Icon */}
       <div className={cn('flex items-center justify-center w-12 h-12 rounded-full shrink-0', colors.bg, colors.text)}>
-        <span className="material-symbols-outlined">{iconMap[discipline]}</span>
+        <span className="material-symbols-outlined">{iconMap[discipline] ?? 'exercise'}</span>
       </div>
 
       {/* Content */}
