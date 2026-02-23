@@ -288,6 +288,8 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
 
   // ── POST /api/integrations/strava/sync ──────────────────────
   app.post('/api/integrations/strava/sync', { onRequest: authenticate }, async (request, reply) => {
+    const { force } = (request.query as { force?: string }) ?? {};
+
     const result = await db.select({ id: schema.integrations.id })
       .from(schema.integrations)
       .where(and(
@@ -303,7 +305,15 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       );
     }
 
-    request.log.info({ provider: PROVIDER }, 'Sync manual iniciado');
+    // Se force=true, reseta lastSyncAt para rebuscar últimos 90 dias
+    if (force === 'true') {
+      await db.update(schema.integrations)
+        .set({ lastSyncAt: null, updatedAt: new Date() })
+        .where(eq(schema.integrations.id, result[0]!.id));
+      request.log.info({ provider: PROVIDER }, 'Force sync: lastSyncAt resetado');
+    }
+
+    request.log.info({ provider: PROVIDER, force: force === 'true' }, 'Sync manual iniciado');
 
     try {
       const synced = await syncUserActivities(request.userId);

@@ -124,8 +124,8 @@ export default function AtividadesPage() {
 
   /* Manual sync */
   const syncMutation = useMutation({
-    mutationFn: () =>
-      apiFetch('/api/integrations/strava/sync', {
+    mutationFn: (force?: boolean) =>
+      apiFetch(`/api/integrations/strava/sync${force ? '?force=true' : ''}`, {
         method: 'POST',
         token: token ?? undefined,
       }),
@@ -300,7 +300,7 @@ export default function AtividadesPage() {
 
           <Button
             variant="secondary"
-            onClick={() => syncMutation.mutate()}
+            onClick={() => syncMutation.mutate(true)}
             loading={syncMutation.isPending}
             className="h-11 text-[13px] px-6 rounded-full"
           >
