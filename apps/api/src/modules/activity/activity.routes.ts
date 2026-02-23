@@ -43,6 +43,21 @@ async function handleError(
   });
 }
 
+// ── Helpers ─────────────────────────────────────────────────────
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds) return '0:00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
+}
+
+function formatDistance(meters: string | null): string | undefined {
+  if (!meters) return undefined;
+  const km = Number(meters) / 1000;
+  return km >= 1 ? `${km.toFixed(1)} km` : `${Number(meters).toFixed(0)} m`;
+}
+
 // ── Plugin de rotas ──────────────────────────────────────────────
 
 export default async function activityRoutes(app: FastifyInstance): Promise<void> {
@@ -67,8 +82,18 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
           parsed.data,
         );
 
+        const data = result.items.map((item) => ({
+          id: item.id,
+          title: item.title ?? 'Atividade',
+          discipline: item.discipline,
+          date: item.startedAt.toISOString(),
+          duration: formatDuration(item.durationSec),
+          distance: formatDistance(item.distanceM),
+          hasNutrition: false,
+        }));
+
         return reply.send({
-          data: result.items,
+          data,
           meta: {
             ...result.meta,
             hasMore: result.meta.page < result.meta.totalPages,

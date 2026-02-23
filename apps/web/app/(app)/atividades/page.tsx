@@ -58,6 +58,7 @@ const disciplineOptions: { value: DisciplineFilter; label: string; icon?: string
 function groupByMonth(activities: ActivityItem[]): Record<string, ActivityItem[]> {
   const groups: Record<string, ActivityItem[]> = {};
   for (const act of activities) {
+    if (!act.date) continue;
     const key = format(parseISO(act.date), 'MMMM yyyy', { locale: ptBR });
     if (!groups[key]) groups[key] = [];
     groups[key].push(act);

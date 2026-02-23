@@ -137,7 +137,7 @@ export default function ActivityDetailPage() {
   const activity = data?.data;
 
   /* Group nutrition by phase */
-  const nutritionByPhase = activity?.nutrition.reduce(
+  const nutritionByPhase = activity?.nutrition?.reduce(
     (acc, item) => {
       if (!acc[item.phase]) acc[item.phase] = [];
       acc[item.phase].push(item);

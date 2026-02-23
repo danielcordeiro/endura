@@ -251,24 +251,39 @@ export async function syncUserActivities(userId: string): Promise<number> {
     const afterDate = lastSync ?? defaultAfter;
     const afterTimestamp = Math.floor(afterDate.getTime() / 1000);
 
-    // 5. Busca atividades do Strava
-    const url = `${STRAVA_API_BASE}/athlete/activities?after=${afterTimestamp}&per_page=${STRAVA_PER_PAGE}`;
+    // 5. Busca atividades do Strava (com paginação)
+    const stravaActivities: StravaActivity[] = [];
+    let page = 1;
+    const MAX_PAGES = 20; // Limite de segurança (~1000 atividades)
 
-    const response = await fetchWithRetry(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    while (page <= MAX_PAGES) {
+      const url = `${STRAVA_API_BASE}/athlete/activities?after=${afterTimestamp}&per_page=${STRAVA_PER_PAGE}&page=${page}`;
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw {
-        code: 'ERR_STRAVA_API',
-        message: `Erro na API Strava: ${response.status} - ${errorBody}`,
-        status: 502,
-      };
+      const response = await fetchWithRetry(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw {
+          code: 'ERR_STRAVA_API',
+          message: `Erro na API Strava: ${response.status} - ${errorBody}`,
+          status: 502,
+        };
+      }
+
+      const pageActivities = (await response.json()) as StravaActivity[];
+      stravaActivities.push(...pageActivities);
+
+      console.log(
+        `[strava-sync] Pagina ${page}: ${pageActivities.length} atividades buscadas`,
+      );
+
+      // Se retornou menos que o máximo, não há mais páginas
+      if (pageActivities.length < STRAVA_PER_PAGE) break;
+      page++;
     }
-
-    const stravaActivities = (await response.json()) as StravaActivity[];
 
     // 6. Mapeia e faz upsert das atividades
     let syncedCount = 0;

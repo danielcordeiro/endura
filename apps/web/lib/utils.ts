@@ -13,7 +13,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const { token, ...fetchOptions } = options ?? {};
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(fetchOptions.headers as Record<string, string> ?? {}),
   };
