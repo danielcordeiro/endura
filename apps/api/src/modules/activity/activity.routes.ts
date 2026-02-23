@@ -121,12 +121,47 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
           });
         }
 
-        const activity = await activityService.getActivity(
+        const raw = await activityService.getActivity(
           request.userId,
           parsed.data.id,
         );
 
-        return reply.send({ data: activity });
+        // Transforma nutrition log + items para o formato esperado pelo frontend
+        const nutrition = (raw.nutritionLog?.items ?? []).map((item) => ({
+          id: item.id,
+          phase: item.phase,
+          product: item.productName,
+          quantity: item.quantity ?? '',
+          carbsG: Number(item.carbsG ?? 0),
+          sodiumMg: Number(item.sodiumMg ?? 0),
+          caffeineMg: Number(item.caffeineMg ?? 0),
+          kcal: Number(item.kcal ?? 0),
+          minuteOffset: item.minuteOffset ?? 0,
+        }));
+
+        const totals = nutrition.reduce(
+          (acc, n) => ({
+            carbsG: acc.carbsG + n.carbsG,
+            sodiumMg: acc.sodiumMg + n.sodiumMg,
+            caffeineMg: acc.caffeineMg + n.caffeineMg,
+            kcal: acc.kcal + n.kcal,
+          }),
+          { carbsG: 0, sodiumMg: 0, caffeineMg: 0, kcal: 0 },
+        );
+
+        return reply.send({
+          data: {
+            id: raw.id,
+            title: raw.title ?? 'Atividade',
+            discipline: raw.discipline,
+            date: raw.startedAt.toISOString(),
+            duration: formatDuration(raw.durationSec),
+            distance: formatDistance(raw.distanceM),
+            avgHeartRate: raw.avgHr ?? undefined,
+            nutrition,
+            totals,
+          },
+        });
       } catch (err) {
         await handleError(err, request, reply);
       }
