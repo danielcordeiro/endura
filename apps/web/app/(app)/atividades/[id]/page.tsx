@@ -235,27 +235,24 @@ export default function ActivityDetailPage() {
           </div>
         </div>
 
-        {/* Stats grid 3 columns */}
+        {/* Stats grid 3 columns — Stitch style with circular icons */}
         <div className="grid grid-cols-3 gap-3">
-          <StatCard
-            label="Duracao"
-            value={activity.duration}
-            icon="timer"
-            className="text-center"
-          />
-          <StatCard
-            label="Distancia"
-            value={activity.distance ?? '--'}
-            icon="distance"
-            className="text-center"
-          />
-          <StatCard
-            label="Freq."
-            value={activity.avgHeartRate ?? '--'}
-            unit={activity.avgHeartRate ? 'bpm' : undefined}
-            icon="monitor_heart"
-            className="text-center"
-          />
+          {[
+            { icon: 'timer', label: 'Duração', value: activity.duration, unit: '' },
+            { icon: 'location_on', label: 'Distância', value: activity.distance ?? '--', unit: '' },
+            { icon: 'monitor_heart', label: 'Freq.', value: activity.avgHeartRate ?? '--', unit: activity.avgHeartRate ? 'bpm' : '' },
+          ].map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center gap-2 rounded-2xl border border-slate-800/50 bg-bg-surface p-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
+                <span className="material-symbols-outlined text-lg text-primary">{stat.icon}</span>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{stat.label}</span>
+              <div className="font-[var(--font-mono)] font-bold text-xl text-white leading-none">
+                {stat.value}
+                {stat.unit && <span className="text-sm text-slate-500 font-normal">{stat.unit}</span>}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Map placeholder */}
@@ -453,39 +450,30 @@ export default function ActivityDetailPage() {
       {activity.nutrition.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-30">
           <div className="bg-gradient-to-t from-[#101a22] via-[#101a22] to-transparent pt-6 pb-6 px-5">
-            <div className="grid grid-cols-4 gap-2 p-4 rounded-2xl bg-[#1c262f] border border-slate-800/50 backdrop-blur-sm">
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">
-                  Carb
-                </p>
-                <p className="font-mono font-bold text-base text-slate-100">
-                  {activity.totals.carbsG}<span className="text-xs text-slate-500 font-normal">g</span>
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">
-                  Sodio
-                </p>
-                <p className="font-mono font-bold text-base text-slate-100">
-                  {activity.totals.sodiumMg}<span className="text-xs text-slate-500 font-normal">mg</span>
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">
-                  Caf
-                </p>
-                <p className="font-mono font-bold text-base text-slate-100">
-                  {activity.totals.caffeineMg}<span className="text-xs text-slate-500 font-normal">mg</span>
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">
-                  Kcal
-                </p>
-                <p className="font-mono font-bold text-base text-slate-100">
-                  {activity.totals.kcal}
-                </p>
-              </div>
+            <div className="flex items-center justify-between gap-2 px-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resumo Nutricional</p>
+              <span className="material-symbols-outlined text-sm text-slate-600">info</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              {[
+                { value: activity.totals.carbsG, unit: 'g', label: 'CARB', color: 'bg-bg-surface' },
+                { value: activity.totals.sodiumMg, unit: 'mg', label: 'SÓDIO', color: 'bg-bg-surface' },
+                { value: activity.totals.caffeineMg, unit: 'mg', label: 'CAF', color: 'bg-bg-surface' },
+                { value: activity.totals.kcal, unit: '', label: 'KCAL', color: 'bg-primary/15' },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={cn(
+                    'flex-1 text-center py-3 rounded-2xl border border-slate-800/50',
+                    item.color,
+                  )}
+                >
+                  <p className="font-[var(--font-mono)] font-bold text-base text-white leading-none">
+                    {item.value}<span className="text-xs text-slate-500 font-normal">{item.unit}</span>
+                  </p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">{item.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

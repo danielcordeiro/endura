@@ -17,7 +17,7 @@ interface DashboardSummary {
   currentWeek: {
     workoutsPlanned: number;
     workoutsCompleted: number;
-    tssEstimate: number;
+    totalCalories: number;
     volumeHours: number;
   };
   todayWorkout: {
@@ -412,9 +412,12 @@ export default function DashboardPage() {
         className="animate-fade-in-up stagger-3"
         style={{ opacity: 0 }}
       >
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 ml-1">
-          Treino de hoje
-        </p>
+        <div className="flex items-center justify-between mb-4 px-1">
+          <h2 className="text-lg font-bold tracking-tight">TREINO DE HOJE</h2>
+          <span className="text-xs font-[var(--font-mono)] text-slate-400 bg-slate-800/50 px-2 py-1 rounded-md border border-slate-700/50">
+            {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
+          </span>
+        </div>
 
         {todayWorkout ? (
           <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
@@ -503,13 +506,17 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Stats Grid (2x2) ── */}
+      <div className="flex items-center justify-between mb-1 px-1">
+        <h2 className="text-lg font-bold tracking-tight">SEMANA ATUAL</h2>
+        <button className="text-primary text-sm font-medium hover:text-blue-400 transition-colors">Ver detalhes</button>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
           <StatCard
-            label="TSS Semanal"
-            value={week.tssEstimate}
-            unit="tss"
-            icon="bolt"
+            label="Calorias"
+            value={week.totalCalories}
+            unit="kcal"
+            icon="local_fire_department"
           />
         </div>
         <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>

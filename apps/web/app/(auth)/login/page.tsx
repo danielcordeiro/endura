@@ -20,7 +20,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, register, setAuth, isLoading } = useAuthStore();
+  const { login, register, setAuth, isLoading, token: existingToken } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<Tab>('login');
   const [name, setName] = useState('');
@@ -28,6 +28,13 @@ function LoginPageInner() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Redirect se já autenticado
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated() && existingToken) {
+      router.replace('/dashboard');
+    }
+  }, [existingToken, router]);
 
   // Captura tokens da URL após login via Strava OAuth
   useEffect(() => {

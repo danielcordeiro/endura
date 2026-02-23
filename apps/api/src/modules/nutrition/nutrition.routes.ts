@@ -7,6 +7,7 @@ import {
   createItemBody,
   updateItemBody,
   createPresetBody,
+  catalogSearchQuery,
 } from './nutrition.schemas.js';
 import * as nutritionService from './nutrition.service.js';
 
@@ -223,6 +224,28 @@ export default async function nutritionRoutes(app: FastifyInstance): Promise<voi
       await nutritionService.deletePreset(request.userId, paramsParsed.data.id);
       request.log.info({ userId: request.userId, presetId: paramsParsed.data.id }, 'Preset removido');
       return reply.status(204).send();
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── GET /api/nutrition/catalog/search ──────────────────────────
+  // Busca produtos no catalogo curado
+  app.get('/api/nutrition/catalog/search', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const queryParsed = catalogSearchQuery.safeParse(request.query);
+      if (!queryParsed.success) {
+        const firstError = queryParsed.error.errors[0];
+        return reply.status(400).send({
+          code: 'ERR_VALIDATION',
+          message: firstError?.message ?? 'Parametros invalidos',
+          status: 400,
+        });
+      }
+
+      const { q, category, limit } = queryParsed.data;
+      const products = await nutritionService.searchCatalog(q, category, limit);
+      return reply.send({ data: products });
     } catch (err) {
       await handleError(err, request, reply);
     }

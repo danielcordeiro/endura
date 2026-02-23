@@ -8,6 +8,7 @@ import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { PhaseToggle } from '@/components/ui/phase-tag';
+import { ProductAutocomplete, type CatalogProduct } from '@/components/ui/product-autocomplete';
 
 /* ---------- Types ---------- */
 
@@ -106,6 +107,14 @@ export function LogSupplementSheet({
     });
   }
 
+  function handleProductSelect(catalogProduct: CatalogProduct) {
+    if (catalogProduct.carbsG) setCarbsG(catalogProduct.carbsG);
+    if (catalogProduct.sodiumMg) setSodiumMg(catalogProduct.sodiumMg);
+    if (catalogProduct.caffeineMg) setCaffeineMg(catalogProduct.caffeineMg);
+    if (catalogProduct.kcal) setKcal(String(catalogProduct.kcal));
+    setShowNutrients(true);
+  }
+
   function incrementQuantity() {
     setQuantity((prev) => String(Math.max(1, (parseInt(prev, 10) || 0) + 1)));
   }
@@ -114,109 +123,103 @@ export function LogSupplementSheet({
     setQuantity((prev) => String(Math.max(1, (parseInt(prev, 10) || 0) - 1)));
   }
 
-  const inputClass =
-    'w-full h-14 px-5 bg-[#1c262f] border border-slate-700/50 rounded-full text-white placeholder:text-slate-500 text-[15px] outline-none transition-colors focus:border-primary';
+  const labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 block';
 
   const smallInputClass =
-    'w-full h-12 px-4 bg-[#1c262f] border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 font-[var(--font-mono)] text-[14px] outline-none transition-colors focus:border-primary';
+    'w-full h-11 px-3 bg-bg-elevated border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 font-[var(--font-mono)] text-[14px] outline-none transition-colors focus:border-primary';
+
+  /* Nutrient summary for collapsed state */
+  const nutrientParts: string[] = [];
+  if (carbsG) nutrientParts.push(`${carbsG}g CHO`);
+  if (sodiumMg) nutrientParts.push(`${sodiumMg}mg Na+`);
+  if (caffeineMg) nutrientParts.push(`${caffeineMg}mg Caf`);
+  if (kcal) nutrientParts.push(`${kcal} kcal`);
+  const nutrientSummary = nutrientParts.length > 0 ? nutrientParts.join(', ') : '';
 
   return (
     <BottomSheet open={open} onClose={handleClose} title="Adicionar consumo">
-      <div className="space-y-5">
-        {/* Phase toggle — segmented pill */}
+      <div className="flex flex-col gap-6">
+        {/* Phase toggle — no label, matches design */}
+        <PhaseToggle value={phase} onChange={setPhase} />
+
+        {/* Product — autocomplete with catalog + free text */}
         <div>
-          <label className="text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-            Fase
-          </label>
-          <PhaseToggle value={phase} onChange={setPhase} />
+          <label className={labelClass}>Produto</label>
+          <ProductAutocomplete
+            value={product}
+            onChange={setProduct}
+            onProductSelect={handleProductSelect}
+          />
         </div>
 
-        {/* Product */}
-        <div>
-          <label className="text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-            Produto
-          </label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl">
-              search
-            </span>
-            <input
-              type="text"
-              placeholder="Ex: Gel SiS Isotonic"
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              className={cn(inputClass, 'pl-12')}
-            />
+        {/* Quantity + Time offset — side by side */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Quantity stepper — integrated pill */}
+          <div>
+            <label className={labelClass}>Quantidade</label>
+            <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-slate-700/50 overflow-hidden">
+              <button
+                type="button"
+                onClick={decrementQuantity}
+                className="flex items-center justify-center w-12 h-full text-slate-400 hover:text-white active:scale-90 transition-all"
+              >
+                <span className="material-symbols-outlined text-xl">remove</span>
+              </button>
+              <input
+                type="text"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="flex-1 h-full text-center bg-transparent text-white font-[var(--font-mono)] text-lg font-bold outline-none"
+              />
+              <button
+                type="button"
+                onClick={incrementQuantity}
+                className="flex items-center justify-center w-12 h-full text-slate-400 hover:text-white active:scale-90 transition-all"
+              >
+                <span className="material-symbols-outlined text-xl">add</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Time offset — pill with clock icon */}
+          <div>
+            <label className={labelClass}>Tempo (+offset)</label>
+            <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-slate-700/50 px-4 gap-2">
+              <span className="material-symbols-outlined text-primary text-xl">schedule</span>
+              <span className="text-slate-500 text-[15px]">+</span>
+              <input
+                type="number"
+                value={minuteOffset}
+                onChange={(e) => setMinuteOffset(e.target.value)}
+                className="w-12 h-full bg-transparent text-center text-white font-[var(--font-mono)] text-lg font-bold outline-none"
+              />
+              <span className="text-slate-400 text-[14px]">min</span>
+            </div>
           </div>
         </div>
 
-        {/* Quantity stepper */}
-        <div>
-          <label className="text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-            Quantidade
-          </label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={decrementQuantity}
-              className="w-12 h-12 rounded-full bg-[#283139] border border-slate-700/50 flex items-center justify-center text-white hover:bg-[#2f3b44] transition-colors"
-            >
-              <span className="material-symbols-outlined text-xl">remove</span>
-            </button>
-            <input
-              type="text"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="w-20 h-12 text-center bg-[#1c262f] border border-slate-700/50 rounded-full text-white font-[var(--font-mono)] text-lg font-bold outline-none focus:border-primary"
-            />
-            <button
-              type="button"
-              onClick={incrementQuantity}
-              className="w-12 h-12 rounded-full bg-[#283139] border border-slate-700/50 flex items-center justify-center text-white hover:bg-[#2f3b44] transition-colors"
-            >
-              <span className="material-symbols-outlined text-xl">add</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Minute offset */}
-        <div>
-          <label className="text-[12px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-            Minuto relativo
-          </label>
-          <div className="flex items-center gap-3">
-            <input
-              type="number"
-              value={minuteOffset}
-              onChange={(e) => setMinuteOffset(e.target.value)}
-              className="w-24 h-12 text-center bg-[#1c262f] border border-slate-700/50 rounded-full text-white font-[var(--font-mono)] outline-none focus:border-primary"
-            />
-            <span className="text-[13px] text-slate-500">
-              {Number(minuteOffset) >= 0 ? `+${minuteOffset}min` : `${minuteOffset}min`}
-            </span>
-          </div>
-        </div>
-
-        {/* Collapsible nutrients */}
+        {/* Collapsible nutrients — with icon and summary */}
         <details
           open={showNutrients}
           onToggle={(e) => setShowNutrients((e.target as HTMLDetailsElement).open)}
-          className="bg-[#1c262f] border border-slate-700/50 rounded-3xl overflow-hidden"
+          className="bg-bg-surface border border-slate-700/50 rounded-2xl overflow-hidden"
         >
-          <summary className="flex items-center justify-between w-full p-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden">
-            <span className="text-[13px] font-bold uppercase tracking-wider text-slate-400">
-              Nutrientes
-            </span>
-            <span className="material-symbols-outlined text-slate-500 text-xl transition-transform">
-              {showNutrients ? 'expand_less' : 'expand_more'}
+          <summary className="flex items-center w-full px-4 py-3.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden gap-3">
+            <span className="material-symbols-outlined text-primary text-xl">science</span>
+            <span className="text-white text-[14px] font-semibold">Nutrientes</span>
+            <span className="ml-auto flex items-center gap-2">
+              {!showNutrients && nutrientSummary && (
+                <span className="text-[12px] text-slate-400">{nutrientSummary}</span>
+              )}
+              <span className="material-symbols-outlined text-slate-500 text-lg">
+                {showNutrients ? 'expand_less' : 'expand_more'}
+              </span>
             </span>
           </summary>
 
-          <div className="grid grid-cols-2 gap-3 p-4 pt-0">
+          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">
-                Carboidratos (g)
-              </label>
+              <label className="text-[11px] text-slate-500 mb-1 block">Carbs (g)</label>
               <input
                 type="number"
                 placeholder="0"
@@ -226,9 +229,7 @@ export function LogSupplementSheet({
               />
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">
-                Sódio (mg)
-              </label>
+              <label className="text-[11px] text-slate-500 mb-1 block">Sódio (mg)</label>
               <input
                 type="number"
                 placeholder="0"
@@ -238,9 +239,7 @@ export function LogSupplementSheet({
               />
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">
-                Cafeína (mg)
-              </label>
+              <label className="text-[11px] text-slate-500 mb-1 block">Cafeína (mg)</label>
               <input
                 type="number"
                 placeholder="0"
@@ -250,9 +249,7 @@ export function LogSupplementSheet({
               />
             </div>
             <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">
-                Kcal
-              </label>
+              <label className="text-[11px] text-slate-500 mb-1 block">Kcal</label>
               <input
                 type="number"
                 placeholder="0"
@@ -264,36 +261,35 @@ export function LogSupplementSheet({
           </div>
         </details>
 
-        {/* Validation error */}
+        {/* Validation / mutation errors */}
         {validationError && (
           <p className="text-[13px] text-red-400 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">error</span>
             {validationError}
           </p>
         )}
-
-        {/* Mutation error */}
         {mutation.isError && (
           <p className="text-[13px] text-red-400 flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">error</span>
             Erro ao salvar. Tente novamente.
           </p>
         )}
+      </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-3 pt-2">
-          <Button variant="secondary" fullWidth onClick={handleClose}>
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={handleSave}
-            loading={mutation.isPending}
-          >
-            Salvar
-          </Button>
-        </div>
+      {/* Action buttons */}
+      <div className="flex gap-3 pt-6 mt-auto">
+        <Button variant="secondary" fullWidth onClick={handleClose} className="h-14">
+          Cancelar
+        </Button>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={handleSave}
+          loading={mutation.isPending}
+          className="h-14"
+        >
+          Salvar
+        </Button>
       </div>
     </BottomSheet>
   );

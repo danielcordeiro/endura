@@ -43,7 +43,7 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
       {/* Sheet */}
       <div
         className={cn(
-          'absolute bottom-0 left-0 right-0',
+          'absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px]',
           'bg-[#111518] rounded-t-[2rem]',
           'shadow-2xl animate-slide-up',
           'max-h-[90vh] overflow-hidden flex flex-col',
@@ -56,12 +56,12 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
         </div>
 
         {title && (
-          <h2 className="text-white text-2xl font-bold text-center mb-4 tracking-tight px-6">
+          <h2 className="text-white text-xl font-bold text-center mb-4 tracking-tight px-6">
             {title}
           </h2>
         )}
 
-        <div className="flex-1 overflow-y-auto px-6 pb-8">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 pb-6 flex flex-col">{children}</div>
       </div>
     </div>
   );

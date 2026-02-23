@@ -56,7 +56,7 @@ export function PhaseToggle({ value, onChange, className }: PhaseToggleProps) {
           type="button"
           onClick={() => onChange(opt.value)}
           className={cn(
-            'flex-1 py-2.5 rounded-full text-sm font-semibold transition-all',
+            'flex-1 py-2.5 rounded-full text-[13px] font-semibold transition-all',
             value === opt.value
               ? 'bg-primary text-white shadow-md'
               : 'text-slate-400 hover:text-white',

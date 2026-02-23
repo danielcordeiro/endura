@@ -19,7 +19,7 @@ interface CurrentPlanSummary {
 interface WeekSummary {
   workoutsPlanned: number;
   workoutsCompleted: number;
-  tssEstimate: number;
+  totalCalories: number;
   volumeHours: number;
 }
 
@@ -172,21 +172,21 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
 
   const workoutsCompleted = weekActivities.length;
 
-  // 5. TSS e volume dos treinos planejados
-  let tssEstimate = 0;
-  let totalMinutes = 0;
+  // 5. Calorias e volume das atividades reais
+  let totalCalories = 0;
+  let totalSeconds = 0;
 
-  for (const workout of weekWorkouts) {
-    tssEstimate += Number(workout.tssEstimate ?? 0);
-    totalMinutes += Number(workout.durationMin ?? 0);
+  for (const activity of weekActivities) {
+    totalCalories += Number(activity.calories ?? 0);
+    totalSeconds += Number(activity.durationSec ?? 0);
   }
 
-  const volumeHours = Math.round((totalMinutes / 60) * 10) / 10;
+  const volumeHours = Math.round((totalSeconds / 3600) * 10) / 10;
 
   const currentWeek: WeekSummary = {
     workoutsPlanned,
     workoutsCompleted,
-    tssEstimate: Math.round(tssEstimate),
+    totalCalories: Math.round(totalCalories),
     volumeHours,
   };
 

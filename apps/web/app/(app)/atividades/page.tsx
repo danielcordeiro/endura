@@ -165,15 +165,15 @@ export default function AtividadesPage() {
       </div>
 
       {/* Period segmented control */}
-      <div className="bg-[#1c262f] p-1 rounded-xl flex">
+      <div className="bg-bg-surface p-1.5 rounded-full flex border border-slate-800/50">
         {periodOptions.map((opt) => (
           <button
             key={opt.value}
             onClick={() => setPeriod(opt.value)}
             className={cn(
-              'flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+              'flex-1 py-2.5 rounded-full text-sm font-semibold transition-all duration-200',
               period === opt.value
-                ? 'bg-[#1d8fed] text-white shadow-md shadow-[#1d8fed]/25'
+                ? 'bg-primary text-white shadow-md shadow-primary/25'
                 : 'text-slate-400 hover:text-slate-200',
             )}
           >
@@ -310,24 +310,23 @@ export default function AtividadesPage() {
         </div>
       )}
 
-      {/* FAB - Sync button (when has activities) */}
+      {/* Sync button — full-width pill like Stitch design */}
       {!isLoading && allActivities.length > 0 && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-20">
+        <div className="pb-2">
           <button
-            onClick={() => syncMutation.mutate()}
+            onClick={() => syncMutation.mutate(false)}
             disabled={syncMutation.isPending}
             className={cn(
-              'inline-flex items-center gap-2 px-5 py-3 rounded-full',
-              'bg-[#1c262f] border border-slate-800/50',
-              'text-slate-300 text-[13px] font-medium',
-              'shadow-lg shadow-black/30',
-              'hover:bg-[#283139] hover:text-slate-100 transition-all duration-200',
-              'active:scale-[0.97]',
+              'w-full inline-flex items-center justify-center gap-2 h-14 rounded-full',
+              'bg-primary text-white font-bold text-sm',
+              'shadow-lg shadow-primary/25',
+              'hover:bg-blue-600 transition-all duration-200',
+              'active:scale-[0.98]',
               'disabled:opacity-50',
             )}
           >
             <span className={cn(
-              'material-symbols-outlined text-[18px]',
+              'material-symbols-outlined text-xl',
               syncMutation.isPending && 'animate-spin',
             )}>
               sync

@@ -8,6 +8,13 @@
       "when": 1771669625970,
       "tag": "0000_light_mysterio",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771887912426,
+      "tag": "0001_curved_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

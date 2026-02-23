@@ -83,82 +83,52 @@ function IntegrationCard({
   const connected = status?.connected ?? false;
 
   return (
-    <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              'w-10 h-10 rounded-full flex items-center justify-center',
-              brandBg,
-            )}
-          >
-            {icon}
-          </div>
-          <span className="font-semibold text-[15px] text-slate-100">
-            {name}
-          </span>
+    <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4">
+      <div className="flex items-center gap-3">
+        {/* Brand icon */}
+        <div
+          className={cn(
+            'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+            brandBg,
+          )}
+        >
+          {icon}
         </div>
-        {connected && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-medium text-emerald-400">Ativo</span>
-          </div>
-        )}
-        {!connected && (
-          <span className="text-xs font-medium text-slate-500">Inativo</span>
-        )}
-      </div>
 
-      {/* Last sync */}
-      {connected && status?.lastSync && (
-        <div className="flex items-center gap-1.5 text-slate-500">
-          <span className="material-symbols-outlined text-xs">schedule</span>
-          <span className="text-xs">
-            Sync:{' '}
-            {format(parseISO(status.lastSync), "dd/MM 'as' HH:mm", {
-              locale: ptBR,
-            })}
-          </span>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        {connected ? (
-          <>
-            <button
-              onClick={onSync}
-              disabled={isSyncing}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
-                'text-xs font-semibold text-slate-100',
-                'bg-[#283139] border border-slate-700/50',
-                'hover:bg-slate-700/40 transition-colors',
-                'disabled:opacity-40',
-              )}
-            >
-              <span className={cn('material-symbols-outlined text-sm', isSyncing && 'animate-spin')}>
-                sync
+        {/* Name + status */}
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-[15px] text-slate-100 block">{name}</span>
+          {connected && status?.lastSync && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-[11px] text-slate-500">
+                Sincronizado{' '}
+                {format(parseISO(status.lastSync), "dd/MM 'às' HH:mm", {
+                  locale: ptBR,
+                })}
               </span>
-              Sincronizar
-            </button>
-            <button
-              onClick={onDisconnect}
-              className="ml-auto text-xs text-red-400/70 hover:text-red-400 transition-colors flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-sm">link_off</span>
-              Desconectar
-            </button>
-          </>
+            </div>
+          )}
+          {!connected && (
+            <span className="text-[11px] text-slate-500 block mt-0.5">Não conectado</span>
+          )}
+        </div>
+
+        {/* Action button */}
+        {connected ? (
+          <button
+            onClick={onSync}
+            disabled={isSyncing}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition-colors disabled:opacity-40 shrink-0"
+          >
+            <span className={cn('material-symbols-outlined text-xl', isSyncing && 'animate-spin')}>
+              sync
+            </span>
+          </button>
         ) : (
           <button
             onClick={onConnect}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
-              'text-xs font-semibold text-white',
-              'bg-primary hover:bg-blue-600 transition-colors',
-            )}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-primary hover:bg-blue-600 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-sm">link</span>
             Conectar
@@ -444,7 +414,7 @@ export default function ConfiguracoesPage() {
           Conta
         </p>
 
-        <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] overflow-hidden divide-y divide-slate-800/50">
+        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface overflow-hidden divide-y divide-slate-800/50">
           <MenuItem
             icon="manage_accounts"
             label="Editar perfil atletico"
@@ -453,6 +423,11 @@ export default function ConfiguracoesPage() {
           <MenuItem
             icon="lock"
             label="Alterar senha"
+            onClick={() => {}}
+          />
+          <MenuItem
+            icon="credit_card"
+            label="Gerenciar assinatura"
             onClick={() => {}}
           />
         </div>
@@ -472,7 +447,7 @@ export default function ConfiguracoesPage() {
           )}
         >
           <span className="material-symbols-outlined text-lg">logout</span>
-          Sair
+          Sair da conta
         </button>
       </div>
 

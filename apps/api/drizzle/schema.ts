@@ -397,6 +397,24 @@ export const syncLogs = pgTable('sync_logs', {
   index('idx_sync_logs_created').on(table.createdAt),
 ]);
 
+// ── CATÁLOGO DE PRODUTOS ─────────────────────────────────────
+
+export const productCatalog = pgTable('product_catalog', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  brand: varchar('brand', { length: 100 }).notNull(),
+  category: varchar('category', { length: 30 }).notNull(),
+  servingSize: varchar('serving_size', { length: 50 }),
+  carbsG: numeric('carbs_g', { precision: 6, scale: 2 }),
+  sodiumMg: numeric('sodium_mg', { precision: 6, scale: 2 }),
+  caffeineMg: numeric('caffeine_mg', { precision: 6, scale: 2 }),
+  kcal: integer('kcal'),
+  active: boolean('active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_product_catalog_name_brand').on(table.name, table.brand),
+]);
+
 // ── MÓDULO TREINADOR (fase 3) ─────────────────────────────────
 
 export const coachAthletes = pgTable('coach_athletes', {

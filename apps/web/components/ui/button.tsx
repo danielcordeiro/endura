@@ -50,7 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           'inline-flex items-center justify-center gap-2',
           'font-semibold text-[14px] tracking-wide',
-          'h-14 px-6 rounded-full',
+          'h-12 px-6 rounded-full',
           'transition-all duration-200 ease-out',
           'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
           'disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none',

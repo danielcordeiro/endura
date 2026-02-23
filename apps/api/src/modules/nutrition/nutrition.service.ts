@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, or, ilike, sql } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import type { CreateItemBody, UpdateItemBody, CreatePresetBody } from './nutrition.schemas.js';
@@ -382,4 +382,32 @@ export async function getShoppingList(userId: string) {
   }
 
   return Array.from(aggregated.values());
+}
+
+// ── searchCatalog ────────────────────────────────────────────────
+// Busca produtos no catalogo curado por nome ou marca
+
+export async function searchCatalog(query: string, category?: string, limit = 10) {
+  const searchTerm = `%${query}%`;
+
+  const conditions = [
+    eq(schema.productCatalog.active, true),
+    or(
+      ilike(schema.productCatalog.name, searchTerm),
+      ilike(schema.productCatalog.brand, searchTerm),
+    ),
+  ];
+
+  if (category) {
+    conditions.push(eq(schema.productCatalog.category, category));
+  }
+
+  const results = await db
+    .select()
+    .from(schema.productCatalog)
+    .where(and(...conditions))
+    .orderBy(schema.productCatalog.brand, schema.productCatalog.name)
+    .limit(Math.min(limit, 20));
+
+  return results;
 }

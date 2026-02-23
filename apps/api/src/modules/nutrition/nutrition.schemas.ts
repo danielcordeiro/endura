@@ -58,3 +58,13 @@ export const createPresetBody = z.object({
 });
 
 export type CreatePresetBody = z.infer<typeof createPresetBody>;
+
+// ── Busca no catalogo de produtos ───────────────────────────────
+
+export const catalogSearchQuery = z.object({
+  q: z.string().min(2, 'Busca deve ter pelo menos 2 caracteres'),
+  category: z.enum(['gel', 'isotonic', 'bar', 'salt_capsule', 'caffeine', 'other']).optional(),
+  limit: z.coerce.number().int().min(1).max(20).default(10),
+});
+
+export type CatalogSearchQuery = z.infer<typeof catalogSearchQuery>;
