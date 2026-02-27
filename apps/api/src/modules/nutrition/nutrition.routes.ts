@@ -8,6 +8,8 @@ import {
   updateItemBody,
   createPresetBody,
   catalogSearchQuery,
+  followProtocolBody,
+  trendsQuery,
 } from './nutrition.schemas.js';
 import * as nutritionService from './nutrition.service.js';
 
@@ -257,6 +259,73 @@ export default async function nutritionRoutes(app: FastifyInstance): Promise<voi
     try {
       const list = await nutritionService.getShoppingList(request.userId);
       return reply.send({ data: list });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── POST /api/nutrition/log/:activityId/follow-protocol ─────────
+  // Copia protocolo prescrito para o log (1 tap)
+  app.post('/api/nutrition/log/:activityId/follow-protocol', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const paramsParsed = activityIdParams.safeParse(request.params);
+      if (!paramsParsed.success) {
+        return reply.status(400).send({ code: 'ERR_VALIDATION', message: paramsParsed.error.errors[0]?.message ?? 'Parametros invalidos', status: 400 });
+      }
+      const bodyParsed = followProtocolBody.safeParse(request.body);
+      if (!bodyParsed.success) {
+        return reply.status(400).send({ code: 'ERR_VALIDATION', message: bodyParsed.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      const log = await nutritionService.followProtocol(request.userId, paramsParsed.data.activityId, bodyParsed.data.protocolId);
+      request.log.info({ userId: request.userId, activityId: paramsParsed.data.activityId }, 'Protocolo seguido exatamente');
+      return reply.status(201).send({ data: log });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── GET /api/nutrition/log/:activityId/comparison ───────────────
+  // Prescrito vs real + metricas
+  app.get('/api/nutrition/log/:activityId/comparison', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const paramsParsed = activityIdParams.safeParse(request.params);
+      if (!paramsParsed.success) {
+        return reply.status(400).send({ code: 'ERR_VALIDATION', message: paramsParsed.error.errors[0]?.message ?? 'Parametros invalidos', status: 400 });
+      }
+      const comparison = await nutritionService.getComparison(request.userId, paramsParsed.data.activityId);
+      return reply.send({ data: comparison });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── GET /api/nutrition/trends ────────────────────────────────────
+  // Dados de tendencia nutricional para graficos
+  app.get('/api/nutrition/trends', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const queryParsed = trendsQuery.safeParse(request.query);
+      if (!queryParsed.success) {
+        return reply.status(400).send({
+          code: 'ERR_VALIDATION',
+          message: queryParsed.error.errors[0]?.message ?? 'Parametros invalidos',
+          status: 400,
+        });
+      }
+
+      const { days, discipline } = queryParsed.data;
+      const trends = await nutritionService.getTrends(request.userId, days, discipline);
+      return reply.send({ data: trends });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── GET /api/nutrition/readiness-score ───────────────────────────
+  // Score consolidado de prontidao nutricional
+  app.get('/api/nutrition/readiness-score', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const result = await nutritionService.getReadinessScore(request.userId);
+      return reply.send({ data: result });
     } catch (err) {
       await handleError(err, request, reply);
     }

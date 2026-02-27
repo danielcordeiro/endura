@@ -33,6 +33,16 @@ interface TodayWorkout {
   scheduledDate: string;
 }
 
+interface TodayProtocol {
+  id: string;
+  status: string | null;
+  items: unknown;
+  totalCarbsG: string | null;
+  totalSodiumMg: string | null;
+  totalCaffeineMg: string | null;
+  totalKcal: number | null;
+}
+
 interface Alert {
   type: string;
   severity: 'info' | 'warning' | 'critical';
@@ -44,6 +54,7 @@ interface DashboardSummary {
   currentPlan: CurrentPlanSummary | null;
   currentWeek: WeekSummary;
   todayWorkout: TodayWorkout | null;
+  todayProtocol: TodayProtocol | null;
   alerts: Alert[];
 }
 
@@ -147,13 +158,16 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
     };
   }
 
-  // 3. Treinos planejados da semana
+  // 3. Treinos planejados da semana (com protocolo nutricional)
   const weekWorkouts = await db.query.plannedWorkouts.findMany({
     where: and(
       eq(schema.plannedWorkouts.userId, userId),
       gte(schema.plannedWorkouts.scheduledDate, weekStartStr),
       lte(schema.plannedWorkouts.scheduledDate, weekEndStr),
     ),
+    with: {
+      nutritionProtocol: true,
+    },
   });
 
   const workoutsPlanned = weekWorkouts.length;
@@ -196,6 +210,8 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
   );
 
   let todayWorkout: TodayWorkout | null = null;
+  let todayProtocol: TodayProtocol | null = null;
+
   if (todayWorkoutRow) {
     todayWorkout = {
       id: todayWorkoutRow.id,
@@ -206,6 +222,19 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
       description: todayWorkoutRow.description,
       scheduledDate: todayWorkoutRow.scheduledDate,
     };
+
+    if (todayWorkoutRow.nutritionProtocol) {
+      const np = todayWorkoutRow.nutritionProtocol;
+      todayProtocol = {
+        id: np.id,
+        status: np.status,
+        items: np.items,
+        totalCarbsG: np.totalCarbsG,
+        totalSodiumMg: np.totalSodiumMg,
+        totalCaffeineMg: np.totalCaffeineMg,
+        totalKcal: np.totalKcal,
+      };
+    }
   }
 
   // 7. Alertas
@@ -260,6 +289,7 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
     currentPlan: currentPlanSummary,
     currentWeek,
     todayWorkout,
+    todayProtocol,
     alerts,
   };
 }

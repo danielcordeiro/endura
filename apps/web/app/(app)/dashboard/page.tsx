@@ -8,6 +8,7 @@ import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatCard } from '@/components/ui/stat-card';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { DailyNutritionCard } from '@/components/nutrition/daily-nutrition-card';
 
 /* ── Types ── */
 
@@ -28,6 +29,26 @@ interface DashboardSummary {
     distanceM: number | null;
     structure: { warmup: string; main: string; cooldown: string } | null;
     sentToWatch: boolean;
+  } | null;
+  todayProtocol: {
+    id: string;
+    status: string | null;
+    items: Array<{
+      phase: 'pre' | 'during' | 'post';
+      minuteOffset: number;
+      productName: string;
+      brand?: string;
+      quantity?: number;
+      unit?: string;
+      carbsG?: number;
+      sodiumMg?: number;
+      caffeineMg?: number;
+      kcal?: number;
+    }>;
+    totalCarbsG: string | null;
+    totalSodiumMg: string | null;
+    totalCaffeineMg: string | null;
+    totalKcal: number | null;
   } | null;
   alerts: Array<{ type: string; level: string; message: string }>;
 }
@@ -294,7 +315,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { raceGoal, currentPlan, currentWeek, todayWorkout, alerts } = data;
+  const { raceGoal, currentPlan, currentWeek, todayWorkout, todayProtocol, alerts } = data;
   const firstName = user?.name?.split(' ')[0] ?? '';
   const week = currentWeek ?? { workoutsPlanned: 0, workoutsCompleted: 0, tssEstimate: 0, volumeHours: 0 };
   const consistency =
@@ -504,6 +525,17 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ── Daily Nutrition Card ── */}
+      {todayWorkout && (
+        <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
+          <DailyNutritionCard
+            workoutId={todayWorkout.id}
+            protocol={todayProtocol}
+            discipline={todayWorkout.discipline}
+          />
+        </div>
+      )}
 
       {/* ── Stats Grid (2x2) ── */}
       <div className="flex items-center justify-between mb-1 px-1">

@@ -8,6 +8,9 @@ import intervalsRoutes from './modules/integration/intervals.routes.js';
 import planRoutes from './modules/plan/plan.routes.js';
 import nutritionRoutes from './modules/nutrition/nutrition.routes.js';
 import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
+import nutritionPlannerRoutes from './modules/nutrition-planner/nutrition-planner.routes.js';
+import nutritionAnalysisRoutes from './modules/nutrition-analysis/nutrition-analysis.routes.js';
+import raceNutritionRoutes from './modules/race-nutrition/race-nutrition.routes.js';
 import { startStravaSyncJob } from './jobs/strava-sync.job.js';
 import { startTokenRefreshJob } from './jobs/token-refresh.job.js';
 import { db } from './lib/db.js';
@@ -56,6 +59,9 @@ await app.register(intervalsRoutes);
 await app.register(planRoutes);
 await app.register(nutritionRoutes);
 await app.register(dashboardRoutes);
+await app.register(nutritionPlannerRoutes);
+await app.register(nutritionAnalysisRoutes);
+await app.register(raceNutritionRoutes);
 
 // ── Jobs (cron) ──────────────────────────────────────────────────
 startStravaSyncJob();

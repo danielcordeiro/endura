@@ -14,6 +14,9 @@ import { PhaseTag } from '@/components/ui/phase-tag';
 import { StatCard } from '@/components/ui/stat-card';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { LogSupplementSheet } from '@/components/nutrition/log-supplement-sheet';
+import { ProtocolComparison } from '@/components/nutrition/protocol-comparison';
+import { QuickLogButtons } from '@/components/nutrition/quick-log-buttons';
+import { AiAnalysisCard } from '@/components/nutrition/ai-analysis-card';
 
 /* ---------- Types ---------- */
 
@@ -134,6 +137,22 @@ export default function ActivityDetailPage() {
     enabled: !!token && !!params.id,
   });
 
+  const comparisonQuery = useQuery({
+    queryKey: ['nutrition-comparison', params.id],
+    queryFn: () =>
+      apiFetch<{ data: {
+        prescribed: { totalCarbsG: number; totalSodiumMg: number; totalCaffeineMg: number; totalKcal: number } | null;
+        actual: { totalCarbsG: number; totalSodiumMg: number; totalCaffeineMg: number; totalKcal: number; followedExactly: boolean } | null;
+        metrics: { carbsPerHour: number; sodiumPerHour: number; prescribedCarbsPerHour: number };
+        status: { carbs: 'green' | 'yellow' | 'red'; sodium: 'green' | 'yellow' | 'red'; caffeine: 'green' | 'yellow' | 'red'; kcal: 'green' | 'yellow' | 'red' } | null;
+        protocolId: string | null;
+      } }>(`/api/nutrition/log/${params.id}/comparison`, {
+        token: token ?? undefined,
+      }),
+    enabled: !!token && !!params.id,
+  });
+
+  const comparison = comparisonQuery.data?.data;
   const activity = data?.data;
 
   /* Group nutrition by phase */
@@ -364,6 +383,27 @@ export default function ActivityDetailPage() {
             Adicionar consumo
           </button>
         </div>
+
+        {/* ── Quick Log Buttons ── */}
+        {comparison?.protocolId && (
+          <QuickLogButtons
+            activityId={params.id}
+            protocolId={comparison.protocolId}
+            hasLog={!!comparison.actual}
+            onLogDifferences={() => setShowLogSheet(true)}
+          />
+        )}
+
+        {/* ── Protocol Comparison ── */}
+        {comparison && (comparison.prescribed || comparison.actual) && (
+          <ProtocolComparison data={comparison} />
+        )}
+
+        {/* ── AI Analysis ── */}
+        <AiAnalysisCard
+          activityId={params.id}
+          hasNutritionLog={!!comparison?.actual}
+        />
 
         {/* Adverse event link */}
         <button

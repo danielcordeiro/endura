@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@/stores/auth-store';
@@ -191,6 +192,34 @@ export default function NutricaoPage() {
       <h1 className="font-[var(--font-heading)] font-bold text-[28px] text-slate-100">
         Nutricao
       </h1>
+
+      {/* Navigation */}
+      <div className="flex gap-2">
+        <Link
+          href="/nutricao/tendencias"
+          className={cn(
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
+            'text-xs font-semibold text-primary',
+            'bg-primary/10 border border-primary/20',
+            'hover:bg-primary/20 transition-colors',
+          )}
+        >
+          <span className="material-symbols-outlined text-sm">monitoring</span>
+          Tendencias
+        </Link>
+        <Link
+          href="/nutricao/race-day"
+          className={cn(
+            'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
+            'text-xs font-semibold text-primary',
+            'bg-primary/10 border border-primary/20',
+            'hover:bg-primary/20 transition-colors',
+          )}
+        >
+          <span className="material-symbols-outlined text-sm">flag</span>
+          Race Day
+        </Link>
+      </div>
 
       {/* Mutation errors */}
       {deletePresetMutation.isError && (

@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, or, ilike, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, or, ilike, sql, desc } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import type { CreateItemBody, UpdateItemBody, CreatePresetBody } from './nutrition.schemas.js';
@@ -410,4 +410,243 @@ export async function searchCatalog(query: string, category?: string, limit = 10
     .limit(Math.min(limit, 20));
 
   return results;
+}
+
+// ── followProtocol ────────────────────────────────────────────────
+// Copia itens do protocolo prescrito para o log da atividade (1 tap)
+export async function followProtocol(userId: string, activityId: string, protocolId: string) {
+  // Verify activity belongs to user
+  const activity = await db.query.activities.findFirst({
+    where: and(eq(schema.activities.id, activityId), eq(schema.activities.userId, userId)),
+  });
+  if (!activity) throw { code: 'ERR_ACTIVITY_NOT_FOUND', message: 'Atividade nao encontrada', status: 404 };
+
+  // Get protocol
+  const protocol = await db.query.nutritionProtocols.findFirst({
+    where: eq(schema.nutritionProtocols.id, protocolId),
+  });
+  if (!protocol) throw { code: 'ERR_PROTOCOL_NOT_FOUND', message: 'Protocolo nao encontrado', status: 404 };
+
+  // Delete existing log if any
+  const existingLog = await db.query.nutritionLogs.findFirst({
+    where: and(eq(schema.nutritionLogs.activityId, activityId), eq(schema.nutritionLogs.userId, userId)),
+  });
+  if (existingLog) {
+    await db.delete(schema.nutritionItems).where(eq(schema.nutritionItems.logId, existingLog.id));
+    await db.delete(schema.nutritionLogs).where(eq(schema.nutritionLogs.id, existingLog.id));
+  }
+
+  // Calculate metrics
+  const durationHours = (activity.durationSec ?? 0) / 3600;
+  const protocolItems = protocol.items as Array<{phase:string;minuteOffset?:number;productName:string;brand?:string;quantity?:number;unit?:string;carbsG?:number;sodiumMg?:number;caffeineMg?:number;kcal?:number}>;
+
+  let totalCarbsG = 0, totalSodiumMg = 0, totalCaffeineMg = 0, totalKcal = 0;
+  for (const item of protocolItems) {
+    totalCarbsG += Number(item.carbsG ?? 0);
+    totalSodiumMg += Number(item.sodiumMg ?? 0);
+    totalCaffeineMg += Number(item.caffeineMg ?? 0);
+    totalKcal += Number(item.kcal ?? 0);
+  }
+
+  const carbsPerHour = durationHours > 0 ? totalCarbsG / durationHours : 0;
+  const sodiumPerHour = durationHours > 0 ? totalSodiumMg / durationHours : 0;
+
+  // Create log
+  const [log] = await db.insert(schema.nutritionLogs).values({
+    activityId,
+    userId,
+    nutritionProtocolId: protocolId,
+    followedExactly: true,
+    carbsPerHour: carbsPerHour.toFixed(2),
+    sodiumPerHour: sodiumPerHour.toFixed(2),
+    totalCarbsG: totalCarbsG.toFixed(2),
+    totalSodiumMg: totalSodiumMg.toFixed(2),
+    totalCaffeineMg: totalCaffeineMg.toFixed(2),
+    totalKcal: Math.round(totalKcal),
+  }).returning();
+
+  // Insert items
+  for (const item of protocolItems) {
+    await db.insert(schema.nutritionItems).values({
+      logId: log!.id,
+      phase: item.phase,
+      minuteOffset: item.minuteOffset ?? null,
+      productName: item.productName,
+      brand: item.brand ?? null,
+      quantity: item.quantity?.toString() ?? null,
+      unit: item.unit ?? null,
+      carbsG: item.carbsG?.toString() ?? null,
+      sodiumMg: item.sodiumMg?.toString() ?? null,
+      caffeineMg: item.caffeineMg?.toString() ?? null,
+      kcal: item.kcal ?? null,
+      source: 'protocol',
+    });
+  }
+
+  return log!;
+}
+
+// ── getComparison ─────────────────────────────────────────────────
+// Compara prescrito vs consumido para uma atividade
+export async function getComparison(userId: string, activityId: string) {
+  // Get activity with planned workout
+  const activity = await db.query.activities.findFirst({
+    where: and(eq(schema.activities.id, activityId), eq(schema.activities.userId, userId)),
+    with: { plannedWorkout: { with: { nutritionProtocol: true } } },
+  });
+  if (!activity) throw { code: 'ERR_ACTIVITY_NOT_FOUND', message: 'Atividade nao encontrada', status: 404 };
+
+  // Get nutrition log
+  const log = await db.query.nutritionLogs.findFirst({
+    where: and(eq(schema.nutritionLogs.activityId, activityId), eq(schema.nutritionLogs.userId, userId)),
+    with: { items: true },
+  });
+
+  const protocol = activity.plannedWorkout?.nutritionProtocol ?? null;
+  const durationHours = (activity.durationSec ?? 0) / 3600;
+
+  // Prescribed totals
+  const prescribed = protocol ? {
+    totalCarbsG: Number(protocol.totalCarbsG ?? 0),
+    totalSodiumMg: Number(protocol.totalSodiumMg ?? 0),
+    totalCaffeineMg: Number(protocol.totalCaffeineMg ?? 0),
+    totalKcal: Number(protocol.totalKcal ?? 0),
+    items: protocol.items,
+  } : null;
+
+  // Actual totals
+  const actual = log ? {
+    totalCarbsG: Number(log.totalCarbsG ?? 0),
+    totalSodiumMg: Number(log.totalSodiumMg ?? 0),
+    totalCaffeineMg: Number(log.totalCaffeineMg ?? 0),
+    totalKcal: Number(log.totalKcal ?? 0),
+    followedExactly: log.followedExactly,
+    items: log.items,
+  } : null;
+
+  // Metrics
+  const actualCarbsPerHour = actual && durationHours > 0 ? actual.totalCarbsG / durationHours : 0;
+  const actualSodiumPerHour = actual && durationHours > 0 ? actual.totalSodiumMg / durationHours : 0;
+  const prescribedCarbsPerHour = prescribed && durationHours > 0 ? prescribed.totalCarbsG / durationHours : 0;
+
+  // Status indicators
+  function getStatus(actual: number, target: number): 'green' | 'yellow' | 'red' {
+    if (target === 0) return 'green';
+    const ratio = actual / target;
+    if (ratio >= 0.85 && ratio <= 1.15) return 'green';
+    if (ratio >= 0.6 && ratio < 0.85) return 'yellow';
+    return 'red';
+  }
+
+  return {
+    prescribed,
+    actual,
+    metrics: {
+      carbsPerHour: Number(actualCarbsPerHour.toFixed(1)),
+      sodiumPerHour: Number(actualSodiumPerHour.toFixed(1)),
+      prescribedCarbsPerHour: Number(prescribedCarbsPerHour.toFixed(1)),
+    },
+    status: prescribed && actual ? {
+      carbs: getStatus(actual.totalCarbsG, prescribed.totalCarbsG),
+      sodium: getStatus(actual.totalSodiumMg, prescribed.totalSodiumMg),
+      caffeine: getStatus(actual.totalCaffeineMg, prescribed.totalCaffeineMg),
+      kcal: getStatus(actual.totalKcal, prescribed.totalKcal),
+    } : null,
+    protocolId: protocol?.id ?? null,
+  };
+}
+
+// ── getTrends ─────────────────────────────────────────────────────
+// Retorna dados de tendencia nutricional para graficos
+
+export async function getTrends(userId: string, days: number, discipline: string) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+
+  // Busca logs com atividades
+  const logs = await db.query.nutritionLogs.findMany({
+    where: and(
+      eq(schema.nutritionLogs.userId, userId),
+      gte(schema.nutritionLogs.createdAt, cutoff),
+    ),
+    orderBy: [desc(schema.nutritionLogs.createdAt)],
+  });
+
+  // Busca atividades para filtrar por disciplina
+  const activityIds = logs.map((l) => l.activityId);
+  if (activityIds.length === 0) return [];
+
+  const activities = await db.query.activities.findMany({
+    where: and(
+      eq(schema.activities.userId, userId),
+      gte(schema.activities.startedAt, cutoff),
+    ),
+    orderBy: [desc(schema.activities.startedAt)],
+  });
+
+  const activityMap = new Map(activities.map((a) => [a.id, a]));
+
+  // Monta dados de tendencia
+  const trends = [];
+  for (const log of logs) {
+    const activity = activityMap.get(log.activityId);
+    if (!activity) continue;
+    if (discipline !== 'all' && activity.discipline !== discipline) continue;
+
+    trends.push({
+      date: activity.startedAt.toISOString().split('T')[0],
+      carbsPerHour: Number(log.carbsPerHour ?? 0),
+      sodiumPerHour: Number(log.sodiumPerHour ?? 0),
+      adherenceScore: Number(log.adherenceScore ?? 0),
+    });
+  }
+
+  return trends;
+}
+
+// ── getReadinessScore ─────────────────────────────────────────────
+// Calcula score consolidado de prontidao nutricional
+
+export async function getReadinessScore(userId: string) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+
+  const logs = await db.query.nutritionLogs.findMany({
+    where: and(
+      eq(schema.nutritionLogs.userId, userId),
+      gte(schema.nutritionLogs.createdAt, cutoff),
+    ),
+  });
+
+  if (logs.length === 0) return { score: 0 };
+
+  // Media ponderada: adherence score (60%) + consistencia de logging (40%)
+  let totalAdherence = 0;
+  let logsWithScore = 0;
+
+  for (const log of logs) {
+    const score = Number(log.adherenceScore ?? 0);
+    if (score > 0) {
+      totalAdherence += score;
+      logsWithScore++;
+    }
+  }
+
+  const avgAdherence = logsWithScore > 0 ? totalAdherence / logsWithScore : 0;
+
+  // Consistencia: % de atividades com log de nutricao nos ultimos 30 dias
+  const activities = await db.query.activities.findMany({
+    where: and(
+      eq(schema.activities.userId, userId),
+      gte(schema.activities.startedAt, cutoff),
+    ),
+  });
+
+  const consistencyPct = activities.length > 0
+    ? Math.min(100, (logs.length / activities.length) * 100)
+    : 0;
+
+  const score = avgAdherence * 0.6 + consistencyPct * 0.4;
+
+  return { score: Math.round(score * 100) / 100 };
 }

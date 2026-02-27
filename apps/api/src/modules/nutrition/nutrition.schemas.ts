@@ -68,3 +68,18 @@ export const catalogSearchQuery = z.object({
 });
 
 export type CatalogSearchQuery = z.infer<typeof catalogSearchQuery>;
+
+// ── Follow protocol (1 tap) ─────────────────────────────────────
+
+export const followProtocolBody = z.object({
+  protocolId: z.string().uuid('protocolId deve ser um UUID valido'),
+});
+
+export type FollowProtocolBody = z.infer<typeof followProtocolBody>;
+
+// ── Trends query ────────────────────────────────────────────────
+
+export const trendsQuery = z.object({
+  days: z.coerce.number().int().min(7).max(365).default(30),
+  discipline: z.string().default('all'),
+});

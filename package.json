@@ -9,13 +9,22 @@
     "dev:web": "pnpm --filter @endura/web dev",
     "build": "pnpm --filter @endura/types build && pnpm --filter @endura/api build && pnpm --filter @endura/web build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["bcrypt", "esbuild", "sharp"]
+    "onlyBuiltDependencies": [
+      "bcrypt",
+      "esbuild",
+      "sharp"
+    ]
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }

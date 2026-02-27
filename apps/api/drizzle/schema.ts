@@ -251,6 +251,9 @@ export const nutritionProtocols = pgTable('nutrition_protocols', {
   totalSodiumMg: numeric('total_sodium_mg', { precision: 8, scale: 2 }),
   totalCaffeineMg: numeric('total_caffeine_mg', { precision: 6, scale: 2 }),
   totalKcal: integer('total_kcal'),
+  status: varchar('status', { length: 20 }).default('generated'),
+  acceptedAt: timestamp('accepted_at'),
+  weatherContext: jsonb('weather_context'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -267,6 +270,11 @@ export const nutritionLogs = pgTable('nutrition_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
   activityId: uuid('activity_id').notNull().references(() => activities.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  nutritionProtocolId: uuid('nutrition_protocol_id').references(() => nutritionProtocols.id),
+  followedExactly: boolean('followed_exactly').default(false),
+  carbsPerHour: numeric('carbs_per_hour', { precision: 6, scale: 2 }),
+  sodiumPerHour: numeric('sodium_per_hour', { precision: 6, scale: 2 }),
+  adherenceScore: numeric('adherence_score', { precision: 5, scale: 2 }),
   totalCarbsG: numeric('total_carbs_g', { precision: 8, scale: 2 }),
   totalSodiumMg: numeric('total_sodium_mg', { precision: 8, scale: 2 }),
   totalCaffeineMg: numeric('total_caffeine_mg', { precision: 6, scale: 2 }),
@@ -434,3 +442,31 @@ export const activityComments = pgTable('activity_comments', {
   text: text('text').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// ── PLANOS NUTRICIONAIS RACE DAY ─────────────────────────────
+
+export const raceNutritionPlans = pgTable('race_nutrition_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  raceGoalId: uuid('race_goal_id').references(() => raceGoals.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  targetTimeSec: integer('target_time_sec'),
+  weatherConditions: jsonb('weather_conditions'),
+  plan: jsonb('plan').notNull(),
+  totals: jsonb('totals'),
+  testedInWorkouts: text('tested_in_workouts').array(),
+  status: varchar('status', { length: 20 }).default('draft'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const raceNutritionPlansRelations = relations(raceNutritionPlans, ({ one }) => ({
+  user: one(users, {
+    fields: [raceNutritionPlans.userId],
+    references: [users.id],
+  }),
+  raceGoal: one(raceGoals, {
+    fields: [raceNutritionPlans.raceGoalId],
+    references: [raceGoals.id],
+  }),
+}));
