@@ -24,6 +24,12 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      const { useAuthStore } = await import('@/stores/auth-store');
+      useAuthStore.getState().clearAuth();
+      window.location.href = '/login';
+      throw { code: 'ERR_UNAUTHORIZED', message: 'Sessao expirada', status: 401 };
+    }
     const error = await res.json().catch(() => ({
       code: 'UNKNOWN_ERROR',
       message: 'Erro desconhecido',

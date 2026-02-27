@@ -95,6 +95,11 @@ interface StravaActivity {
   perceived_exertion?: number;
 }
 
+interface StravaDetailedActivity extends StravaActivity {
+  calories: number;
+  description?: string;
+}
+
 interface StravaTokenResponse {
   access_token: string;
   refresh_token: string;
@@ -286,6 +291,7 @@ export async function syncUserActivities(userId: string): Promise<number> {
     }
 
     // 6. Mapeia e faz upsert das atividades
+    //    Busca detalhe de cada atividade para obter calories (nao vem no SummaryActivity)
     let syncedCount = 0;
 
     for (const sa of stravaActivities) {
@@ -300,6 +306,25 @@ export async function syncUserActivities(userId: string): Promise<number> {
         ),
       });
 
+      // Busca detalhe da atividade para obter calories
+      // (SummaryActivity do /athlete/activities nao inclui calories)
+      let calories: number | null = sa.calories ? Math.round(sa.calories) : null;
+      if (calories == null) {
+        try {
+          const detailUrl = `${STRAVA_API_BASE}/activities/${sa.id}`;
+          const detailRes = await fetchWithRetry(detailUrl, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          if (detailRes.ok) {
+            const detail = (await detailRes.json()) as StravaDetailedActivity;
+            calories = detail.calories ? Math.round(detail.calories) : null;
+          }
+        } catch (err) {
+          console.warn(`[strava-sync] Falha ao buscar detalhe da atividade ${sa.id}:`, err);
+        }
+      }
+
       const activityData = {
         userId,
         externalId,
@@ -313,7 +338,7 @@ export async function syncUserActivities(userId: string): Promise<number> {
         maxHr: sa.max_heartrate ? Math.round(sa.max_heartrate) : null,
         avgPowerW: sa.average_watts ? Math.round(sa.average_watts) : null,
         elevationM: sa.total_elevation_gain ? String(sa.total_elevation_gain) : null,
-        calories: sa.calories ? Math.round(sa.calories) : null,
+        calories,
         latStart: sa.start_latlng?.[0] != null ? String(sa.start_latlng[0]) : null,
         lonStart: sa.start_latlng?.[1] != null ? String(sa.start_latlng[1]) : null,
         perceivedEffort: sa.perceived_exertion ? Math.round(sa.perceived_exertion) : null,
