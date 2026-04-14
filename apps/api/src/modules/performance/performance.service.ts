@@ -574,21 +574,23 @@ export async function predictRaceTime(
 
   // ═══ RUN ═══
   // Cooper test: distancia em 12min → pace/km do teste
-  // Race half-marathon pace = testPace / baseFactor * brick factor
+  // Race pace = testPace / baseFactor × brickFactor
+  // baseFactor JA captura a degradacao 12min → 2h+ (nao adicionar penalty distancia)
+  // brickFactor = 5% (correr apos 90km de bike)
+  const BRICK_FACTOR = 1.05;
   let runPaceKm: number;
   if (runTest?.distanceM) {
     const testPaceKm = (12 * 60 / Number(runTest.distanceM)) * 1000; // pace/km no Cooper
-    // Half marathon is much longer than 12min: apply base factor + 15% distance penalty + 8% brick
-    runPaceKm = (testPaceKm / baseFactor) * 1.15 * 1.08;
-    // Calibrate with Strava
+    runPaceKm = (testPaceKm / baseFactor) * BRICK_FACTOR;
+    // Calibrate with Strava (±5%)
     const stravaPaces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
     runPaceKm = calibrateWithStrava(runPaceKm, stravaPaces);
   } else if (profile.run5kPaceSec) {
     const pace5k = Number(profile.run5kPaceSec) / 5; // sec/km
-    runPaceKm = (pace5k / baseFactor) * 1.15 * 1.08;
+    runPaceKm = (pace5k / baseFactor) * BRICK_FACTOR;
   } else if (runs.length > 0) {
     const paces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
-    runPaceKm = paces.reduce((a, b) => a + b, 0) / paces.length * 1.08;
+    runPaceKm = paces.reduce((a, b) => a + b, 0) / paces.length * BRICK_FACTOR;
   } else {
     runPaceKm = profile.level === 'competitivo' ? 280 : profile.level === 'intermediario' ? 330 : 390;
   }

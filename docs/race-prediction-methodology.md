@@ -69,20 +69,29 @@ bikeTime = 90km / bikeSpeed × 3600
 
 ```
 testPace = (12min / distanciaCooper) × 1000  → pace/km no Cooper
-racePace = (testPace / baseFactor) × 1.15 × 1.08
-           │                          │       └── brick factor (pos-bike)
-           │                          └── penalty distancia (12min → 21km)
-           └── ajuste condicionamento
-racePace = calibrateWithStrava(racePace)
-racePace = adjustForElevation(racePace)
+racePace = (testPace / baseFactor) × 1.05
+           │                          └── brick factor 5% (correr pos-bike)
+           └── ajuste condicionamento (ja captura degradacao 12min → 2h+)
+racePace = calibrateWithStrava(racePace)      → ajuste ±5%
+racePace = adjustForElevation(racePace)       → ajuste D+
 runTime = 21.1 × racePace
 ```
 
-**Exemplo**: Cooper = 2800m, CTL = 100
+**Exemplo**: Cooper = 2800m (pace teste 3:39/km = 219s), CTL = 100
 - testPace = 720/2800 × 1000 = 257 sec/km (4:17/km)
 - baseFactor = 0.80
-- racePace = (257/0.80) × 1.15 × 1.08 = 399 sec/km (6:39/km)
-- runTime = 21.1 × 399 = 8419 sec (~2:20)
+- racePace = (257/0.80) × 1.05 = 337 sec/km (5:37/km)
+- runTime = 21.1 × 337 = 7110 sec (~1:58)
+
+**Exemplo**: Cooper = 3280m (pace teste 3:39/km = 219s), CTL = 76
+- testPace = 720/3280 × 1000 = 219 sec/km (3:39/km)
+- baseFactor = 0.78
+- racePace = (219/0.78) × 1.05 = 295 sec/km (4:55/km)
+- runTime = 21.1 × 295 = 6225 sec (~1:44)
+
+> **Nota**: O baseFactor (70-82%) ja inclui a degradacao de performance
+> de um esforco maximo de 12min para um esforco sustentado de 2h+.
+> Nao ha penalty de distancia adicional.
 
 ### Transicoes
 
