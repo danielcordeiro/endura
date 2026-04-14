@@ -539,18 +539,39 @@ export async function predictRaceTime(
   const swimTimeSec = Math.round((SWIM_M / 100) * swimPace100m);
 
   // ═══ BIKE ═══
-  // FTP test: potencia media 20min → FTP = 95% → race watts = FTP * baseFactor
-  // Speed estimation from FTP-based race watts
+  // FTP test: potencia media 20min → FTP = 95% → race watts = FTP × baseFactor
+  // Speed from power using physics model:
+  //   Power = Crr×m×g×v + 0.5×CdA×ρ×v³
+  //   Crr = 0.005 (road tire), CdA = 0.35 (TT position), ρ = 1.225 (air density)
+  //   Solve for v iteratively
+  const riderWeightKg = profile.weightKg ? Number(profile.weightKg) : 75;
+  const bikeWeightKg = 9;
+  const totalMassKg = riderWeightKg + bikeWeightKg;
+  const CRR = 0.005;    // rolling resistance coefficient
+  const CDA = 0.35;     // drag area m² (aero position)
+  const RHO = 1.225;    // air density kg/m³
+  const G = 9.81;
+
+  function powerToSpeedKmh(watts: number): number {
+    // Newton-Raphson: P = Crr×m×g×v + 0.5×CdA×ρ×v³
+    let v = 8; // initial guess 8 m/s (~29 km/h)
+    for (let i = 0; i < 20; i++) {
+      const f = CRR * totalMassKg * G * v + 0.5 * CDA * RHO * v * v * v - watts;
+      const df = CRR * totalMassKg * G + 1.5 * CDA * RHO * v * v;
+      v = v - f / df;
+      if (v < 1) v = 1;
+    }
+    return v * 3.6; // m/s → km/h
+  }
+
   let bikeSpeedKmh: number;
   let bikePowerW: number | null = null;
   if (bikeTest?.avgPowerW) {
     const ftp = Math.round(bikeTest.avgPowerW * 0.95);
     const raceWatts = Math.round(ftp * baseFactor);
     bikePowerW = raceWatts;
-    // Speed from power: rough model based on typical 70.3 conditions
-    // ~28km/h at 200W, +0.05km/h per watt above 200
-    bikeSpeedKmh = 28 + (raceWatts - 200) * 0.05;
-    // Calibrate with Strava speeds
+    bikeSpeedKmh = powerToSpeedKmh(raceWatts);
+    // Calibrate with Strava (±5%)
     const stravaSpeeds = bikes.map((b) => (Number(b.distanceM!) / 1000) / (Number(b.durationSec!) / 3600));
     if (stravaSpeeds.length >= 2) {
       const stravaAvg = stravaSpeeds.reduce((a, b) => a + b, 0) / stravaSpeeds.length;
@@ -561,7 +582,7 @@ export async function predictRaceTime(
     const ftp = Number(profile.ftpWatts);
     const raceWatts = Math.round(ftp * baseFactor);
     bikePowerW = raceWatts;
-    bikeSpeedKmh = 28 + (raceWatts - 200) * 0.05;
+    bikeSpeedKmh = powerToSpeedKmh(raceWatts);
   } else if (bikes.length > 0) {
     const speeds = bikes.map((b) => (Number(b.distanceM!) / 1000) / (Number(b.durationSec!) / 3600));
     bikeSpeedKmh = speeds.reduce((a, b) => a + b, 0) / speeds.length * 0.95;
