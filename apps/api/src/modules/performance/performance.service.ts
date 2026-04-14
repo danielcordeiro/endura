@@ -469,17 +469,27 @@ function calibrateWithStrava(basePace: number, stravaPaces: number[], testPace?:
   return basePace * clampedRatio;
 }
 
-function adjustBikeForElevation(baseSpeedKmh: number, elevationGainM: number, distanceM: number): number {
+function adjustBikeForElevation(baseSpeedKmh: number, elevationGainM: number, distanceM: number, totalMassKg: number): number {
   if (!elevationGainM || elevationGainM <= 0) return baseSpeedKmh;
-  const penaltyFactor = 1 + (elevationGainM / distanceM) * 8;
-  return baseSpeedKmh / penaltyFactor;
+  // Physics: extra energy for climbing = mass × g × elevation_gain
+  // On a loop course (D+ ≈ D-), only ~60% of climb cost is recovered on descent
+  // Extra time = (mass × g × D+ × 0.6) / raceWatts
+  // Approximate by reducing average speed proportionally
+  const baseTimeSec = (distanceM / 1000) / baseSpeedKmh * 3600;
+  // Extra seconds: ~0.4s per meter of D+ per 80kg rider (scales with mass)
+  const extraTimeSec = elevationGainM * 0.4 * (totalMassKg / 80);
+  const adjustedTimeSec = baseTimeSec + extraTimeSec;
+  return (distanceM / 1000) / (adjustedTimeSec / 3600);
 }
 
-function adjustRunForElevation(basePaceSecPerKm: number, elevationGainM: number): number {
+function adjustRunForElevation(basePaceSecPerKm: number, elevationGainM: number, distanceM: number = 21100): number {
   if (!elevationGainM || elevationGainM <= 0) return basePaceSecPerKm;
-  const effectiveElevation = elevationGainM * 0.67;
-  const adjustmentFactor = 1 + (effectiveElevation / 400);
-  return basePaceSecPerKm * adjustmentFactor;
+  // Loop course: D+ ≈ D-. Each meter of climbing adds ~1.3s, descent saves ~0.4s.
+  // Net cost per meter of D+ = 0.9 seconds extra on total time.
+  const extraTimeSec = elevationGainM * 0.9;
+  const distanceKm = distanceM / 1000;
+  const baseTimeSec = distanceKm * basePaceSecPerKm;
+  return (baseTimeSec + extraTimeSec) / distanceKm;
 }
 
 export async function predictRaceTime(
@@ -600,7 +610,7 @@ export async function predictRaceTime(
     bikeSpeedKmh = profile.level === 'competitivo' ? 32 : profile.level === 'intermediario' ? 28 : 24;
   }
 
-  const bikeSpeedAdjusted = adjustBikeForElevation(bikeSpeedKmh, bikeElevationGainM ?? 0, BIKE_M);
+  const bikeSpeedAdjusted = adjustBikeForElevation(bikeSpeedKmh, bikeElevationGainM ?? 0, BIKE_M, totalMassKg);
   const bikeTimeSec = Math.round((BIKE_M / 1000) / bikeSpeedAdjusted * 3600);
 
   // ═══ RUN ═══
