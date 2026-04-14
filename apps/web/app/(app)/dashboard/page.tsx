@@ -16,6 +16,7 @@ import { TargetRaceCard } from '@/components/dashboard/target-race-card';
 import { CreateRaceForm } from '@/components/dashboard/create-race-form';
 import { DisciplineBenchmarks } from '@/components/dashboard/discipline-benchmarks';
 import { FitnessTestsCard } from '@/components/dashboard/fitness-tests-card';
+import { WellnessCard } from '@/components/dashboard/wellness-card';
 import { FatigueStrainCard } from '@/components/dashboard/fatigue-strain-card';
 import { WeeklyLoadChart } from '@/components/dashboard/weekly-load-chart';
 
@@ -488,9 +489,14 @@ export default function DashboardPage() {
       {/* ══════════════════════════════════════════════════════════ */}
       {activeTab === 'today' && (
         <>
+          {/* ── Wellness Data (Garmin) ── */}
+          <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
+            <WellnessCard />
+          </div>
+
           {/* ── AI Readiness Mentor ── */}
           {perfData && (
-            <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
+            <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
               <ReadinessCard readiness={perfData.readiness} />
             </div>
           )}
