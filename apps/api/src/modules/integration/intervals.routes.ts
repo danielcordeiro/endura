@@ -7,7 +7,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { callbackQuery } from './integration.schemas.js';
 import { authenticate } from '../auth/auth.middleware.js';
 import { generateTokens } from '../auth/auth.service.js';
-import { syncWellnessForUser, getLatestWellness } from './wellness-sync.service.js';
+import { syncWellnessForUser, getLatestWellness, getWeightHistory } from './wellness-sync.service.js';
 import type {
   ConnectResponse,
   StatusResponse,
@@ -340,6 +340,37 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         request.log.error(err, 'Erro ao buscar wellness');
         return reply.code(500).send(
           errorPayload('ERR_WELLNESS_FETCH', 'Erro ao buscar dados de wellness', 500),
+        );
+      }
+    },
+  );
+
+  // ── GET /api/integrations/intervals/weight-history ───────────
+  app.get<{ Querystring: { days?: string } }>(
+    '/api/integrations/intervals/weight-history',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const days = Math.min(365, Math.max(7, Number(request.query.days ?? 90)));
+        const history = await getWeightHistory(request.userId, days);
+
+        // Also get profile weight as fallback
+        const profile = await db.query.athleteProfiles.findFirst({
+          where: eq(schema.athleteProfiles.userId, request.userId),
+        });
+        const profileWeight = profile?.weightKg ? Number(profile.weightKg) : null;
+
+        return reply.send({
+          data: {
+            currentWeight: history.length > 0 ? history[history.length - 1]!.weightKg : profileWeight,
+            profileWeight,
+            history,
+          },
+        });
+      } catch (err) {
+        request.log.error(err, 'Erro ao buscar historico de peso');
+        return reply.code(500).send(
+          errorPayload('ERR_WEIGHT_HISTORY', 'Erro ao buscar historico de peso', 500),
         );
       }
     },

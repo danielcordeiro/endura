@@ -17,6 +17,7 @@ import { CreateRaceForm } from '@/components/dashboard/create-race-form';
 import { DisciplineBenchmarks } from '@/components/dashboard/discipline-benchmarks';
 import { FitnessTestsCard } from '@/components/dashboard/fitness-tests-card';
 import { WellnessCard } from '@/components/dashboard/wellness-card';
+import { WeightCard } from '@/components/dashboard/weight-card';
 import { FatigueStrainCard } from '@/components/dashboard/fatigue-strain-card';
 import { WeeklyLoadChart } from '@/components/dashboard/weekly-load-chart';
 
@@ -719,6 +720,11 @@ export default function DashboardPage() {
               {/* ── Fitness Tests (manual) ── */}
               <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
                 <FitnessTestsCard />
+              </div>
+
+              {/* ── Weight Trend ── */}
+              <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
+                <WeightCard />
               </div>
 
               {/* ── Race Predictor ── */}

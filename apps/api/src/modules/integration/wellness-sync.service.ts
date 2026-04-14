@@ -234,6 +234,23 @@ export async function syncAllUsersWellness(): Promise<{ total: number; succeeded
   return { total: integrations.length, succeeded, failed };
 }
 
+// ── Get weight history ─────────────────────────────────────────────
+
+export async function getWeightHistory(userId: string, days: number = 90): Promise<Array<{ date: string; weightKg: number }>> {
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
+
+  const records = await db.query.dailyMetrics.findMany({
+    where: and(
+      eq(schema.dailyMetrics.userId, userId),
+    ),
+    orderBy: (dm, { asc: a }) => [a(dm.date)],
+  });
+
+  return records
+    .filter((r) => r.weightKg != null && r.date >= cutoff)
+    .map((r) => ({ date: r.date, weightKg: Number(r.weightKg) }));
+}
+
 // ── Get latest wellness for user ──────────────────────────────────
 
 export async function getLatestWellness(userId: string): Promise<{
