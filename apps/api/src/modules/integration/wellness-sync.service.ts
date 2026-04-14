@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
-import { decrypt, encrypt } from '../../lib/encryption.js';
+import { decrypt } from '../../lib/encryption.js';
 
 // ── Config ────────────────────────────────────────────────────────
 
@@ -27,79 +27,17 @@ function recordRequest(): void {
   requestTimestamps.push(Date.now());
 }
 
-// ── Token management ──────────────────────────────────────────────
+// ── Auth helper (API Key → Basic Auth) ────────────────────────────
 
-interface IntegrationRow {
-  id: string;
-  userId: string;
-  externalUserId: string | null;
-  accessTokenEnc: string;
-  refreshTokenEnc: string | null;
-  expiresAt: Date | null;
-}
-
-async function getValidAccessToken(integration: IntegrationRow): Promise<string> {
-  const now = Date.now();
-  const bufferMs = 5 * 60 * 1000;
-
-  if (integration.expiresAt && integration.expiresAt.getTime() - bufferMs < now) {
-    return await refreshToken(integration);
-  }
-
-  return decrypt(integration.accessTokenEnc);
-}
-
-async function refreshToken(integration: IntegrationRow): Promise<string> {
-  if (!integration.refreshTokenEnc) {
-    throw new Error('No refresh token available for intervals.icu');
-  }
-
-  const clientId = process.env.INTERVALS_CLIENT_ID;
-  const clientSecret = process.env.INTERVALS_CLIENT_SECRET;
-  if (!clientId || !clientSecret) throw new Error('INTERVALS_CLIENT_ID/SECRET not configured');
-
-  const refreshTokenValue = decrypt(integration.refreshTokenEnc);
-
-  const res = await fetch('https://intervals.icu/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshTokenValue,
-      grant_type: 'refresh_token',
-    }).toString(),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Token refresh failed: ${res.status} ${await res.text()}`);
-  }
-
-  const data = (await res.json()) as {
-    access_token: string;
-    refresh_token?: string;
-    expires_in?: number;
-  };
-
-  const newAccessEnc = encrypt(data.access_token);
-  const newRefreshEnc = data.refresh_token ? encrypt(data.refresh_token) : integration.refreshTokenEnc;
-  const newExpiresAt = data.expires_in ? new Date(Date.now() + data.expires_in * 1000) : null;
-
-  await db.update(schema.integrations)
-    .set({
-      accessTokenEnc: newAccessEnc,
-      refreshTokenEnc: newRefreshEnc,
-      expiresAt: newExpiresAt,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.integrations.id, integration.id));
-
-  return data.access_token;
+function makeAuthHeader(apiKey: string): string {
+  // intervals.icu API Key auth: Basic base64("API_KEY:" + apiKey)
+  const credentials = Buffer.from(`API_KEY:${apiKey}`).toString('base64');
+  return `Basic ${credentials}`;
 }
 
 // ── Fetch with retry ──────────────────────────────────────────────
 
-async function fetchWithRetry(url: string, token: string, retries: number = MAX_RETRIES): Promise<unknown> {
+async function fetchWithRetry(url: string, authHeader: string, retries: number = MAX_RETRIES): Promise<unknown> {
   for (let attempt = 0; attempt < retries; attempt++) {
     while (!canMakeRequest()) {
       await new Promise((r) => setTimeout(r, 1000));
@@ -107,11 +45,15 @@ async function fetchWithRetry(url: string, token: string, retries: number = MAX_
     recordRequest();
 
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: authHeader },
     });
 
     if (res.ok) {
       return await res.json();
+    }
+
+    if (res.status === 401) {
+      throw new Error('intervals.icu API key invalida ou expirada');
     }
 
     if (res.status === 429 || res.status >= 500) {
@@ -132,7 +74,7 @@ interface IntervalsWellness {
   id: string;                    // ISO date "2024-11-20"
   weight?: number | null;
   restingHeartRate?: number | null;
-  hrv?: number | null;           // RMSSD or SDNN in ms
+  hrv?: number | null;           // RMSSD in ms
   totalSleep?: number | null;    // hours
   sleepScore?: number | null;    // 0-100
   spo2?: number | null;          // %
@@ -163,7 +105,9 @@ export async function syncWellnessForUser(userId: string): Promise<{ synced: num
     .where(eq(schema.integrations.id, integration.id));
 
   try {
-    const token = await getValidAccessToken(integration as IntegrationRow);
+    // API Key is stored encrypted in accessTokenEnc
+    const apiKey = decrypt(integration.accessTokenEnc);
+    const authHeader = makeAuthHeader(apiKey);
     const athleteId = integration.externalUserId;
 
     // Fetch last 14 days of wellness data
@@ -173,7 +117,7 @@ export async function syncWellnessForUser(userId: string): Promise<{ synced: num
     const newestStr = today.toISOString().split('T')[0]!;
 
     const url = `${API_BASE}/athlete/${athleteId}/wellness?oldest=${oldestStr}&newest=${newestStr}`;
-    const data = (await fetchWithRetry(url, token)) as IntervalsWellness[];
+    const data = (await fetchWithRetry(url, authHeader)) as IntervalsWellness[];
 
     if (!Array.isArray(data)) {
       throw new Error('Unexpected response format from intervals.icu wellness API');
@@ -226,9 +170,8 @@ export async function syncWellnessForUser(userId: string): Promise<{ synced: num
 // ── Upsert wellness record ────────────────────────────────────────
 
 async function upsertWellnessRecord(userId: string, record: IntervalsWellness): Promise<void> {
-  const dateStr = record.id; // "2024-11-20" format
+  const dateStr = record.id;
 
-  // Check if exists
   const existing = await db.query.dailyMetrics.findFirst({
     where: and(
       eq(schema.dailyMetrics.userId, userId),
@@ -241,7 +184,7 @@ async function upsertWellnessRecord(userId: string, record: IntervalsWellness): 
     restingHr: record.restingHeartRate ?? record.sleepingHeartRate ?? null,
     sleepDurationH: record.totalSleep != null ? String(record.totalSleep) : null,
     sleepScore: record.sleepScore ?? null,
-    sleepQuality: record.sleepScore != null ? Math.round(record.sleepScore / 20) : null, // 0-100 → 1-5
+    sleepQuality: record.sleepScore != null ? Math.round(record.sleepScore / 20) : null,
     spo2: record.spo2 ?? null,
     stressLevel: record.stressLevel ?? null,
     bodyBattery: record.bodyBattery ?? null,
@@ -303,10 +246,8 @@ export async function getLatestWellness(userId: string): Promise<{
   bodyBattery: number | null;
   date: string | null;
 } | null> {
-  const today = new Date().toISOString().split('T')[0]!;
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
 
-  // Get most recent wellness data (within last 3 days)
   const records = await db.query.dailyMetrics.findMany({
     where: and(
       eq(schema.dailyMetrics.userId, userId),

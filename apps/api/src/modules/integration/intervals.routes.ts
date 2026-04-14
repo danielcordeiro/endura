@@ -58,28 +58,100 @@ function verifyWebhookSignature(payload: string, signature: string, secret: stri
 
 export default async function intervalsRoutes(app: FastifyInstance): Promise<void> {
   // ── GET /api/integrations/intervals/connect ─────────────────
+  // Legacy OAuth connect (kept for compatibility)
   app.get(
     '/api/integrations/intervals/connect',
     { onRequest: authenticate },
     async (request, reply) => {
-      const clientId = getEnvOrThrow('INTERVALS_CLIENT_ID');
-      const redirectUri = getEnvOrThrow('INTERVALS_REDIRECT_URI');
+      return reply.status(400).send(
+        errorPayload('ERR_USE_API_KEY', 'Use POST /api/integrations/intervals/connect-apikey com sua API Key do intervals.icu', 400),
+      );
+    },
+  );
 
-      const state = randomUUID();
-      csrfStore.set(state, { userId: request.userId, createdAt: Date.now() });
-      cleanExpiredStates();
+  // ── POST /api/integrations/intervals/connect-apikey ────────
+  // Conecta via API Key (alternativa ao OAuth, disponível para todos)
+  app.post<{ Body: { apiKey: string; athleteId: string } }>(
+    '/api/integrations/intervals/connect-apikey',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      const { apiKey, athleteId } = request.body ?? {};
+      if (!apiKey || !athleteId) {
+        return reply.status(400).send(
+          errorPayload('ERR_VALIDATION', 'apiKey e athleteId sao obrigatorios', 400),
+        );
+      }
 
-      const params = new URLSearchParams({
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        response_type: 'code',
-        scope: 'ACTIVITY:READ,WORKOUT:WRITE,WELLNESS:READ',
-        state,
-      });
+      // Validate the API key by making a test request
+      try {
+        const credentials = Buffer.from(`API_KEY:${apiKey}`).toString('base64');
+        const testRes = await fetch(`https://intervals.icu/api/v1/athlete/${athleteId}`, {
+          headers: { Authorization: `Basic ${credentials}` },
+        });
 
-      const authUrl = `https://intervals.icu/oauth/authorize?${params.toString()}`;
-      request.log.info({ provider: PROVIDER }, 'URL de autorizacao intervals.icu gerada');
-      return reply.send({ data: { authUrl } } satisfies ConnectResponse);
+        if (!testRes.ok) {
+          const errorBody = await testRes.text();
+          request.log.warn({ status: testRes.status, body: errorBody }, 'API Key intervals.icu invalida');
+          return reply.status(401).send(
+            errorPayload('ERR_INVALID_API_KEY', 'API Key ou Athlete ID invalido. Verifique em intervals.icu/settings', 401),
+          );
+        }
+      } catch (err) {
+        request.log.error(err, 'Erro ao validar API Key intervals.icu');
+        return reply.status(502).send(
+          errorPayload('ERR_INTERVALS_UNREACHABLE', 'Nao foi possivel conectar ao intervals.icu', 502),
+        );
+      }
+
+      // Store encrypted API key
+      const accessTokenEnc = encrypt(apiKey);
+
+      const existing = await db.select().from(schema.integrations)
+        .where(and(
+          eq(schema.integrations.userId, request.userId),
+          eq(schema.integrations.provider, PROVIDER),
+        ))
+        .limit(1);
+
+      if (existing.length > 0) {
+        await db.update(schema.integrations)
+          .set({
+            accessTokenEnc,
+            refreshTokenEnc: null,
+            expiresAt: null,
+            externalUserId: athleteId,
+            scope: 'API_KEY',
+            active: true,
+            syncStatus: 'idle',
+            updatedAt: new Date(),
+          })
+          .where(and(
+            eq(schema.integrations.userId, request.userId),
+            eq(schema.integrations.provider, PROVIDER),
+          ));
+      } else {
+        await db.insert(schema.integrations).values({
+          userId: request.userId,
+          provider: PROVIDER,
+          externalUserId: athleteId,
+          accessTokenEnc,
+          refreshTokenEnc: null,
+          expiresAt: null,
+          scope: 'API_KEY',
+          active: true,
+          syncStatus: 'idle',
+        });
+      }
+
+      request.log.info({ provider: PROVIDER, athleteId }, 'intervals.icu conectado via API Key');
+
+      // Trigger initial wellness sync
+      try {
+        const syncResult = await syncWellnessForUser(request.userId);
+        return reply.send({ data: { message: 'Conectado com sucesso', synced: syncResult.synced } });
+      } catch {
+        return reply.send({ data: { message: 'Conectado com sucesso. Sync de wellness sera feito em breve.' } });
+      }
     },
   );
 

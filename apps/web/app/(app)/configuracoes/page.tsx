@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -265,16 +266,34 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  async function handleConnectIntervals() {
-    try {
-      const res = await apiFetch<{ data: { authUrl: string } }>(
-        '/api/integrations/intervals/connect',
-        { token: token ?? undefined },
-      );
-      window.location.href = res.data.authUrl;
-    } catch {
-      // fallback
-    }
+  // intervals.icu API Key connect
+  const [showIntervalsForm, setShowIntervalsForm] = useState(false);
+  const [intervalsApiKey, setIntervalsApiKey] = useState('');
+  const [intervalsAthleteId, setIntervalsAthleteId] = useState('');
+  const [intervalsConnectError, setIntervalsConnectError] = useState('');
+
+  const intervalsConnectMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<{ data: { message: string; synced?: number } }>('/api/integrations/intervals/connect-apikey', {
+        method: 'POST',
+        token: token ?? undefined,
+        body: JSON.stringify({ apiKey: intervalsApiKey, athleteId: intervalsAthleteId }),
+      }),
+    onSuccess: () => {
+      setShowIntervalsForm(false);
+      setIntervalsApiKey('');
+      setIntervalsAthleteId('');
+      setIntervalsConnectError('');
+      queryClient.invalidateQueries({ queryKey: ['integration-intervals'] });
+      queryClient.invalidateQueries({ queryKey: ['performance-dashboard'] });
+    },
+    onError: (err: { message?: string }) => {
+      setIntervalsConnectError(err.message ?? 'Erro ao conectar. Verifique API Key e Athlete ID.');
+    },
+  });
+
+  function handleConnectIntervals() {
+    setShowIntervalsForm(true);
   }
 
   /* Logout */
@@ -455,6 +474,76 @@ export default function ConfiguracoesPage() {
       <p className="text-center text-xs text-slate-600 pb-4">
         Endura v1.0.0
       </p>
+
+      {/* ── intervals.icu API Key Modal ── */}
+      {showIntervalsForm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowIntervalsForm(false)} />
+          <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up">
+            <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/15">
+                <span className="material-symbols-outlined text-2xl text-blue-400">sync</span>
+              </div>
+              <div>
+                <h2 className="font-heading text-lg font-bold text-slate-100">Conectar intervals.icu</h2>
+                <p className="text-xs text-slate-400">Acesse intervals.icu/settings para gerar sua API Key</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+                  Athlete ID
+                </label>
+                <input
+                  type="text"
+                  value={intervalsAthleteId}
+                  onChange={(e) => setIntervalsAthleteId(e.target.value)}
+                  placeholder="Ex: i12345"
+                  className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white font-mono placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Visivel na URL do intervals.icu (ex: intervals.icu/athlete/i12345)</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={intervalsApiKey}
+                  onChange={(e) => setIntervalsApiKey(e.target.value)}
+                  placeholder="Cole sua API Key aqui"
+                  className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white font-mono placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Gerada em intervals.icu/settings → Chave de API</p>
+              </div>
+
+              {intervalsConnectError && (
+                <p className="text-sm text-rose-400">{intervalsConnectError}</p>
+              )}
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setShowIntervalsForm(false)}
+                  className="flex-1 h-14 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => intervalsConnectMutation.mutate()}
+                  disabled={!intervalsApiKey || !intervalsAthleteId || intervalsConnectMutation.isPending}
+                  className="flex-1 h-14 rounded-full bg-primary text-white font-bold text-sm active:scale-[0.98] transition-transform disabled:opacity-50"
+                >
+                  {intervalsConnectMutation.isPending ? 'Conectando...' : 'Conectar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
