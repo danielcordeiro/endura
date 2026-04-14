@@ -16,7 +16,7 @@ export function StatCard({ label, value, unit, context, icon, className, childre
   return (
     <div
       className={cn(
-        'bg-bg-surface rounded-3xl border border-slate-800/50 p-4 flex flex-col gap-3',
+        'bg-bg-surface rounded-3xl border border-slate-800/50 p-5 flex flex-col gap-3',
         className,
       )}
     >
@@ -24,7 +24,7 @@ export function StatCard({ label, value, unit, context, icon, className, childre
         {icon && <span className="material-symbols-outlined text-base">{icon}</span>}
         {label}
       </div>
-      <div className="text-2xl font-bold text-white font-[var(--font-mono)]">
+      <div className="text-2xl font-bold text-white font-[var(--font-mono)] truncate">
         {value}
         {unit && <span className="text-lg text-slate-500 font-normal ml-0.5">{unit}</span>}
       </div>

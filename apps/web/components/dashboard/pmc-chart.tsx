@@ -35,7 +35,7 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB }: PMCCha
   const data = metrics.slice(-days);
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-heading text-base font-bold text-slate-100">Performance</h3>
@@ -60,17 +60,17 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB }: PMCCha
 
       {/* Current values */}
       <div className="grid grid-cols-3 gap-3 mb-4">
-        <div className="bg-bg-elevated rounded-2xl p-3 text-center">
+        <div className="bg-bg-elevated rounded-2xl p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-1">CTL</p>
           <p className="font-mono text-lg font-bold text-white">{currentCTL.toFixed(0)}</p>
           <p className="text-[10px] text-slate-500">Fitness</p>
         </div>
-        <div className="bg-bg-elevated rounded-2xl p-3 text-center">
+        <div className="bg-bg-elevated rounded-2xl p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1">ATL</p>
           <p className="font-mono text-lg font-bold text-white">{currentATL.toFixed(0)}</p>
           <p className="text-[10px] text-slate-500">Fadiga</p>
         </div>
-        <div className="bg-bg-elevated rounded-2xl p-3 text-center">
+        <div className="bg-bg-elevated rounded-2xl p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">TSB</p>
           <p className={`font-mono text-lg font-bold ${currentTSB >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
             {currentTSB >= 0 ? '+' : ''}{currentTSB.toFixed(0)}

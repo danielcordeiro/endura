@@ -30,7 +30,7 @@ export function WeightCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
         <div className="skeleton h-4 w-24 rounded mb-4" />
         <div className="skeleton h-32 w-full rounded-xl" />
       </div>
@@ -56,7 +56,7 @@ export function WeightCard() {
   const max = history.length > 0 ? Math.max(...history.map((h) => h.weightKg)) : current ?? 0;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

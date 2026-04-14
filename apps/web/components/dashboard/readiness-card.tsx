@@ -126,7 +126,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
   return (
     <div className={cn(
-      'rounded-[2rem] p-5 ring-1 shadow-xl bg-gradient-to-br',
+      'rounded-[2rem] p-6 ring-1 shadow-xl bg-gradient-to-br',
       config.gradient,
       config.ring,
     )}>
@@ -280,7 +280,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
       </div>
 
       {/* Factors */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         <div className="bg-bg-elevated/50 rounded-xl p-2.5 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <span className="material-symbols-outlined text-xs text-slate-500">

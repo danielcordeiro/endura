@@ -87,7 +87,7 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
   const diff = targetTimeSec ? prediction.totalTimeSec - targetTimeSec : null;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -187,16 +187,16 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
       )}
 
       {/* Pace details */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-bg-elevated rounded-xl p-2.5 text-center">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-bg-elevated rounded-xl p-3 text-center">
           <p className="text-[10px] text-swim mb-0.5">Swim</p>
           <p className="font-mono text-xs font-bold text-white">{formatPace100m(prediction.factors.swimPace100m)}</p>
         </div>
-        <div className="bg-bg-elevated rounded-xl p-2.5 text-center">
+        <div className="bg-bg-elevated rounded-xl p-3 text-center">
           <p className="text-[10px] text-bike mb-0.5">Bike</p>
           <p className="font-mono text-xs font-bold text-white">{prediction.factors.bikeSpeedKmh} km/h</p>
         </div>
-        <div className="bg-bg-elevated rounded-xl p-2.5 text-center">
+        <div className="bg-bg-elevated rounded-xl p-3 text-center">
           <p className="text-[10px] text-run mb-0.5">Run</p>
           <p className="font-mono text-xs font-bold text-white">{formatPaceKm(prediction.factors.runPaceKm)}</p>
         </div>

@@ -26,7 +26,7 @@ export function FatigueStrainCard({ weeklyTSS, monotony, strain, currentATL, cur
   const monotonyRisk = monotony > 2.0 ? 'high' : monotony > 1.5 ? 'moderate' : 'low';
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       <div className="flex items-center gap-2 mb-4">
         <span className="material-symbols-outlined text-lg text-slate-400">monitor_heart</span>
         <h3 className="font-heading text-base font-bold text-slate-100">Fadiga & Carga</h3>
@@ -65,8 +65,8 @@ export function FatigueStrainCard({ weeklyTSS, monotony, strain, currentATL, cur
       </div>
 
       {/* Metrics grid */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-bg-elevated rounded-2xl p-3 text-center">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-bg-elevated rounded-2xl p-3.5 text-center">
           <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">TSS/Sem</p>
           <p className="font-mono text-lg font-bold text-white">{weeklyTSS}</p>
         </div>

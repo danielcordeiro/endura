@@ -17,7 +17,7 @@ export function WeeklyLoadChart({ metrics }: WeeklyLoadChartProps) {
   const last7 = metrics.slice(-7);
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-lg text-slate-400">bar_chart</span>

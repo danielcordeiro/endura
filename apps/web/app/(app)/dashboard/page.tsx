@@ -542,7 +542,7 @@ export default function DashboardPage() {
 
           {/* ── Today's Workout ── */}
           <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
-            <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center justify-between mb-4 px-2">
               <h2 className="text-lg font-bold tracking-tight">TREINO DE HOJE</h2>
               <span className="text-xs font-[var(--font-mono)] text-slate-400 bg-slate-800/50 px-2 py-1 rounded-md border border-slate-700/50">
                 {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
@@ -641,7 +641,7 @@ export default function DashboardPage() {
 
           {/* ── Stats Grid (2x2) ── */}
           <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
-            <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center justify-between mb-3 px-2">
               <h2 className="text-lg font-bold tracking-tight">SEMANA ATUAL</h2>
               <Link href="/atividades" className="text-primary text-sm font-medium hover:text-blue-400 transition-colors">
                 Ver detalhes
@@ -739,7 +739,7 @@ export default function DashboardPage() {
 
               {/* ── Stats grid ── */}
               <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
-                <h2 className="text-lg font-bold tracking-tight mb-3 px-1">METRICAS</h2>
+                <h2 className="text-lg font-bold tracking-tight mb-3 px-2">METRICAS</h2>
                 <div className="grid grid-cols-2 gap-3">
                   <StatCard
                     label="CTL"

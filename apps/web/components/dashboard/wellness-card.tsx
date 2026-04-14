@@ -158,10 +158,10 @@ export function WellnessCard() {
   if (!hasAnyData) return null;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-lg text-slate-400">watch</span>
           <div>
             <h3 className="font-heading text-base font-bold text-slate-100">Dados do Relogio</h3>
@@ -174,7 +174,7 @@ export function WellnessCard() {
       </div>
 
       {/* Metrics grid */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {data.hrv != null && (
           <MetricTile
             icon="favorite"

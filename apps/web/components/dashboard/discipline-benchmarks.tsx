@@ -199,7 +199,7 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
 
 export function DisciplineBenchmarks({ swim, bike, run }: DisciplineBenchmarksProps) {
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
       <div className="flex items-center gap-2 mb-4">
         <span className="material-symbols-outlined text-lg text-slate-400">analytics</span>
         <div>

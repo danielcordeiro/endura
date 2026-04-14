@@ -221,7 +221,7 @@ export default function ConfiguracoesPage() {
 
   const intervalsSyncMutation = useMutation({
     mutationFn: () =>
-      apiFetch('/api/integrations/intervals/sync', {
+      apiFetch('/api/integrations/intervals/sync-wellness', {
         method: 'POST',
         token: token ?? undefined,
       }),
