@@ -447,12 +447,22 @@ function getPerformanceFactor(ctl: number): number {
 
 /**
  * Calibra o valor base com dados reais do Strava.
+ * Filtra outliers: so usa treinos com pace ate 30% mais lento que o teste
+ * (ignora caminhadas, recuperacao, warmups).
  * Se o atleta treina mais rapido do que o teste preve, ajusta para cima (max +5%).
  * Se treina mais devagar, ajusta para baixo (max -5%).
  */
-function calibrateWithStrava(basePace: number, stravaPaces: number[]): number {
-  if (stravaPaces.length < 2) return basePace; // Dados insuficientes, sem calibracao
-  const stravaAvg = stravaPaces.reduce((a, b) => a + b, 0) / stravaPaces.length;
+function calibrateWithStrava(basePace: number, stravaPaces: number[], testPace?: number): number {
+  if (stravaPaces.length < 2) return basePace;
+
+  // Filter: only keep paces within 130% of test pace (or basePace if no test)
+  const referencePace = testPace ?? basePace;
+  const maxPace = referencePace * 1.3; // 30% slower than test is the cutoff
+  const qualityPaces = stravaPaces.filter((p) => p <= maxPace);
+
+  if (qualityPaces.length < 2) return basePace; // Not enough quality data
+
+  const stravaAvg = qualityPaces.reduce((a, b) => a + b, 0) / qualityPaces.length;
   const ratio = stravaAvg / basePace;
   // Clamp calibration to ±5%
   const clampedRatio = Math.max(0.95, Math.min(1.05, ratio));
@@ -529,7 +539,7 @@ export async function predictRaceTime(
     swimPace100m = testPace / swimFactor; // Mais lento que o teste (ex: 88% → pace/0.88)
     // Calibrar com Strava
     const stravaPaces = swims.map((s) => (Number(s.durationSec!) / Number(s.distanceM!)) * 100);
-    swimPace100m = calibrateWithStrava(swimPace100m, stravaPaces);
+    swimPace100m = calibrateWithStrava(swimPace100m, stravaPaces, testPace);
   } else if (swims.length > 0) {
     const paces = swims.map((s) => (Number(s.durationSec!) / Number(s.distanceM!)) * 100);
     swimPace100m = paces.reduce((a, b) => a + b, 0) / paces.length;
@@ -601,11 +611,12 @@ export async function predictRaceTime(
   const BRICK_FACTOR = 1.05;
   let runPaceKm: number;
   if (runTest?.distanceM) {
-    const testPaceKm = (12 * 60 / Number(runTest.distanceM)) * 1000; // pace/km no Cooper
+    const cooperDistM = Number(runTest.distanceM);
+    const testPaceKm = (12 * 60 / cooperDistM) * 1000; // pace/km no Cooper
     runPaceKm = (testPaceKm / baseFactor) * BRICK_FACTOR;
-    // Calibrate with Strava (±5%)
+    // Calibrate with Strava (±5%), filtering out easy runs/walks
     const stravaPaces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
-    runPaceKm = calibrateWithStrava(runPaceKm, stravaPaces);
+    runPaceKm = calibrateWithStrava(runPaceKm, stravaPaces, testPaceKm);
   } else if (profile.run5kPaceSec) {
     const pace5k = Number(profile.run5kPaceSec) / 5; // sec/km
     runPaceKm = (pace5k / baseFactor) * BRICK_FACTOR;
