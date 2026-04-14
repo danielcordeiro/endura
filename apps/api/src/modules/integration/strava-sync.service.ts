@@ -250,11 +250,17 @@ export async function syncUserActivities(userId: string): Promise<number> {
     // 3. Obtem token valido (faz refresh se necessario)
     const accessToken = await getValidAccessToken(integration);
 
-    // 4. Calcula timestamp de referencia (ultima sync ou 90 dias atras)
+    // 4. Calcula timestamp de referencia
+    // Sempre busca pelo menos 48h para tras (pega atividades recentes e uploads tardios)
     const lastSync = integration.lastSyncAt;
     const defaultAfter = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const afterDate = lastSync ?? defaultAfter;
+    const minLookback = new Date(Date.now() - 48 * 60 * 60 * 1000); // Mínimo 48h
+    let afterDate = lastSync ?? defaultAfter;
+    if (afterDate > minLookback) {
+      afterDate = minLookback; // Garante pelo menos 48h de lookback
+    }
     const afterTimestamp = Math.floor(afterDate.getTime() / 1000);
+    console.log(`[strava-sync] lastSyncAt=${lastSync?.toISOString() ?? 'null'}, afterDate=${afterDate.toISOString()}, afterTimestamp=${afterTimestamp}`);
 
     // 5. Busca atividades do Strava (com paginação)
     const stravaActivities: StravaActivity[] = [];
