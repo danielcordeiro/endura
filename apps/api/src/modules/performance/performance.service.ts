@@ -434,15 +434,17 @@ function getDefaultRecommendation(level: string): string {
 /**
  * Calcula o fator de performance baseado no CTL.
  * Quanto maior o CTL, mais proximo do resultado do teste o atleta performa.
+ * Escala calibrada com dados reais de prova: CTL ~74 → ~84% do teste.
+ * Range: 78% (CTL baixo) a 90% (CTL elite).
  */
 function getPerformanceFactor(ctl: number): number {
-  if (ctl > 120) return 0.82;
-  if (ctl > 100) return 0.80;
-  if (ctl > 90) return 0.79;
-  if (ctl > 70) return 0.78;
-  if (ctl > 50) return 0.76;
-  if (ctl > 30) return 0.73;
-  return 0.70;
+  if (ctl > 120) return 0.90;
+  if (ctl > 100) return 0.88;
+  if (ctl > 90) return 0.86;
+  if (ctl > 70) return 0.84;
+  if (ctl > 50) return 0.82;
+  if (ctl > 30) return 0.80;
+  return 0.78;
 }
 
 /**
