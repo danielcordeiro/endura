@@ -15,6 +15,7 @@ import performanceRoutes from './modules/performance/performance.routes.js';
 import fitnessTestsRoutes from './modules/fitness-tests/fitness-tests.routes.js';
 import { startStravaSyncJob } from './jobs/strava-sync.job.js';
 import { startTokenRefreshJob } from './jobs/token-refresh.job.js';
+import { startWellnessSyncJob } from './jobs/wellness-sync.job.js';
 import { db } from './lib/db.js';
 import { sql } from 'drizzle-orm';
 
@@ -70,6 +71,7 @@ await app.register(fitnessTestsRoutes);
 // ── Jobs (cron) ──────────────────────────────────────────────────
 startStravaSyncJob();
 startTokenRefreshJob();
+startWellnessSyncJob();
 
 // ── Start ─────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 8080);

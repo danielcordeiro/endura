@@ -2,6 +2,7 @@ import { eq, and, gte, lte, desc, asc } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
+import { getLatestWellness } from '../integration/wellness-sync.service.js';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -224,12 +225,42 @@ export async function assessReadiness(userId: string, pmc: PMCData, subjective?:
   if (last7ATL > prev7ATL * 1.1) recentLoadTrend = 'increasing';
   else if (last7ATL < prev7ATL * 0.9) recentLoadTrend = 'decreasing';
 
-  // Latest weekly checkin for sleep quality
+  // Latest weekly checkin for sleep quality (fallback)
   const latestCheckin = await db.query.weeklyCheckins.findFirst({
     where: eq(schema.weeklyCheckins.userId, userId),
     orderBy: [desc(schema.weeklyCheckins.createdAt)],
   });
-  const sleepQuality = latestCheckin?.sleepQuality ?? null;
+
+  // Fetch real wellness data from intervals.icu
+  const wellness = await getLatestWellness(userId);
+  const sleepQuality = wellness?.sleepScore != null
+    ? Math.round(wellness.sleepScore / 20)  // 0-100 → 1-5
+    : latestCheckin?.sleepQuality ?? null;
+
+  // HRV status: compare today vs 7-day average
+  let hrvStatus: 'above' | 'below' | 'normal' | 'unknown' = 'unknown';
+  let hrvContext = '';
+  if (wellness?.hrv != null) {
+    // Fetch last 7 days of HRV to compute baseline
+    const recentWellness = await db.query.dailyMetrics.findMany({
+      where: and(
+        eq(schema.dailyMetrics.userId, userId),
+        eq(schema.dailyMetrics.source, 'intervals_icu'),
+      ),
+      orderBy: (dm, { desc: d }) => [d(dm.date)],
+      limit: 7,
+    });
+    const hrvValues = recentWellness
+      .filter((r) => r.hrvMs != null)
+      .map((r) => Number(r.hrvMs));
+    if (hrvValues.length >= 3) {
+      const avgHrv = hrvValues.reduce((a, b) => a + b, 0) / hrvValues.length;
+      if (wellness.hrv > avgHrv * 1.05) hrvStatus = 'above';
+      else if (wellness.hrv < avgHrv * 0.9) hrvStatus = 'below';
+      else hrvStatus = 'normal';
+      hrvContext = `HRV hoje: ${wellness.hrv.toFixed(0)}ms (baseline 7d: ${avgHrv.toFixed(0)}ms)`;
+    }
+  }
 
   // Calculate readiness score (0-100)
   let score = 50; // baseline
@@ -251,6 +282,23 @@ export async function assessReadiness(userId: string, pmc: PMCData, subjective?:
     else if (sleepQuality >= 3) score += 5;
     else if (sleepQuality <= 1) score -= 15;
     else score -= 5;
+  }
+
+  // HRV contribution (-10 to +10)
+  if (hrvStatus === 'above') score += 10;
+  else if (hrvStatus === 'below') score -= 10;
+
+  // Body battery from Garmin (-10 to +10)
+  if (wellness?.bodyBattery != null) {
+    if (wellness.bodyBattery >= 70) score += 10;
+    else if (wellness.bodyBattery >= 40) score += 3;
+    else if (wellness.bodyBattery < 25) score -= 10;
+  }
+
+  // Stress level from Garmin (-8 to +5)
+  if (wellness?.stressLevel != null) {
+    if (wellness.stressLevel <= 25) score += 5;
+    else if (wellness.stressLevel >= 60) score -= 8;
   }
 
   // CTL indicates fitness level — very low CTL means low capacity
@@ -300,11 +348,19 @@ export async function assessReadiness(userId: string, pmc: PMCData, subjective?:
     ? `\n- Sensacao do atleta: ${feelingLabel} (${subjective.feeling}/5)\n- Dor muscular: ${sorenessLabel} (${subjective.muscleSoreness}/5)${injuryContext ? `\n- Relato de lesao/dor: "${injuryContext}"` : ''}`
     : '';
 
+  const wellnessPrompt = wellness
+    ? `\n- HRV: ${wellness.hrv != null ? `${wellness.hrv.toFixed(0)}ms (${hrvStatus})` : 'indisponivel'}${hrvContext ? ` — ${hrvContext}` : ''}
+- Sono: ${wellness.sleepDurationH != null ? `${wellness.sleepDurationH}h` : 'indisponivel'}${wellness.sleepScore != null ? ` (score: ${wellness.sleepScore}/100)` : ''}
+- Body Battery: ${wellness.bodyBattery != null ? `${wellness.bodyBattery}/100` : 'indisponivel'}
+- Stress: ${wellness.stressLevel != null ? `${wellness.stressLevel}/100` : 'indisponivel'}
+- SpO2: ${wellness.spo2 != null ? `${wellness.spo2}%` : 'indisponivel'}`
+    : '';
+
   try {
     const aiResponse = await generateStructuredJSON<{ mentorMessage: string; recommendation: string }>({
       model: CLAUDE_MODELS.HAIKU,
       maxTokens: 400,
-      system: `Voce e um treinador de triathlon experiente e cuidadoso. Gere uma mensagem curta e motivacional em portugues brasileiro para o atleta baseado nos dados de performance e como ele esta se sentindo. Se houver relato de lesao ou dor alta, priorize recuperacao e sugira alternativas seguras. Responda em JSON: { "mentorMessage": "...", "recommendation": "..." }`,
+      system: `Voce e um treinador de triathlon experiente e cuidadoso. Gere uma mensagem curta e motivacional em portugues brasileiro para o atleta baseado nos dados de performance, dados do relogio (HRV, sono, body battery, stress) e como ele esta se sentindo. Se houver relato de lesao ou dor alta, priorize recuperacao. Se HRV estiver abaixo da baseline ou body battery baixo, sugira treino mais leve. Responda em JSON: { "mentorMessage": "...", "recommendation": "..." }`,
       prompt: `Dados do atleta:
 - CTL (fitness): ${currentCTL.toFixed(1)}
 - ATL (fadiga): ${currentATL.toFixed(1)}
@@ -312,7 +368,7 @@ export async function assessReadiness(userId: string, pmc: PMCData, subjective?:
 - Score de prontidao: ${score}/100
 - Nivel recomendado: ${level}
 - Qualidade do sono: ${sleepQuality ?? 'desconhecida'}
-- Tendencia de carga: ${recentLoadTrend}${subjectivePrompt}
+- Tendencia de carga: ${recentLoadTrend}${wellnessPrompt}${subjectivePrompt}
 
 Gere uma mensagem de mentor (2-3 frases, motivacional e especifica) e uma recomendacao curta (1 frase sobre o tipo de treino ideal para hoje).${injuryContext ? ' IMPORTANTE: o atleta relatou lesao/dor — seja cauteloso e priorize recuperacao.' : ''}`,
     });
@@ -331,7 +387,7 @@ Gere uma mensagem de mentor (2-3 frases, motivacional e especifica) e uma recome
       ctl: currentCTL,
       recentLoadTrend,
       sleepQuality,
-      hrvStatus: 'unknown',
+      hrvStatus,
     },
     recommendation,
     mentorMessage,

@@ -7,6 +7,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { callbackQuery } from './integration.schemas.js';
 import { authenticate } from '../auth/auth.middleware.js';
 import { generateTokens } from '../auth/auth.service.js';
+import { syncWellnessForUser, getLatestWellness } from './wellness-sync.service.js';
 import type {
   ConnectResponse,
   StatusResponse,
@@ -72,7 +73,7 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         client_id: clientId,
         redirect_uri: redirectUri,
         response_type: 'code',
-        scope: 'ACTIVITY:READ,WORKOUT:WRITE',
+        scope: 'ACTIVITY:READ,WORKOUT:WRITE,WELLNESS:READ',
         state,
       });
 
@@ -151,7 +152,7 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         await db.update(schema.integrations)
           .set({
             accessTokenEnc, refreshTokenEnc, expiresAt, externalUserId,
-            scope: 'ACTIVITY:READ,WORKOUT:WRITE', active: true, syncStatus: 'idle',
+            scope: 'ACTIVITY:READ,WORKOUT:WRITE,WELLNESS:READ', active: true, syncStatus: 'idle',
             updatedAt: new Date(),
           })
           .where(and(
@@ -162,7 +163,7 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         await db.insert(schema.integrations).values({
           userId, provider: PROVIDER, externalUserId,
           accessTokenEnc, refreshTokenEnc, expiresAt,
-          scope: 'ACTIVITY:READ,WORKOUT:WRITE', active: true, syncStatus: 'idle',
+          scope: 'ACTIVITY:READ,WORKOUT:WRITE,WELLNESS:READ', active: true, syncStatus: 'idle',
         });
       }
 
@@ -232,6 +233,43 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
 
       request.log.info({ provider: PROVIDER }, 'Integracao intervals.icu desconectada');
       return reply.send({ data: { message: 'Integracao intervals.icu desconectada' } } satisfies DisconnectResponse);
+    },
+  );
+
+  // ── POST /api/integrations/intervals/sync-wellness ──────────
+  // Sync manual de dados de wellness via intervals.icu
+  app.post(
+    '/api/integrations/intervals/sync-wellness',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const result = await syncWellnessForUser(request.userId);
+        request.log.info({ provider: PROVIDER, ...result }, 'Wellness sync concluido');
+        return reply.send({ data: result });
+      } catch (err) {
+        request.log.error(err, 'Erro no wellness sync');
+        return reply.code(500).send(
+          errorPayload('ERR_WELLNESS_SYNC', 'Erro ao sincronizar dados de wellness', 500),
+        );
+      }
+    },
+  );
+
+  // ── GET /api/integrations/intervals/wellness ───────────────
+  // Retorna dados de wellness mais recentes
+  app.get(
+    '/api/integrations/intervals/wellness',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const wellness = await getLatestWellness(request.userId);
+        return reply.send({ data: wellness });
+      } catch (err) {
+        request.log.error(err, 'Erro ao buscar wellness');
+        return reply.code(500).send(
+          errorPayload('ERR_WELLNESS_FETCH', 'Erro ao buscar dados de wellness', 500),
+        );
+      }
     },
   );
 
