@@ -128,6 +128,8 @@ export async function createRaceGoal(userId: string, data: CreateRaceGoalBody) {
       goal: data.goal,
       targetTime: data.targetTime ?? null,
       raceName: data.raceName ?? null,
+      bikeElevationGainM: data.bikeElevationGainM ? String(data.bikeElevationGainM) : null,
+      runElevationGainM: data.runElevationGainM ? String(data.runElevationGainM) : null,
       active: true,
     })
     .returning();

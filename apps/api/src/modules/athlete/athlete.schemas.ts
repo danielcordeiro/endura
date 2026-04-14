@@ -40,6 +40,8 @@ export const createRaceGoalBody = z.object({
   goal: z.enum(['finish', 'time']),
   targetTime: z.number().int().positive().nullable().optional(),
   raceName: z.string().max(255).nullable().optional(),
+  bikeElevationGainM: z.number().min(0).max(5000).nullable().optional(),
+  runElevationGainM: z.number().min(0).max(3000).nullable().optional(),
 });
 
 export type CreateRaceGoalBody = z.infer<typeof createRaceGoalBody>;

@@ -82,6 +82,8 @@ export const raceGoals = pgTable('race_goals', {
   goal: varchar('goal', { length: 20 }).notNull(),
   targetTime: integer('target_time_sec'),
   raceName: varchar('race_name', { length: 255 }),
+  bikeElevationGainM: numeric('bike_elevation_gain_m', { precision: 8, scale: 2 }),
+  runElevationGainM: numeric('run_elevation_gain_m', { precision: 8, scale: 2 }),
   active: boolean('active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -422,6 +424,64 @@ export const productCatalog = pgTable('product_catalog', {
 }, (table) => [
   index('idx_product_catalog_name_brand').on(table.name, table.brand),
 ]);
+
+// ── MÉTRICAS DIÁRIAS (PMC / HRV / Readiness) ─────────────────
+
+export const dailyMetrics = pgTable('daily_metrics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  date: date('date').notNull(),
+  tss: numeric('tss', { precision: 8, scale: 2 }).default('0'),
+  ctl: numeric('ctl', { precision: 8, scale: 2 }).default('0'),
+  atl: numeric('atl', { precision: 8, scale: 2 }).default('0'),
+  tsb: numeric('tsb', { precision: 8, scale: 2 }).default('0'),
+  hrvMs: numeric('hrv_ms', { precision: 6, scale: 2 }),
+  hrvBaseline: numeric('hrv_baseline', { precision: 6, scale: 2 }),
+  restingHr: integer('resting_hr'),
+  sleepQuality: integer('sleep_quality'),
+  fatigueScore: numeric('fatigue_score', { precision: 5, scale: 2 }),
+  readinessScore: numeric('readiness_score', { precision: 5, scale: 2 }),
+  readinessLevel: varchar('readiness_level', { length: 20 }),
+  mentorRecommendation: text('mentor_recommendation'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_daily_metrics_user_date').on(table.userId, table.date),
+]);
+
+export const dailyMetricsRelations = relations(dailyMetrics, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyMetrics.userId],
+    references: [users.id],
+  }),
+}));
+
+// ── TESTES DE FITNESS ─────────────────────────────────────────
+
+export const fitnessTests = pgTable('fitness_tests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  testType: varchar('test_type', { length: 30 }).notNull(), // swim_t30, bike_ftp20, run_cooper12
+  testDate: date('test_date').notNull(),
+  distanceM: numeric('distance_m', { precision: 10, scale: 2 }),
+  durationSec: integer('duration_sec'),
+  avgPowerW: integer('avg_power_w'),
+  avgHr: integer('avg_hr'),
+  derivedPace: numeric('derived_pace', { precision: 8, scale: 2 }),  // sec per 100m (swim) or sec per km (run)
+  derivedFtp: integer('derived_ftp'),                                 // bike FTP
+  derivedVo2max: numeric('derived_vo2max', { precision: 6, scale: 2 }), // Cooper VO2max
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_fitness_tests_user_type').on(table.userId, table.testType),
+]);
+
+export const fitnessTestsRelations = relations(fitnessTests, ({ one }) => ({
+  user: one(users, {
+    fields: [fitnessTests.userId],
+    references: [users.id],
+  }),
+}));
 
 // ── MÓDULO TREINADOR (fase 3) ─────────────────────────────────
 

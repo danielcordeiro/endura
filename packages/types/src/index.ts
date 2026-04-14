@@ -36,6 +36,8 @@ export interface RaceGoal {
   goal: RaceGoalType;
   targetTime: number | null;
   raceName: string | null;
+  bikeElevationGainM: number | null;
+  runElevationGainM: number | null;
   active: boolean;
 }
 
@@ -218,6 +220,125 @@ export interface DashboardAlert {
   type: 'warning' | 'danger' | 'info';
   message: string;
   actionUrl?: string;
+}
+
+// ── Performance / PMC ──────────────────────────────────
+
+export type ReadinessLevel = 'intense' | 'moderate' | 'light' | 'rest';
+
+export interface DailyMetric {
+  date: string;
+  tss: number;
+  ctl: number;
+  atl: number;
+  tsb: number;
+  hrvMs: number | null;
+  restingHr: number | null;
+  fatigueScore: number | null;
+  readinessScore: number | null;
+  readinessLevel: ReadinessLevel | null;
+}
+
+export interface PMCData {
+  metrics: DailyMetric[];
+  currentCTL: number;
+  currentATL: number;
+  currentTSB: number;
+}
+
+export interface ReadinessAssessment {
+  level: ReadinessLevel;
+  score: number;
+  factors: {
+    tsb: number;
+    tsbTrend: 'rising' | 'falling' | 'stable';
+    ctl: number;
+    recentLoadTrend: 'increasing' | 'decreasing' | 'stable';
+    sleepQuality: number | null;
+    hrvStatus: 'above' | 'below' | 'normal' | 'unknown';
+  };
+  recommendation: string;
+  mentorMessage: string;
+}
+
+export interface RacePrediction {
+  totalTimeSec: number;
+  swimTimeSec: number;
+  bikeTimeSec: number;
+  runTimeSec: number;
+  t1Sec: number;
+  t2Sec: number;
+  confidence: number;
+  factors: {
+    swimPace100m: number;
+    bikePowerW: number | null;
+    bikeSpeedKmh: number;
+    runPaceKm: number;
+    fitnessLevel: number;
+    bikeElevationGainM: number | null;
+    runElevationGainM: number | null;
+  };
+}
+
+export interface TargetRace {
+  id: string;
+  raceName: string | null;
+  distance: RaceDistance;
+  raceDate: string;
+  targetTime: number | null;
+  daysRemaining: number;
+  readinessScore: number | null;
+  prediction: RacePrediction | null;
+  planPhase: TrainingPhase | null;
+  planProgress: number | null;
+}
+
+export type FitnessTestType = 'swim_t30' | 'bike_ftp20' | 'run_cooper12';
+
+export interface FitnessTestResult {
+  id: string;
+  testType: FitnessTestType;
+  testDate: string;
+  distanceM: number | null;
+  avgPowerW: number | null;
+  avgHr: number | null;
+  derivedPace: number | null;
+  derivedFtp: number | null;
+  derivedVo2max: number | null;
+}
+
+export interface DisciplineBenchmark {
+  discipline: 'swim' | 'bike' | 'run';
+  totalActivities: number;
+  last30dActivities: number;
+  bestPace: number | null;
+  avgPace: number | null;
+  bestSpeedKmh: number | null;
+  avgSpeedKmh: number | null;
+  bestPowerW: number | null;
+  avgPowerW: number | null;
+  bestHr: number | null;
+  avgHr: number | null;
+  longestDistanceM: number | null;
+  longestDurationSec: number | null;
+  totalDistanceM: number;
+  totalDurationSec: number;
+  recentTrend: 'improving' | 'declining' | 'stable';
+}
+
+export interface PerformanceDashboard {
+  pmc: PMCData;
+  readiness: ReadinessAssessment;
+  targetRace: TargetRace | null;
+  racePrediction: RacePrediction | null;
+  benchmarks: {
+    swim: DisciplineBenchmark;
+    bike: DisciplineBenchmark;
+    run: DisciplineBenchmark;
+  };
+  weeklyTSS: number;
+  monotony: number;
+  strain: number;
 }
 
 // ── API Response ────────────────────────────────────────

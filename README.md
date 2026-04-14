@@ -73,7 +73,37 @@ pnpm --filter @endura/api db:studio
 | IA | Claude API (Anthropic) |
 | Monorepo | pnpm workspaces |
 
-## Documentação
+## Performance Dashboard
+
+Dashboard completo de performance inspirado em TrainingPeaks, WHOOP, Oura e Garmin Connect.
+
+### Funcionalidades
+
+| Feature | Descricao |
+|---|---|
+| **PMC Chart** | Grafico CTL/ATL/TSB (Performance Management Chart) com 30/60/90 dias |
+| **AI Training Mentor** | Recomenda intensidade do dia (intenso/moderado/leve/descanso) com check-in subjetivo |
+| **Race Predictor IM 70.3** | Previsao de splits swim/bike/run com ajuste de altimetria (180 dias de dados) |
+| **Prova Alvo** | Cadastro de prova com countdown, prontidao e progresso do plano |
+| **Fadiga & Carga** | Monotonia, strain e gauge de fadiga (ATL/CTL ratio) |
+| **Benchmarks por Disciplina** | Melhores paces, velocidades e potencia de swim/bike/run |
+| **Testes de Fitness** | T30 natacao, FTP 20min bike, Cooper 12min corrida com calculos derivados |
+| **Check-in do Atleta** | Sensacao, dor muscular e relato de lesao para recalcular readiness |
+
+### Endpoints de Performance
+
+```
+GET  /api/performance/dashboard        — Dashboard completo
+GET  /api/performance/pmc?days=90      — Dados PMC
+GET  /api/performance/readiness        — Readiness assessment
+POST /api/performance/readiness        — Readiness com input subjetivo
+GET  /api/performance/race-prediction  — Previsao IM 70.3
+GET  /api/performance/target-race      — Prova alvo
+GET  /api/fitness-tests                — Testes de fitness
+POST /api/fitness-tests                — Registrar teste
+```
+
+## Documentacao
 
 - [Documento Mestre de Produto (MVP v2.0)](docs/Endura_MVP.md) — visão, roadmap e especificações completas
 
