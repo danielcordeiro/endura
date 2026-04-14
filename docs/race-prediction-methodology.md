@@ -2,133 +2,139 @@
 
 ## Visao Geral
 
-A previsao de tempo para Ironman 70.3 calcula splits para cada disciplina (swim/bike/run) mais transicoes, baseado nos dados reais de treino do atleta.
+A previsao usa **testes de fitness como base primaria** e **CTL + atividades Strava como calibracao**.
 
-## Distancias IM 70.3
+## Principio
 
-| Segmento | Distancia |
-|---|---|
-| Swim | 1.900m |
-| T1 | ~5min (fixo) |
-| Bike | 90km |
-| T2 | ~3min (fixo) |
-| Run | 21.1km |
+O resultado dos testes (T30, FTP 20min, Cooper 12min) define a capacidade maxima do atleta. A prova e feita a 70-82% dessa capacidade, dependendo do condicionamento (CTL).
 
-## Fontes de Dados (por prioridade)
+## Performance Factor (% do teste)
 
-### 1. Atividades Strava (ultimos 180 dias) — fonte primaria
-Todas as atividades sincronizadas do Strava sao usadas para calcular paces e velocidades medias reais do atleta.
+O CTL determina quanto do resultado do teste o atleta consegue sustentar numa prova longa:
 
-### 2. Testes de Fitness (T30, FTP, Cooper) — alimentam o perfil
-Ao registrar um teste, os valores derivados sao salvos no perfil do atleta:
-- **FTP 20min** → `athlete_profiles.ftp_watts` (95% da potencia media)
-- **Cooper 12min** → `athlete_profiles.run_5k_pace_sec` (pace estimado para 5k)
-- **T30 Natacao** → pace derivado (usado se nao houver atividades de swim)
+| CTL | Fator | Interpretacao |
+|---|---|---|
+| < 30 | 70% | Baixo condicionamento, muita degradacao |
+| 30-50 | 73% | Condicionamento basico |
+| 50-70 | 76% | Bom condicionamento |
+| 70-90 | 78% | Condicionamento avancado |
+| 90-100 | 79% | Excelente |
+| 100-120 | 80% | Elite amador |
+| > 120 | 82% | Top performance |
 
-### 3. Perfil do Atleta — fallback quando nao ha atividades
-Se nao houver atividades suficientes de uma disciplina, o sistema usa os dados do perfil:
-- `ftp_watts` para estimar velocidade no bike
-- `run_5k_pace_sec` para estimar pace na corrida
-- `level` (iniciante/intermediario/competitivo) para estimativas genericas
+**Natacao**: fator base + 8% (max 95%), porque a natacao degrada menos em distancia.
+
+## Calibracao com Strava
+
+Atividades dos ultimos 180 dias **ajustam ±5%** a previsao baseada no teste:
+- Se o atleta treina mais rapido que o previsto → ajusta para cima (max +5%)
+- Se treina mais devagar → ajusta para baixo (max -5%)
+- Minimo de 2 atividades para calibrar
 
 ## Calculos por Disciplina
 
-### Swim (1.900m)
+### Swim (1.900m) — Base: T30
 
-**Com atividades de natacao:**
 ```
-swimPace100m = media(duracao / distancia * 100) de todos os treinos de swim
-swimTime = (1900 / 100) * swimPace100m
-```
-
-**Sem atividades (fallback por nivel):**
-- Competitivo: 1:45/100m
-- Intermediario: 2:00/100m
-- Iniciante: 2:20/100m
-
-### Bike (90km)
-
-**Com atividades de bike:**
-```
-bikeSpeedKmh = media(distancia_km / duracao_h) * 0.95 (fator fadiga prova)
+testPace = (30min / distanciaT30) × 100     → pace/100m no teste
+racePace = testPace / swimFactor             → pace de prova (mais lento)
+racePace = calibrateWithStrava(racePace)     → ajuste ±5% com treinos reais
+swimTime = (1900 / 100) × racePace
 ```
 
-**Com FTP (do teste ou perfil):**
+**Exemplo**: T30 = 1500m, CTL = 80
+- testPace = 1800/1500 × 100 = 120 sec/100m (2:00/100m)
+- swimFactor = 0.78 + 0.08 = 0.86
+- racePace = 120 / 0.86 = 139 sec/100m (~2:19/100m)
+- swimTime = 19 × 139 = 2641 sec (~44min)
+
+### Bike (90km) — Base: FTP 20min
+
 ```
-bikeSpeedKmh = 28 + (FTP - 200) * 0.05
+FTP = avgPower20min × 0.95
+raceWatts = FTP × baseFactor               → potencia sustentavel na prova
+bikeSpeed = 28 + (raceWatts - 200) × 0.05  → velocidade estimada
+bikeSpeed = calibrateWithStrava(bikeSpeed)  → ajuste ±5%
+bikeSpeed = adjustForElevation(bikeSpeed)   → penalidade D+
+bikeTime = 90km / bikeSpeed × 3600
 ```
 
-**Ajuste de altimetria (quando cadastrada):**
-```
-penaltyFactor = 1 + (elevationGainM / distanciaM) * 8
-bikeSpeedAjustada = bikeSpeedKmh / penaltyFactor
-```
-Exemplo: 800m D+ em 90km → velocidade cai ~7%
+**Exemplo**: FTP teste = 250W avg → FTP = 237W, CTL = 100
+- baseFactor = 0.80
+- raceWatts = 237 × 0.80 = 190W
+- bikeSpeed = 28 + (190-200) × 0.05 = 27.5 km/h
+- bikeTime = 90/27.5 × 3600 = 11782 sec (~3:16)
 
-**Sem dados (fallback por nivel):**
-- Competitivo: 32 km/h
-- Intermediario: 28 km/h
-- Iniciante: 24 km/h
+### Run (21.1km) — Base: Cooper 12min
 
-### Run (21.1km)
-
-**Com atividades de corrida:**
 ```
-runPaceKm = media(duracao / distancia * 1000) * 1.08 (fator brick pos-bike)
-```
-
-**Com pace 5k (do Cooper ou perfil):**
-```
-runPaceKm = (run5kPaceSec / 5) * 1.15 (ajuste 5k → meia maratona)
+testPace = (12min / distanciaCooper) × 1000  → pace/km no Cooper
+racePace = (testPace / baseFactor) × 1.15 × 1.08
+           │                          │       └── brick factor (pos-bike)
+           │                          └── penalty distancia (12min → 21km)
+           └── ajuste condicionamento
+racePace = calibrateWithStrava(racePace)
+racePace = adjustForElevation(racePace)
+runTime = 21.1 × racePace
 ```
 
-**Ajuste de altimetria (quando cadastrada):**
-```
-effectiveElevation = elevationGainM * 0.67 (subida custa 100%, descida recupera 33%)
-adjustmentFactor = 1 + (effectiveElevation / 400)
-runPaceAjustado = runPaceKm * adjustmentFactor
-```
-Exemplo: 400m D+ → pace sobe ~4.5% (de 5:00 para ~5:13/km)
+**Exemplo**: Cooper = 2800m, CTL = 100
+- testPace = 720/2800 × 1000 = 257 sec/km (4:17/km)
+- baseFactor = 0.80
+- racePace = (257/0.80) × 1.15 × 1.08 = 399 sec/km (6:39/km)
+- runTime = 21.1 × 399 = 8419 sec (~2:20)
 
 ### Transicoes
 
-| Transicao | Tempo fixo |
+| Transicao | Tempo |
 |---|---|
 | T1 (swim→bike) | 5:00 |
 | T2 (bike→run) | 3:00 |
 
-## Confianca (0-100%)
+## Ajuste de Altimetria
 
-A confianca da previsao depende da quantidade de dados disponiveis:
+### Bike
+```
+penaltyFactor = 1 + (D+ / distancia) × 8
+speedAjustada = speed / penaltyFactor
+```
+
+### Run (GAP Formula)
+```
+effectiveElevation = D+ × 0.67  (subida custa 100%, descida recupera 33%)
+adjustmentFactor = 1 + (effectiveElevation / 400)
+paceAjustado = pace × adjustmentFactor
+```
+
+## Confianca
 
 | Fator | Bonus |
 |---|---|
-| Base | 30% |
-| >= 3 treinos de swim | +15% |
-| >= 1 treino de swim | +8% |
-| >= 5 treinos de bike | +20% |
-| >= 2 treinos de bike | +10% |
-| >= 5 treinos de run | +20% |
-| >= 2 treinos de run | +10% |
-| CTL > 50 | +15% |
-| CTL > 30 | +8% |
-| Altimetria bike cadastrada | +3% |
-| Altimetria run cadastrada | +2% |
-| Maximo | 95% |
+| Base | 20% |
+| Teste T30 registrado | +15% |
+| Teste FTP registrado | +15% |
+| Teste Cooper registrado | +15% |
+| ≥3 treinos swim Strava | +5% |
+| ≥5 treinos bike Strava | +5% |
+| ≥5 treinos run Strava | +5% |
+| CTL > 80 | +10% |
+| CTL > 50 | +5% |
+| D+ bike cadastrado | +3% |
+| D+ run cadastrado | +2% |
+| **Maximo** | **95%** |
 
-## Quando a previsao e recalculada
+## Prioridade dos Dados
 
-A previsao e recalculada **a cada requisicao** ao endpoint `/api/performance/dashboard`. Nao e cacheada — sempre reflete os dados mais recentes.
+1. **Testes de fitness** → base do calculo (T30, FTP 20min, Cooper 12min)
+2. **CTL** → determina % do teste (70-82%)
+3. **Strava** → calibra ±5% baseado em treinos reais
+4. **Perfil** → fallback quando nao ha testes nem atividades
+5. **Altimetria** → ajuste final baseado no D+ da prova
 
-Isso significa que:
-- Novos treinos sincronizados do Strava atualizam a previsao na proxima vez que o dashboard e carregado
-- Testes de fitness atualizam o perfil imediatamente, e a previsao usa esses dados como fallback
-- Altimetria cadastrada na prova alvo ajusta os splits na hora
+## Quando a previsao muda
 
-## Limitacoes
-
-1. **Sem dados de potencia na natacao** — usa pace medio, nao CSS (Critical Swim Speed)
-2. **Transicoes fixas** — nao personaliza T1/T2 baseado no historico
-3. **Sem ajuste de altitude** — apenas D+ do percurso, nao altitude absoluta da prova
-4. **Fator brick simplificado** — usa 8% fixo ao inves de modelar fadiga acumulada
-5. **Sem ajuste climatico** — calor/humidade podem impactar 5-15% no run
+- Novo teste de fitness registrado → muda a base imediatamente
+- CTL sobe/desce → muda o fator de performance
+- Novas atividades sincronizadas → recalibra ±5%
+- Altimetria cadastrada na prova → ajusta splits
+- A previsao e recalculada a cada request (nao e cacheada)

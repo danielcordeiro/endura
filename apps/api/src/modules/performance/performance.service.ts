@@ -415,29 +415,58 @@ function getDefaultRecommendation(level: string): string {
 }
 
 // ── Race Prediction (IM 70.3) ────────────────────────────────────
+//
+// METODOLOGIA: Testes de fitness sao a BASE PRIMARIA da previsao.
+// Atividades Strava e CTL CALIBRAM para cima ou para baixo.
+//
+// Base performance factor (% do teste usado na prova):
+//   CTL < 30  → 70%  (baixo condicionamento, muita degradacao)
+//   CTL 30-50 → 73%
+//   CTL 50-70 → 76%
+//   CTL 70-90 → 78%
+//   CTL 90-100 → 79%
+//   CTL > 100 → 80%
+//   CTL > 120 → 82%
+//
+// Natacao: +8% sobre o fator base (degrada menos em distancia)
+// Strava: calibra ±5% comparando pace real vs estimado
 
 /**
- * Adjust bike time for course elevation gain.
- * Empirical: ~8% speed penalty per 1000m elevation on a 90km course.
- * Based on "3-7 minutes added per 1000 feet of elevation gain" rule.
+ * Calcula o fator de performance baseado no CTL.
+ * Quanto maior o CTL, mais proximo do resultado do teste o atleta performa.
  */
+function getPerformanceFactor(ctl: number): number {
+  if (ctl > 120) return 0.82;
+  if (ctl > 100) return 0.80;
+  if (ctl > 90) return 0.79;
+  if (ctl > 70) return 0.78;
+  if (ctl > 50) return 0.76;
+  if (ctl > 30) return 0.73;
+  return 0.70;
+}
+
+/**
+ * Calibra o valor base com dados reais do Strava.
+ * Se o atleta treina mais rapido do que o teste preve, ajusta para cima (max +5%).
+ * Se treina mais devagar, ajusta para baixo (max -5%).
+ */
+function calibrateWithStrava(basePace: number, stravaPaces: number[]): number {
+  if (stravaPaces.length < 2) return basePace; // Dados insuficientes, sem calibracao
+  const stravaAvg = stravaPaces.reduce((a, b) => a + b, 0) / stravaPaces.length;
+  const ratio = stravaAvg / basePace;
+  // Clamp calibration to ±5%
+  const clampedRatio = Math.max(0.95, Math.min(1.05, ratio));
+  return basePace * clampedRatio;
+}
+
 function adjustBikeForElevation(baseSpeedKmh: number, elevationGainM: number, distanceM: number): number {
   if (!elevationGainM || elevationGainM <= 0) return baseSpeedKmh;
   const penaltyFactor = 1 + (elevationGainM / distanceM) * 8;
   return baseSpeedKmh / penaltyFactor;
 }
 
-/**
- * Adjust run time for course elevation gain using GAP formula.
- * GAP: adjustedTime = baseTime × (1 + elevationGain / 400)
- * ~15-20 sec slower per 10m elevation per km.
- * Assumes elevation loss ≈ elevation gain (loop course).
- */
 function adjustRunForElevation(basePaceSecPerKm: number, elevationGainM: number): number {
   if (!elevationGainM || elevationGainM <= 0) return basePaceSecPerKm;
-  // Net elevation on a loop course is ~0, but climbing cost > descent benefit
-  // Asymmetric: climbing costs 100%, descent recovers only ~33%
-  // Effective penalty: 67% of total elevation gain
   const effectiveElevation = elevationGainM * 0.67;
   const adjustmentFactor = 1 + (effectiveElevation / 400);
   return basePaceSecPerKm * adjustmentFactor;
@@ -455,10 +484,25 @@ export async function predictRaceTime(
 
   if (!profile) return null;
 
+  // Fetch latest fitness tests
+  const allTests = await db.query.fitnessTests.findMany({
+    where: eq(schema.fitnessTests.userId, userId),
+    orderBy: [desc(schema.fitnessTests.testDate)],
+  });
+  const swimTest = allTests.find((t) => t.testType === 'swim_t30');
+  const bikeTest = allTests.find((t) => t.testType === 'bike_ftp20');
+  const runTest = allTests.find((t) => t.testType === 'run_cooper12');
+
+  const hasAnyTest = swimTest || bikeTest || runTest;
+  if (!hasAnyTest && !profile.ftpWatts && !profile.run5kPaceSec) return null;
+
+  // Performance factor based on CTL
+  const baseFactor = getPerformanceFactor(pmc.currentCTL);
+  const swimFactor = Math.min(0.95, baseFactor + 0.08); // Swim degrades less
+
+  // Fetch Strava activities for calibration (180 days)
   const today = getTodayStr();
   const lookbackStart = dateAddDays(today, -180);
-
-  // Fetch activities from last 180+ days for more accurate prediction
   const recentActivities = await db.query.activities.findMany({
     where: and(
       eq(schema.activities.userId, userId),
@@ -476,9 +520,17 @@ export async function predictRaceTime(
   const BIKE_M = 90000;
   const RUN_M = 21100;
 
-  // Swim prediction: pace per 100m from recent swims
+  // ═══ SWIM ═══
+  // T30 test: distancia em 30min → pace/100m do teste
+  // Race pace = testPace / swimFactor (dividido porque pace menor = mais rapido)
   let swimPace100m: number;
-  if (swims.length > 0) {
+  if (swimTest?.distanceM) {
+    const testPace = (30 * 60 / Number(swimTest.distanceM)) * 100; // pace/100m no teste
+    swimPace100m = testPace / swimFactor; // Mais lento que o teste (ex: 88% → pace/0.88)
+    // Calibrar com Strava
+    const stravaPaces = swims.map((s) => (Number(s.durationSec!) / Number(s.distanceM!)) * 100);
+    swimPace100m = calibrateWithStrava(swimPace100m, stravaPaces);
+  } else if (swims.length > 0) {
     const paces = swims.map((s) => (Number(s.durationSec!) / Number(s.distanceM!)) * 100);
     swimPace100m = paces.reduce((a, b) => a + b, 0) / paces.length;
   } else {
@@ -486,62 +538,84 @@ export async function predictRaceTime(
   }
   const swimTimeSec = Math.round((SWIM_M / 100) * swimPace100m);
 
-  // Bike prediction: avg speed from recent rides
+  // ═══ BIKE ═══
+  // FTP test: potencia media 20min → FTP = 95% → race watts = FTP * baseFactor
+  // Speed estimation from FTP-based race watts
   let bikeSpeedKmh: number;
   let bikePowerW: number | null = null;
-  if (bikes.length > 0) {
-    const speeds = bikes.map((b) => (Number(b.distanceM!) / 1000) / (Number(b.durationSec!) / 3600));
-    bikeSpeedKmh = speeds.reduce((a, b) => a + b, 0) / speeds.length;
-    bikeSpeedKmh *= 0.95; // Race distance fatigue factor
-
-    const powers = bikes.filter((b) => b.avgPowerW).map((b) => b.avgPowerW!);
-    if (powers.length > 0) {
-      bikePowerW = Math.round(powers.reduce((a, b) => a + b, 0) / powers.length);
+  if (bikeTest?.avgPowerW) {
+    const ftp = Math.round(bikeTest.avgPowerW * 0.95);
+    const raceWatts = Math.round(ftp * baseFactor);
+    bikePowerW = raceWatts;
+    // Speed from power: rough model based on typical 70.3 conditions
+    // ~28km/h at 200W, +0.05km/h per watt above 200
+    bikeSpeedKmh = 28 + (raceWatts - 200) * 0.05;
+    // Calibrate with Strava speeds
+    const stravaSpeeds = bikes.map((b) => (Number(b.distanceM!) / 1000) / (Number(b.durationSec!) / 3600));
+    if (stravaSpeeds.length >= 2) {
+      const stravaAvg = stravaSpeeds.reduce((a, b) => a + b, 0) / stravaSpeeds.length;
+      const ratio = stravaAvg / bikeSpeedKmh;
+      bikeSpeedKmh *= Math.max(0.95, Math.min(1.05, ratio));
     }
   } else if (profile.ftpWatts) {
-    bikePowerW = Math.round(Number(profile.ftpWatts) * 0.75);
-    bikeSpeedKmh = 28 + (Number(profile.ftpWatts) - 200) * 0.05;
+    const ftp = Number(profile.ftpWatts);
+    const raceWatts = Math.round(ftp * baseFactor);
+    bikePowerW = raceWatts;
+    bikeSpeedKmh = 28 + (raceWatts - 200) * 0.05;
+  } else if (bikes.length > 0) {
+    const speeds = bikes.map((b) => (Number(b.distanceM!) / 1000) / (Number(b.durationSec!) / 3600));
+    bikeSpeedKmh = speeds.reduce((a, b) => a + b, 0) / speeds.length * 0.95;
   } else {
     bikeSpeedKmh = profile.level === 'competitivo' ? 32 : profile.level === 'intermediario' ? 28 : 24;
   }
 
-  // Apply elevation adjustment to bike
   const bikeSpeedAdjusted = adjustBikeForElevation(bikeSpeedKmh, bikeElevationGainM ?? 0, BIKE_M);
   const bikeTimeSec = Math.round((BIKE_M / 1000) / bikeSpeedAdjusted * 3600);
 
-  // Run prediction: pace per km from recent runs
+  // ═══ RUN ═══
+  // Cooper test: distancia em 12min → pace/km do teste
+  // Race half-marathon pace = testPace / baseFactor * brick factor
   let runPaceKm: number;
-  if (runs.length > 0) {
-    const paces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
-    runPaceKm = paces.reduce((a, b) => a + b, 0) / paces.length;
-    runPaceKm *= 1.08; // Brick factor
+  if (runTest?.distanceM) {
+    const testPaceKm = (12 * 60 / Number(runTest.distanceM)) * 1000; // pace/km no Cooper
+    // Half marathon is much longer than 12min: apply base factor + 15% distance penalty + 8% brick
+    runPaceKm = (testPaceKm / baseFactor) * 1.15 * 1.08;
+    // Calibrate with Strava
+    const stravaPaces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
+    runPaceKm = calibrateWithStrava(runPaceKm, stravaPaces);
   } else if (profile.run5kPaceSec) {
-    runPaceKm = (Number(profile.run5kPaceSec) / 5) * 1.15;
+    const pace5k = Number(profile.run5kPaceSec) / 5; // sec/km
+    runPaceKm = (pace5k / baseFactor) * 1.15 * 1.08;
+  } else if (runs.length > 0) {
+    const paces = runs.map((r) => (Number(r.durationSec!) / Number(r.distanceM!)) * 1000);
+    runPaceKm = paces.reduce((a, b) => a + b, 0) / paces.length * 1.08;
   } else {
     runPaceKm = profile.level === 'competitivo' ? 280 : profile.level === 'intermediario' ? 330 : 390;
   }
 
-  // Apply elevation adjustment to run
   const runPaceAdjusted = adjustRunForElevation(runPaceKm, runElevationGainM ?? 0);
   const runTimeSec = Math.round((RUN_M / 1000) * runPaceAdjusted);
 
-  // Transitions
+  // ═══ TRANSITIONS ═══
   const t1Sec = 300;
   const t2Sec = 180;
 
   const totalTimeSec = swimTimeSec + bikeTimeSec + runTimeSec + t1Sec + t2Sec;
 
-  // Confidence
-  let confidence = 30;
-  if (swims.length >= 3) confidence += 15;
-  else if (swims.length >= 1) confidence += 8;
-  if (bikes.length >= 5) confidence += 20;
-  else if (bikes.length >= 2) confidence += 10;
-  if (runs.length >= 5) confidence += 20;
-  else if (runs.length >= 2) confidence += 10;
-  if (pmc.currentCTL > 50) confidence += 15;
-  else if (pmc.currentCTL > 30) confidence += 8;
-  // Elevation data bonus
+  // ═══ CONFIDENCE ═══
+  let confidence = 20; // base
+  // Tests are now primary — big confidence boost
+  if (swimTest) confidence += 15;
+  if (bikeTest) confidence += 15;
+  if (runTest) confidence += 15;
+  // Strava calibration bonus
+  if (swims.length >= 3) confidence += 5;
+  if (bikes.length >= 5) confidence += 5;
+  if (runs.length >= 5) confidence += 5;
+  // CTL reliability
+  if (pmc.currentCTL > 80) confidence += 10;
+  else if (pmc.currentCTL > 50) confidence += 5;
+  // Elevation data
   if (bikeElevationGainM && bikeElevationGainM > 0) confidence += 3;
   if (runElevationGainM && runElevationGainM > 0) confidence += 2;
   confidence = Math.min(95, confidence);
