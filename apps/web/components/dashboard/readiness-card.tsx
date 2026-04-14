@@ -21,7 +21,7 @@ interface ReadinessAssessment {
 }
 
 interface ReadinessCardProps {
-  readiness: ReadinessAssessment;
+  readiness: ReadinessAssessment & { checkinSaved?: boolean };
 }
 
 const levelConfig = {
@@ -95,7 +95,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
   const [feeling, setFeeling] = useState(3);
   const [soreness, setSoreness] = useState(1);
   const [injuryNote, setInjuryNote] = useState('');
-  const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [hasCheckedIn, setHasCheckedIn] = useState(initialReadiness.checkinSaved ?? false);
 
   const config = levelConfig[readiness.level];
 

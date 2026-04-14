@@ -937,8 +937,23 @@ export async function getPerformanceDashboard(userId: string): Promise<{
   const pmc = await calculatePMC(userId, 90);
   const { weeklyTSS, monotony, strain } = calculateWeeklyLoadMetrics(pmc.metrics);
 
+  // Check if there's a saved check-in for today
+  const today = getTodayStr();
+  const todayCheckin = await db.query.dailyCheckins.findFirst({
+    where: and(
+      eq(schema.dailyCheckins.userId, userId),
+      eq(schema.dailyCheckins.date, today),
+    ),
+  });
+
+  const subjectiveInput = todayCheckin ? {
+    feeling: todayCheckin.feeling,
+    muscleSoreness: todayCheckin.muscleSoreness,
+    injuryNote: todayCheckin.injuryNote,
+  } : null;
+
   const [readiness, targetRace, benchmarks] = await Promise.all([
-    assessReadiness(userId, pmc),
+    assessReadiness(userId, pmc, subjectiveInput),
     getTargetRace(userId, pmc),
     getDisciplineBenchmarks(userId),
   ]);

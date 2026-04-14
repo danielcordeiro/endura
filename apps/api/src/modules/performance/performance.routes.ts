@@ -1,5 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../auth/auth.middleware.js';
+import { eq, and } from 'drizzle-orm';
+import { db } from '../../lib/db.js';
+import * as schema from '../../../drizzle/schema.js';
 import * as performanceService from './performance.service.js';
 
 // ── Tratamento de erros padrao ────────────────────────────────────
@@ -61,19 +64,47 @@ export default async function performanceRoutes(app: FastifyInstance): Promise<v
   );
 
   // ── GET /api/performance/readiness ─────────────────────────────
-  // Retorna avaliacao de prontidao e recomendacao do mentor AI
+  // Retorna avaliacao de prontidao. Se ja fez check-in hoje, usa os dados salvos.
   app.get('/api/performance/readiness', { onRequest: authenticate }, async (request, reply) => {
     try {
+      const today = new Date().toISOString().split('T')[0]!;
+
+      // Check if there's a saved check-in for today
+      const todayCheckin = await db.query.dailyCheckins.findFirst({
+        where: and(
+          eq(schema.dailyCheckins.userId, request.userId),
+          eq(schema.dailyCheckins.date, today),
+        ),
+      });
+
+      if (todayCheckin) {
+        // Recalculate with saved subjective input
+        const pmc = await performanceService.calculatePMC(request.userId, 90);
+        const readiness = await performanceService.assessReadiness(request.userId, pmc, {
+          feeling: todayCheckin.feeling,
+          muscleSoreness: todayCheckin.muscleSoreness,
+          injuryNote: todayCheckin.injuryNote,
+        });
+        return reply.send({
+          data: {
+            ...readiness,
+            checkinSaved: true,
+            checkinDate: today,
+          },
+        });
+      }
+
+      // No check-in today: return base readiness
       const pmc = await performanceService.calculatePMC(request.userId, 90);
       const readiness = await performanceService.assessReadiness(request.userId, pmc);
-      return reply.send({ data: readiness });
+      return reply.send({ data: { ...readiness, checkinSaved: false } });
     } catch (err) {
       await handleError(err, request, reply);
     }
   });
 
   // ── POST /api/performance/readiness ────────────────────────────
-  // Recalcula readiness com input subjetivo do atleta
+  // Salva check-in diario e recalcula readiness
   app.post<{ Body: { feeling: number; muscleSoreness: number; injuryNote?: string | null } }>(
     '/api/performance/readiness',
     { onRequest: authenticate },
@@ -87,18 +118,73 @@ export default async function performanceRoutes(app: FastifyInstance): Promise<v
             status: 400,
           });
         }
+
         const pmc = await performanceService.calculatePMC(request.userId, 90);
         const readiness = await performanceService.assessReadiness(request.userId, pmc, {
           feeling,
           muscleSoreness,
           injuryNote: injuryNote ?? null,
         });
-        return reply.send({ data: readiness });
+
+        // Save/update today's check-in
+        const today = new Date().toISOString().split('T')[0]!;
+        const existing = await db.query.dailyCheckins.findFirst({
+          where: and(
+            eq(schema.dailyCheckins.userId, request.userId),
+            eq(schema.dailyCheckins.date, today),
+          ),
+        });
+
+        const checkinData = {
+          feeling,
+          muscleSoreness,
+          injuryNote: injuryNote ?? null,
+          readinessScore: readiness.score,
+          readinessLevel: readiness.level,
+          mentorMessage: readiness.mentorMessage,
+          recommendation: readiness.recommendation,
+          updatedAt: new Date(),
+        };
+
+        if (existing) {
+          await db.update(schema.dailyCheckins)
+            .set(checkinData)
+            .where(eq(schema.dailyCheckins.id, existing.id));
+        } else {
+          await db.insert(schema.dailyCheckins).values({
+            userId: request.userId,
+            date: today,
+            ...checkinData,
+          });
+        }
+
+        return reply.send({
+          data: {
+            ...readiness,
+            checkinSaved: true,
+            checkinDate: today,
+          },
+        });
       } catch (err) {
         await handleError(err, request, reply);
       }
     },
   );
+
+  // ── GET /api/performance/checkin-history ────────────────────────
+  // Historico de check-ins dos ultimos 14 dias
+  app.get('/api/performance/checkin-history', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const checkins = await db.query.dailyCheckins.findMany({
+        where: eq(schema.dailyCheckins.userId, request.userId),
+        orderBy: (dc, { desc: d }) => [d(dc.date)],
+        limit: 14,
+      });
+      return reply.send({ data: checkins });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
 
   // ── GET /api/performance/race-prediction ───────────────────────
   // Retorna previsao de tempo para IM 70.3

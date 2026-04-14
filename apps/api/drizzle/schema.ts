@@ -463,6 +463,32 @@ export const dailyMetricsRelations = relations(dailyMetrics, ({ one }) => ({
   }),
 }));
 
+// ── CHECK-INS DIÁRIOS (Mentor AI) ─────────────────────────────
+
+export const dailyCheckins = pgTable('daily_checkins', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  date: date('date').notNull(),
+  feeling: integer('feeling').notNull(),          // 1-5
+  muscleSoreness: integer('muscle_soreness').notNull(), // 1-5
+  injuryNote: text('injury_note'),
+  readinessScore: integer('readiness_score'),
+  readinessLevel: varchar('readiness_level', { length: 20 }),
+  mentorMessage: text('mentor_message'),
+  recommendation: text('recommendation'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_daily_checkins_user_date').on(table.userId, table.date),
+]);
+
+export const dailyCheckinsRelations = relations(dailyCheckins, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyCheckins.userId],
+    references: [users.id],
+  }),
+}));
+
 // ── TESTES DE FITNESS ─────────────────────────────────────────
 
 export const fitnessTests = pgTable('fitness_tests', {
