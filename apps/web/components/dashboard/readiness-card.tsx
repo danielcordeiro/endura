@@ -126,7 +126,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
   return (
     <div className={cn(
-      'rounded-[2rem] p-6 ring-1 shadow-xl bg-gradient-to-br',
+      'rounded-[2rem] p-6 ring-1 shadow-xl bg-gradient-to-br overflow-hidden',
       config.gradient,
       config.ring,
     )}>
@@ -140,7 +140,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
           <button
             onClick={() => setShowCheckin(true)}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95',
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 shrink-0 whitespace-nowrap',
               hasCheckedIn
                 ? 'bg-bg-elevated/50 text-slate-400 hover:text-slate-200'
                 : 'bg-primary/20 text-primary hover:bg-primary/30',

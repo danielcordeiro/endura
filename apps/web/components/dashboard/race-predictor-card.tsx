@@ -97,8 +97,8 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
             <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ironman 70.3</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-elevated">
-          <span className="text-[10px] text-slate-500">Confianca</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-elevated shrink-0">
+          <span className="text-[10px] text-slate-500 whitespace-nowrap">Confianca</span>
           <span className={cn(
             'font-mono text-xs font-bold',
             prediction.confidence >= 70 ? 'text-emerald-400' :

@@ -47,7 +47,7 @@ export function TargetRaceCard({ race }: TargetRaceCardProps) {
 
   return (
     <div className={cn(
-      'rounded-[2rem] p-6 shadow-xl ring-1 ring-white/5',
+      'rounded-[2rem] p-6 shadow-xl ring-1 ring-white/5 overflow-hidden',
       urgency === 'critical'
         ? 'bg-gradient-to-br from-rose-500/15 to-bg-surface'
         : urgency === 'soon'
@@ -75,8 +75,8 @@ export function TargetRaceCard({ race }: TargetRaceCardProps) {
             {distanceLabels[race.distance] ?? race.distance}
           </span>
         </div>
-        <div className="text-right shrink-0">
-          <p className="text-sm font-semibold text-slate-100">{race.raceName ?? 'Prova Alvo'}</p>
+        <div className="text-right shrink-0 max-w-[55%]">
+          <p className="text-sm font-semibold text-slate-100 truncate">{race.raceName ?? 'Prova Alvo'}</p>
           <p className="text-xs text-slate-500">
             {new Date(race.raceDate + 'T00:00:00').toLocaleDateString('pt-BR', {
               day: '2-digit',
@@ -112,9 +112,9 @@ export function TargetRaceCard({ race }: TargetRaceCardProps) {
       <div className="flex items-center gap-4 mb-4">
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-slate-500">Prontidao para prova</span>
-            <span className={cn('font-mono text-xs font-bold', readinessColor)}>
-              {readiness}% — {readinessLabel}
+            <span className="text-xs text-slate-500">Prontidao</span>
+            <span className={cn('font-mono text-xs font-bold whitespace-nowrap', readinessColor)}>
+              {readiness}% {readinessLabel}
             </span>
           </div>
           <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden">
