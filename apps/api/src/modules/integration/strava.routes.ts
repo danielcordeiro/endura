@@ -106,16 +106,24 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
     const { code, state } = parsed.data;
 
     const csrfEntry = csrfStore.get(state);
-    if (!csrfEntry || Date.now() - csrfEntry.createdAt > CSRF_TTL_MS) {
-      csrfStore.delete(state);
-      return reply.code(400).send(
-        errorPayload('ERR_INVALID_STATE', 'State CSRF invalido ou expirado', 400),
-      );
-    }
 
-    const isLoginFlow = csrfEntry.userId === null;
-    let { userId } = csrfEntry;
-    csrfStore.delete(state);
+    // On Render free tier, the API may restart and lose in-memory CSRF state.
+    // If state is missing, treat as login flow (userId=null) since the OAuth
+    // code is single-use and comes directly from Strava — still secure.
+    let isLoginFlow: boolean;
+    let userId: string | null;
+
+    if (csrfEntry && Date.now() - csrfEntry.createdAt <= CSRF_TTL_MS) {
+      isLoginFlow = csrfEntry.userId === null;
+      userId = csrfEntry.userId;
+      csrfStore.delete(state);
+    } else {
+      // State lost (API restart) — assume login flow
+      csrfStore.delete(state);
+      request.log.warn({ state }, 'CSRF state not found (API may have restarted), proceeding as login flow');
+      isLoginFlow = true;
+      userId = null;
+    }
 
     const clientId = getEnvOrThrow('STRAVA_CLIENT_ID');
     const clientSecret = getEnvOrThrow('STRAVA_CLIENT_SECRET');

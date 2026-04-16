@@ -134,7 +134,13 @@ function LoginPageInner() {
     }
   }
 
-  function handleStravaLogin() {
+  async function handleStravaLogin() {
+    // Wake up the API first (Render free tier may be sleeping)
+    try {
+      await fetch(`${API_URL}/health`);
+    } catch {
+      // Ignore — just a wake-up ping
+    }
     window.location.href = `${API_URL}/api/auth/strava`;
   }
 
