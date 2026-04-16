@@ -134,12 +134,21 @@ function LoginPageInner() {
     }
   }
 
+  const [stravaLoading, setStravaLoading] = useState(false);
+
   async function handleStravaLogin() {
+    setStravaLoading(true);
     // Wake up the API first (Render free tier may be sleeping)
-    try {
-      await fetch(`${API_URL}/health`);
-    } catch {
-      // Ignore — just a wake-up ping
+    // Wait until we get a JSON response (not HTML loading page)
+    for (let i = 0; i < 5; i++) {
+      try {
+        const res = await fetch(`${API_URL}/health`);
+        const ct = res.headers.get('content-type') ?? '';
+        if (ct.includes('application/json')) break; // API is awake
+      } catch {
+        // ignore
+      }
+      await new Promise((r) => setTimeout(r, 2000));
     }
     window.location.href = `${API_URL}/api/auth/strava`;
   }

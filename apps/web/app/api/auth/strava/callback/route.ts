@@ -15,26 +15,6 @@ function getBaseUrl(request: NextRequest): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin;
 }
 
-async function fetchWithWakeUp(url: string, retries: number = 3): Promise<Response> {
-  for (let i = 0; i < retries; i++) {
-    const res = await fetch(url);
-    const contentType = res.headers.get('content-type') ?? '';
-
-    // If we got JSON back, the API is awake — return the response
-    if (contentType.includes('application/json')) {
-      return res;
-    }
-
-    // If HTML response (Render "waking up" page), wait and retry
-    console.log(`[strava-callback] API returned HTML (attempt ${i + 1}/${retries}), waiting for wake-up...`);
-    if (i < retries - 1) {
-      await new Promise((r) => setTimeout(r, 3000)); // Wait 3s for API to wake up
-    }
-  }
-
-  throw new Error('API did not wake up after retries — returned HTML instead of JSON');
-}
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = request.nextUrl;
   const code = searchParams.get('code');
@@ -42,31 +22,46 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const baseUrl = getBaseUrl(request);
   const apiUrl = getServerApiUrl();
 
-  console.log('[strava-callback] apiUrl:', apiUrl, 'baseUrl:', baseUrl);
-
   if (!code || !state) {
     return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=missing_params`);
   }
 
   try {
+    // Wake up API first if needed (hit health endpoint)
+    const healthRes = await fetch(`${apiUrl}/health`).catch(() => null);
+    const healthType = healthRes?.headers.get('content-type') ?? '';
+    if (!healthType.includes('application/json')) {
+      // API is waking up — wait for it
+      console.log('[strava-callback] API waking up, waiting 5s...');
+      await new Promise((r) => setTimeout(r, 5000));
+      // Try health again
+      await fetch(`${apiUrl}/health`).catch(() => null);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+
+    // Now call the actual callback — single attempt only (code is single-use)
     const fetchUrl = `${apiUrl}/api/integrations/strava/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
     console.log('[strava-callback] Fetching:', fetchUrl);
 
-    const response = await fetchWithWakeUp(fetchUrl);
+    const response = await fetch(fetchUrl);
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (!contentType.includes('application/json')) {
+      console.error('[strava-callback] API returned HTML — still waking up');
+      return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=api_unavailable`);
+    }
 
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('[strava-callback] API error:', response.status, errorBody.substring(0, 200));
-      return NextResponse.redirect(
-        `${baseUrl}/login?strava=error&reason=api_${response.status}`,
-      );
+      return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=api_${response.status}`);
     }
 
     const { data } = await response.json() as {
       data: { token: string; refreshToken: string; provider: string };
     };
 
-    console.log('[strava-callback] Success, redirecting with token');
+    console.log('[strava-callback] Success!');
     const fragment = `token=${encodeURIComponent(data.token)}`;
     return NextResponse.redirect(`${baseUrl}/login?strava=callback#${fragment}`);
   } catch (err) {
