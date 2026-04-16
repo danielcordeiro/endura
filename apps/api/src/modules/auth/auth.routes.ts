@@ -137,4 +137,40 @@ export default async function authRoutes(app: FastifyInstance): Promise<void> {
       await handleAuthError(err, request, reply);
     }
   });
+
+  // ── PUT /api/auth/set-password ─────────────────────────────────
+  // Permite definir/alterar senha (para usuarios que entraram via Strava)
+  app.put<{ Body: { currentPassword?: string; newPassword: string } }>(
+    '/api/auth/set-password',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const { currentPassword, newPassword } = request.body ?? {};
+        if (!newPassword || newPassword.length < 6) {
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: 'Nova senha deve ter no minimo 6 caracteres',
+            status: 400,
+          });
+        }
+
+        await authService.setPassword(request.userId, newPassword, currentPassword ?? null);
+        request.log.info({ userId: request.userId }, 'Senha definida/alterada');
+        return reply.send({ data: { message: 'Senha definida com sucesso' } });
+      } catch (err) {
+        await handleAuthError(err, request, reply);
+      }
+    },
+  );
+
+  // ── GET /api/auth/has-password ─────────────────────────────────
+  // Verifica se o usuario tem senha definida
+  app.get('/api/auth/has-password', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const hasPassword = await authService.hasPassword(request.userId);
+      return reply.send({ data: { hasPassword } });
+    } catch (err) {
+      await handleAuthError(err, request, reply);
+    }
+  });
 }

@@ -164,26 +164,43 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       if (existingIntegration[0]) {
         userId = existingIntegration[0].userId;
       } else {
-        // Cria novo usuario via Strava
         const athleteName = [tokenData.athlete.firstname, tokenData.athlete.lastname]
           .filter(Boolean).join(' ') || `Atleta Strava ${externalUserId}`;
-        const stravaEmail = `strava_${externalUserId}@endura.app`;
+        const stravaEmail = tokenData.athlete.email;
 
-        const [newUser] = await db.insert(schema.users).values({
-          email: stravaEmail,
-          name: athleteName,
-          passwordHash: null,
-          role: 'athlete',
-        }).returning({ id: schema.users.id });
+        // Se o Strava retornou email real, tenta vincular a conta existente
+        if (stravaEmail) {
+          const existingUser = await db.select({ id: schema.users.id })
+            .from(schema.users)
+            .where(eq(schema.users.email, stravaEmail))
+            .limit(1);
 
-        if (!newUser) {
-          return reply.code(500).send(
-            errorPayload('ERR_CREATE_USER', 'Falha ao criar usuario via Strava', 500),
-          );
+          if (existingUser[0]) {
+            userId = existingUser[0].id;
+            request.log.info({ userId, externalUserId, email: stravaEmail }, 'Conta existente vinculada via Strava');
+          }
         }
 
-        userId = newUser.id;
-        request.log.info({ userId, externalUserId }, 'Novo usuario criado via Strava OAuth');
+        // Se nao encontrou conta existente, cria nova
+        if (!userId) {
+          const fallbackEmail = stravaEmail ?? `strava_${externalUserId}@endura.app`;
+
+          const [newUser] = await db.insert(schema.users).values({
+            email: fallbackEmail,
+            name: athleteName,
+            passwordHash: null,
+            role: 'athlete',
+          }).returning({ id: schema.users.id });
+
+          if (!newUser) {
+            return reply.code(500).send(
+              errorPayload('ERR_CREATE_USER', 'Falha ao criar usuario via Strava', 500),
+            );
+          }
+
+          userId = newUser.id;
+          request.log.info({ userId, externalUserId }, 'Novo usuario criado via Strava OAuth');
+        }
       }
     }
 

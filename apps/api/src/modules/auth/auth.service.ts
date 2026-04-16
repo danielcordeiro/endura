@@ -358,3 +358,41 @@ export async function verifyAccessToken(token: string): Promise<JwtPayload> {
     };
   }
 }
+
+// ── Set/Change Password ──────────────────────────────────────────
+
+export async function hasPassword(userId: string): Promise<boolean> {
+  const user = await db.select({ passwordHash: schema.users.passwordHash })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
+
+  return !!user[0]?.passwordHash;
+}
+
+export async function setPassword(userId: string, newPassword: string, currentPassword: string | null): Promise<void> {
+  const user = await db.select({ passwordHash: schema.users.passwordHash })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId))
+    .limit(1);
+
+  if (!user[0]) {
+    throw { code: 'ERR_USER_NOT_FOUND', message: 'Usuario nao encontrado', status: 404 };
+  }
+
+  // Se ja tem senha, verifica a senha atual
+  if (user[0].passwordHash) {
+    if (!currentPassword) {
+      throw { code: 'ERR_CURRENT_PASSWORD_REQUIRED', message: 'Senha atual obrigatoria para alterar', status: 400 };
+    }
+    const valid = await bcrypt.compare(currentPassword, user[0].passwordHash);
+    if (!valid) {
+      throw { code: 'ERR_WRONG_PASSWORD', message: 'Senha atual incorreta', status: 401 };
+    }
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  await db.update(schema.users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(schema.users.id, userId));
+}
