@@ -36,8 +36,32 @@ function LoginPageInner() {
     }
   }, [existingToken, router]);
 
-  // Captura tokens da URL após login via Strava OAuth
+  // Captura tokens da URL após login via Strava OAuth (fragment ou query params)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Try fragment first (new flow)
+    const hash = window.location.hash;
+    if (hash && hash.includes('token=')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const callbackToken = params.get('token');
+      if (callbackToken) {
+        try {
+          const payload = JSON.parse(atob(callbackToken.split('.')[1]!));
+          setAuth(
+            { id: payload.sub, email: payload.email ?? '', name: payload.name ?? null, role: payload.role ?? 'athlete' },
+            callbackToken,
+          );
+        } catch {
+          setAuth({ id: '', email: '', name: null, role: 'athlete' }, callbackToken);
+        }
+        window.history.replaceState(null, '', '/login');
+        router.push('/dashboard');
+        return;
+      }
+    }
+
+    // Legacy flow: query params
     const stravaStatus = searchParams.get('strava');
     const token = searchParams.get('token');
     const userId = searchParams.get('userId');

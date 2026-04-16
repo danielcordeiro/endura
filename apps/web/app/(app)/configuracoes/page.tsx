@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -173,8 +173,35 @@ function MenuItem({
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
-  const { user, token, logout } = useAuthStore();
+  const { user, token, logout, setAuth } = useAuthStore();
   const queryClient = useQueryClient();
+
+  // Pick up OAuth tokens from URL fragment after Strava/intervals callback
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('token=')) return;
+
+    const params = new URLSearchParams(hash.substring(1));
+    const callbackToken = params.get('token');
+
+    if (callbackToken) {
+      // Decode JWT payload to get user info
+      try {
+        const payload = JSON.parse(atob(callbackToken.split('.')[1]!));
+        const userData = { id: payload.sub, email: payload.email, name: payload.name ?? null, role: payload.role ?? 'athlete' };
+        setAuth(userData, callbackToken);
+      } catch {
+        // If JWT decode fails, just set token directly
+        setAuth({ id: '', email: '', name: null, role: 'athlete' }, callbackToken);
+      }
+      // Clear fragment from URL
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      // Refresh integration status
+      queryClient.invalidateQueries({ queryKey: ['integration-strava'] });
+      queryClient.invalidateQueries({ queryKey: ['integration-intervals'] });
+    }
+  }, [setAuth, queryClient]);
 
   /* Strava status */
   const stravaQuery = useQuery<IntegrationStatus>({
