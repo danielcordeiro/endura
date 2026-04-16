@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:8080';
+import { getServerApiUrl } from '@/lib/api-url';
 
 function getBaseUrl(request: NextRequest): string {
   const forwardedHost = request.headers.get('x-forwarded-host');
@@ -21,20 +20,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const code = searchParams.get('code');
   const state = searchParams.get('state');
   const baseUrl = getBaseUrl(request);
+  const apiUrl = getServerApiUrl();
+
+  console.log('[strava-callback] apiUrl:', apiUrl, 'baseUrl:', baseUrl);
 
   if (!code || !state) {
-    return NextResponse.redirect(`${baseUrl}/configuracoes?integration=strava&error=missing_params`);
+    return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=missing_params`);
   }
 
   try {
-    const response = await fetch(
-      `${API_URL}/api/integrations/strava/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
-    );
+    const fetchUrl = `${apiUrl}/api/integrations/strava/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+    console.log('[strava-callback] Fetching:', fetchUrl);
+
+    const response = await fetch(fetchUrl);
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ code: 'ERR_UNKNOWN' }));
+      const errorText = await response.text();
+      console.error('[strava-callback] API error:', response.status, errorText);
       return NextResponse.redirect(
-        `${baseUrl}/configuracoes?integration=strava&error=${error.code ?? 'exchange_failed'}`,
+        `${baseUrl}/login?strava=error&reason=api_${response.status}`,
       );
     }
 
@@ -42,15 +46,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       data: { token: string; refreshToken: string; provider: string };
     };
 
-    // Pass tokens via URL fragment (#) so the client can save to Zustand store
-    // Fragment is not sent to server, only visible to the browser
-    // Redirect to /login (not /configuracoes) because AuthGuard would block unauthenticated users
+    console.log('[strava-callback] Success, redirecting with token');
+
     const fragment = `token=${encodeURIComponent(data.token)}`;
-    return NextResponse.redirect(
-      `${baseUrl}/login?strava=callback#${fragment}`,
-    );
+    return NextResponse.redirect(`${baseUrl}/login?strava=callback#${fragment}`);
   } catch (err) {
-    console.error('[strava-callback] Error:', err);
-    return NextResponse.redirect(`${baseUrl}/configuracoes?integration=strava&error=network`);
+    console.error('[strava-callback] Network error:', err instanceof Error ? err.message : err);
+    console.error('[strava-callback] API_URL was:', apiUrl);
+    return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=network`);
   }
 }
