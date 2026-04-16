@@ -128,6 +128,7 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
     const clientId = getEnvOrThrow('STRAVA_CLIENT_ID');
     const clientSecret = getEnvOrThrow('STRAVA_CLIENT_SECRET');
 
+    console.log(`[strava-token] Exchanging code (len=${code.length}) with client_id=${clientId}`);
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -137,15 +138,17 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       }),
     });
 
+    const tokenBody = await tokenResponse.text();
+    console.log(`[strava-token] Response: ${tokenResponse.status} ${tokenBody.substring(0, 300)}`);
+
     if (!tokenResponse.ok) {
-      const errorBody = await tokenResponse.text();
-      request.log.error({ status: tokenResponse.status, body: errorBody }, 'Erro token exchange Strava');
+      request.log.error({ status: tokenResponse.status, body: tokenBody }, 'Erro token exchange Strava');
       return reply.code(502).send(
-        errorPayload('ERR_STRAVA_TOKEN_EXCHANGE', 'Erro ao trocar code por tokens no Strava', 502),
+        errorPayload('ERR_STRAVA_TOKEN_EXCHANGE', `Strava: ${tokenResponse.status} - ${tokenBody.substring(0, 100)}`, 502),
       );
     }
 
-    const tokenData = (await tokenResponse.json()) as {
+    const tokenData = JSON.parse(tokenBody) as {
       access_token: string;
       refresh_token: string;
       expires_at: number;
