@@ -563,3 +563,27 @@ export const raceNutritionPlansRelations = relations(raceNutritionPlans, ({ one 
     references: [raceGoals.id],
   }),
 }));
+
+// ── API KEYS ──────────────────────────────────────────────────
+
+export const apiKeys = pgTable('api_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  keyHash: varchar('key_hash', { length: 64 }).notNull().unique(),
+  keyPrefix: varchar('key_prefix', { length: 24 }).notNull(),
+  scopes: text('scopes').array().default(['read:all']),
+  lastUsedAt: timestamp('last_used_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  revokedAt: timestamp('revoked_at'),
+}, (table) => [
+  index('idx_api_keys_user_active').on(table.userId),
+  index('idx_api_keys_hash').on(table.keyHash),
+]);
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apiKeys.userId],
+    references: [users.id],
+  }),
+}));

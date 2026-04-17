@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { ApiKeysSection } from '@/components/settings/api-keys-section';
 
 /* ---------- Types ---------- */
 
@@ -477,6 +478,11 @@ export default function ConfiguracoesPage() {
             onClick={() => {}}
           />
         </div>
+      </div>
+
+      {/* ── API Keys ── */}
+      <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
+        <ApiKeysSection token={token} />
       </div>
 
       {/* ── Logout ── */}

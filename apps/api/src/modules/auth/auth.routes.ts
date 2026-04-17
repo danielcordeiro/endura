@@ -70,7 +70,9 @@ export default async function authRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // ── POST /api/auth/login ────────────────────────────────────
-  app.post('/api/auth/login', async (request: FastifyRequest, reply: FastifyReply) => {
+  app.post('/api/auth/login', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parsed = loginBody.safeParse(request.body);
 

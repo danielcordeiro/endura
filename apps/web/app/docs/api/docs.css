@@ -1,0 +1,209 @@
+.docs-root {
+  min-height: 100vh;
+  background: #0b1116;
+  color: #d0d6dd;
+  font-family: var(--font-heading), system-ui, sans-serif;
+  line-height: 1.65;
+}
+
+.docs-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(11, 17, 22, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.docs-brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #1d8fed;
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.docs-badge {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  color: #1d8fed;
+  background: rgba(29, 143, 237, 0.12);
+  border: 1px solid rgba(29, 143, 237, 0.35);
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.docs-content {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+/* Headings */
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-content h4 {
+  color: #f1f5f9;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.docs-content h1 {
+  font-size: 36px;
+  margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.docs-content h2 {
+  font-size: 26px;
+  margin: 48px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.docs-content h3 {
+  font-size: 20px;
+  margin: 36px 0 12px;
+  color: #1d8fed;
+}
+.docs-content h3 code {
+  font-size: 16px;
+  color: #1d8fed;
+  background: rgba(29, 143, 237, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.docs-content h4 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+  color: #94a3b8;
+}
+
+/* Text */
+.docs-content p {
+  margin: 12px 0;
+  color: #cbd5e1;
+}
+
+.docs-content strong { color: #f1f5f9; font-weight: 700; }
+.docs-content em { color: #cbd5e1; }
+
+.docs-content a {
+  color: #1d8fed;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(29, 143, 237, 0.4);
+}
+.docs-content a:hover { border-bottom-style: solid; }
+
+/* Inline code */
+.docs-content code {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #7dd3fc;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Code block */
+.docs-content pre {
+  background: #06090c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.docs-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+/* Lists */
+.docs-content ul, .docs-content ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+.docs-content li {
+  margin: 6px 0;
+  color: #cbd5e1;
+}
+.docs-content li code { font-size: 12px; }
+
+/* Tables */
+.docs-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.docs-content thead {
+  background: rgba(255, 255, 255, 0.04);
+}
+.docs-content th, .docs-content td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.docs-content th {
+  color: #f1f5f9;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.docs-content tr:last-child td { border-bottom: none; }
+.docs-content td code { font-size: 12px; }
+
+/* Horizontal rule */
+.docs-content hr {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 36px 0;
+}
+
+/* Blockquote */
+.docs-content blockquote {
+  border-left: 3px solid #1d8fed;
+  background: rgba(29, 143, 237, 0.05);
+  padding: 10px 16px;
+  margin: 16px 0;
+  color: #cbd5e1;
+  border-radius: 0 8px 8px 0;
+}
+
+.docs-footer {
+  text-align: center;
+  padding: 24px;
+  color: #475569;
+  font-size: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 640px) {
+  .docs-content { padding: 24px 16px 64px; }
+  .docs-content h1 { font-size: 28px; }
+  .docs-content h2 { font-size: 22px; }
+  .docs-content pre { font-size: 12px; padding: 12px; }
+  .docs-content table { font-size: 13px; }
+}
