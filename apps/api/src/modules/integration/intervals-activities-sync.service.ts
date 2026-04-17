@@ -145,7 +145,9 @@ export async function syncActivitiesForUser(
 
     for (const act of activities) {
       try {
-        const startedAtStr = act.start_date_local ?? act.start_date;
+        // Preferimos start_date (UTC real) em vez de start_date_local (sem TZ,
+        // Node interpreta como UTC e causa drift de 3h para atletas em America/Sao_Paulo).
+        const startedAtStr = act.start_date ?? act.start_date_local;
         if (!startedAtStr) {
           result.skipped++;
           continue;
@@ -153,6 +155,7 @@ export async function syncActivitiesForUser(
 
         const externalId = String(act.id);
         const discipline = intervalsTypeToDiscipline(act.type);
+        const durationSec = act.elapsed_time ?? act.moving_time ?? null;
 
         // Deduplicacao por external_id + source (intervals_icu)
         const existingByIntervals = await db.query.activities.findFirst({
@@ -163,23 +166,27 @@ export async function syncActivitiesForUser(
           ),
         });
 
-        // Se o usuario ja tem a mesma atividade vinda do Strava (mesmo horario +/- 5min, mesma disciplina),
-        // pula para evitar duplicata entre fontes
+        // Dedup cross-source: mesma disciplina, duracao proxima (+/-30s),
+        // horario dentro de 6h (cobre drift de timezone e arredondamentos).
         if (!existingByIntervals) {
           const startedAt = new Date(startedAtStr);
-          const windowStart = new Date(startedAt.getTime() - 5 * 60_000);
-          const windowEnd = new Date(startedAt.getTime() + 5 * 60_000);
+          const windowStart = new Date(startedAt.getTime() - 6 * 3600_000);
+          const windowEnd = new Date(startedAt.getTime() + 6 * 3600_000);
           const sameTimeActivities = await db.query.activities.findMany({
             where: and(
               eq(schema.activities.userId, userId),
               eq(schema.activities.discipline, discipline),
             ),
           });
-          const overlap = sameTimeActivities.find((a) =>
-            a.source !== PROVIDER &&
-            a.startedAt >= windowStart &&
-            a.startedAt <= windowEnd,
-          );
+          const overlap = sameTimeActivities.find((a) => {
+            if (a.source === PROVIDER) return false;
+            if (a.startedAt < windowStart || a.startedAt > windowEnd) return false;
+            if (durationSec != null && a.durationSec != null) {
+              return Math.abs(a.durationSec - durationSec) <= 30;
+            }
+            // fallback: sem duracao para comparar, usa janela estreita de 10min
+            return Math.abs(a.startedAt.getTime() - startedAt.getTime()) <= 10 * 60_000;
+          });
           if (overlap) {
             result.skipped++;
             continue;
