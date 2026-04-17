@@ -166,12 +166,20 @@ export async function syncActivitiesForUser(
           ),
         });
 
-        // Dedup cross-source: mesma disciplina, duracao proxima (+/-30s),
-        // horario dentro de 6h (cobre drift de timezone e arredondamentos).
+        // Dedup cross-source (Strava, Garmin direto, etc.):
+        // 1. Mesma disciplina + usuario
+        // 2. startedAt dentro de 6h (cobre drift de TZ)
+        // 3. Match por distancia (+/-5% ou +/-100m) quando ambos tem.
+        //    Natacao especialmente tem divergencia de duracao (Strava conta
+        //    descanso entre series; intervals conta so moving time). Distancia
+        //    e mais confiavel que duracao.
+        // 4. Fallback: sem distancia, match por duracao +/-5min.
         if (!existingByIntervals) {
           const startedAt = new Date(startedAtStr);
           const windowStart = new Date(startedAt.getTime() - 6 * 3600_000);
           const windowEnd = new Date(startedAt.getTime() + 6 * 3600_000);
+          const distanceM = act.distance ?? null;
+
           const sameTimeActivities = await db.query.activities.findMany({
             where: and(
               eq(schema.activities.userId, userId),
@@ -181,10 +189,16 @@ export async function syncActivitiesForUser(
           const overlap = sameTimeActivities.find((a) => {
             if (a.source === PROVIDER) return false;
             if (a.startedAt < windowStart || a.startedAt > windowEnd) return false;
-            if (durationSec != null && a.durationSec != null) {
-              return Math.abs(a.durationSec - durationSec) <= 30;
+
+            const aDistM = a.distanceM != null ? Number(a.distanceM) : null;
+            if (distanceM != null && distanceM > 0 && aDistM != null && aDistM > 0) {
+              const tolerance = Math.max(100, distanceM * 0.05);
+              return Math.abs(aDistM - distanceM) <= tolerance;
             }
-            // fallback: sem duracao para comparar, usa janela estreita de 10min
+            if (durationSec != null && a.durationSec != null) {
+              return Math.abs(a.durationSec - durationSec) <= 5 * 60;
+            }
+            // Ultimo fallback: so horario proximo (janela estreita de 10min)
             return Math.abs(a.startedAt.getTime() - startedAt.getTime()) <= 10 * 60_000;
           });
           if (overlap) {
