@@ -9,6 +9,7 @@ import { authenticate } from '../auth/auth.middleware.js';
 import { generateTokens } from '../auth/auth.service.js';
 import { syncWellnessForUser, getLatestWellness, getWeightHistory } from './wellness-sync.service.js';
 import { pullPlannedWorkouts } from './intervals-pull.service.js';
+import { syncActivitiesForUser } from './intervals-activities-sync.service.js';
 import type {
   ConnectResponse,
   StatusResponse,
@@ -415,6 +416,38 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         request.log.error(err, 'Erro no pull de planned workouts');
         return reply.code(500).send(
           errorPayload('ERR_PULL_WORKOUTS', 'Erro ao importar treinos do intervals.icu', 500),
+        );
+      }
+    },
+  );
+
+  // ── POST /api/integrations/intervals/sync-activities ───────
+  // Sync manual de atividades executadas (fallback para quem nao tem Strava)
+  app.post<{ Querystring: { oldest?: string; newest?: string } }>(
+    '/api/integrations/intervals/sync-activities',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+      const oldest = request.query.oldest;
+      const newest = request.query.newest;
+      if (oldest && !dateRe.test(oldest)) {
+        return reply.code(400).send(errorPayload('ERR_INVALID_DATE', 'oldest invalido (YYYY-MM-DD)', 400));
+      }
+      if (newest && !dateRe.test(newest)) {
+        return reply.code(400).send(errorPayload('ERR_INVALID_DATE', 'newest invalido (YYYY-MM-DD)', 400));
+      }
+      if (oldest && newest && oldest > newest) {
+        return reply.code(400).send(errorPayload('ERR_INVALID_RANGE', 'oldest > newest', 400));
+      }
+
+      try {
+        const result = await syncActivitiesForUser(request.userId, { oldest, newest });
+        request.log.info({ provider: PROVIDER, ...result }, 'Sync de atividades intervals.icu concluido');
+        return reply.send({ data: result });
+      } catch (err) {
+        request.log.error(err, 'Erro no sync de atividades intervals.icu');
+        return reply.code(500).send(
+          errorPayload('ERR_ACTIVITIES_SYNC', 'Erro ao sincronizar atividades do intervals.icu', 500),
         );
       }
     },

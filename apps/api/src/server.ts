@@ -1,6 +1,10 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
+import { Agent, setGlobalDispatcher } from 'undici';
+
+// Aumenta connect timeout do fetch global para 30s (intervals.icu pode ser lento).
+setGlobalDispatcher(new Agent({ connect: { timeout: 30_000 } }));
 import authRoutes from './modules/auth/auth.routes.js';
 import athleteRoutes from './modules/athlete/athlete.routes.js';
 import activityRoutes from './modules/activity/activity.routes.js';
@@ -19,6 +23,7 @@ import publicApiRoutes from './modules/public-api/public-api.routes.js';
 import { startStravaSyncJob } from './jobs/strava-sync.job.js';
 import { startTokenRefreshJob } from './jobs/token-refresh.job.js';
 import { startWellnessSyncJob } from './jobs/wellness-sync.job.js';
+import { startIntervalsActivitiesSyncJob } from './jobs/intervals-activities-sync.job.js';
 import { db } from './lib/db.js';
 import { sql } from 'drizzle-orm';
 
@@ -99,6 +104,7 @@ await app.register(apiKeyRoutes);
 startStravaSyncJob();
 startTokenRefreshJob();
 startWellnessSyncJob();
+startIntervalsActivitiesSyncJob();
 
 // ── Start ─────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 8080);
