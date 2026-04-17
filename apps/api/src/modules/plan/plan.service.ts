@@ -1,4 +1,4 @@
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, gte, lte, inArray } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
@@ -248,6 +248,82 @@ export async function getActivePlan(userId: string) {
     plan,
     currentWeek,
     workouts,
+  };
+}
+
+// ── getCurrentWeekAllWorkouts ───────────────────────────────────
+// Retorna todos os treinos planejados da semana atual (Mon-Sun) do usuario,
+// incluindo treinos sem plano (ex.: importados do intervals.icu).
+
+function getCurrentWeekBounds(): { startDate: string; endDate: string } {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() + diffToMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  return {
+    startDate: weekStart.toISOString().split('T')[0]!,
+    endDate: weekEnd.toISOString().split('T')[0]!,
+  };
+}
+
+export async function getCurrentWeekAllWorkouts(userId: string) {
+  const { startDate, endDate } = getCurrentWeekBounds();
+
+  const workouts = await db.query.plannedWorkouts.findMany({
+    where: and(
+      eq(schema.plannedWorkouts.userId, userId),
+      gte(schema.plannedWorkouts.scheduledDate, startDate),
+      lte(schema.plannedWorkouts.scheduledDate, endDate),
+    ),
+    orderBy: [asc(schema.plannedWorkouts.scheduledDate)],
+  });
+
+  // Deriva completed via atividades vinculadas
+  const workoutIds = workouts.map((w) => w.id);
+  const completedSet = new Set<string>();
+  if (workoutIds.length > 0) {
+    const linked = await db.query.activities.findMany({
+      where: inArray(schema.activities.plannedWorkoutId, workoutIds),
+      columns: { plannedWorkoutId: true },
+    });
+    for (const a of linked) {
+      if (a.plannedWorkoutId) completedSet.add(a.plannedWorkoutId);
+    }
+  }
+
+  // Plano ativo (opcional) para expor weekNumber/phase ao cliente
+  const plan = await db.query.trainingPlans.findFirst({
+    where: and(
+      eq(schema.trainingPlans.userId, userId),
+      eq(schema.trainingPlans.status, 'active'),
+    ),
+  });
+
+  const weekNumber = plan ? calculateCurrentWeek(plan.startDate) : 0;
+  const phase = plan?.currentPhase ?? (workouts.length > 0 ? 'Importados' : '');
+
+  return {
+    weekNumber,
+    phase,
+    startDate,
+    endDate,
+    workouts: workouts.map((w) => ({
+      id: w.id,
+      discipline: w.discipline,
+      title: w.title ?? `Treino ${w.discipline}`,
+      scheduledDate: w.scheduledDate,
+      durationMin: w.durationMin ?? 0,
+      distanceM: w.distanceM,
+      completed: completedSet.has(w.id),
+      sentToWatch: w.sentToWatch ?? false,
+    })),
   };
 }
 

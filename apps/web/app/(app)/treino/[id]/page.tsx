@@ -60,8 +60,9 @@ function formatDistance(meters: number | null): string | null {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('pt-BR', {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
+  return date.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
@@ -304,10 +305,12 @@ export default function TreinoDetailPage() {
 
   const { data, isLoading, isError } = useQuery<WorkoutDetail>({
     queryKey: ['workout-detail', workoutId],
-    queryFn: () =>
-      apiFetch<WorkoutDetail>(`/api/plan/workout/${workoutId}`, {
+    queryFn: async () => {
+      const res = await apiFetch<{ data: WorkoutDetail }>(`/api/plan/workout/${workoutId}`, {
         token: token ?? undefined,
-      }),
+      });
+      return res.data;
+    },
     enabled: !!token && !!workoutId,
   });
 

@@ -61,6 +61,17 @@ export default async function planRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  // ── GET /api/plan/week/current ──────────────────────────────
+  // Treinos planejados da semana atual (inclui importados sem plano)
+  app.get('/api/plan/week/current', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const result = await planService.getCurrentWeekAllWorkouts(request.userId);
+      return reply.send(result);
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
   // ── GET /api/plan/week/:weekNumber ──────────────────────────
   // Retorna os treinos de uma semana especifica
   app.get('/api/plan/week/:weekNumber', { onRequest: authenticate }, async (request, reply) => {

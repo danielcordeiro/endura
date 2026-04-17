@@ -41,6 +41,16 @@ interface DashboardSummary {
     structure: { warmup: string; main: string; cooldown: string } | null;
     sentToWatch: boolean;
   } | null;
+  todayActivity: {
+    id: string;
+    discipline: string;
+    title: string | null;
+    durationMin: number;
+    distanceM: number | null;
+    avgHr: number | null;
+    calories: number | null;
+    startedAt: string;
+  } | null;
   todayProtocol: {
     id: string;
     status: string | null;
@@ -403,7 +413,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { currentWeek, todayWorkout, todayProtocol, alerts } = data;
+  const { currentWeek, todayWorkout, todayActivity, todayProtocol, alerts } = data;
   const firstName = user?.name?.split(' ')[0] ?? '';
   const week = currentWeek ?? { workoutsPlanned: 0, workoutsCompleted: 0, totalCalories: 0, volumeHours: 0 };
   const consistency =
@@ -615,6 +625,47 @@ export default function DashboardPage() {
                   />
                 </div>
               </div>
+            ) : todayActivity ? (
+              <Link href="/atividades">
+                <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+                  <div className="bg-gradient-to-br from-emerald-900/40 to-[#1c242c] rounded-[1.8rem] p-5">
+                    <div className="flex items-start gap-4">
+                      <div className={cn(
+                        'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
+                        disciplineColors[todayActivity.discipline]?.bg ?? 'bg-slate-700',
+                      )}>
+                        <span className={cn(
+                          'material-symbols-outlined text-2xl',
+                          disciplineColors[todayActivity.discipline]?.text ?? 'text-slate-400',
+                        )}>
+                          {disciplineIcons[todayActivity.discipline] ?? 'fitness_center'}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="material-symbols-outlined text-base text-emerald-400">check_circle</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Concluido</span>
+                        </div>
+                        <h2 className="font-heading text-lg font-bold text-slate-100 leading-tight truncate">
+                          {todayActivity.title ?? `Treino ${todayActivity.discipline}`}
+                        </h2>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                          <span>{formatDuration(todayActivity.durationMin)}</span>
+                          {todayActivity.distanceM != null && (
+                            <span>{formatDistance(todayActivity.distanceM)}</span>
+                          )}
+                          {todayActivity.avgHr != null && (
+                            <span>{todayActivity.avgHr} bpm</span>
+                          )}
+                          {todayActivity.calories != null && (
+                            <span>{todayActivity.calories} kcal</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ) : (
               <div className="rounded-[2rem] bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">

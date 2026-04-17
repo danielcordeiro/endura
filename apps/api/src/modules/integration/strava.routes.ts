@@ -150,6 +150,7 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       rejectInProgress = reject;
     });
     inProgressCodes.set(code, inProgressPromise);
+    inProgressPromise.catch(() => {}); // previne unhandledRejection; awaiters veem o erro via proprio await
     // Cleanup on completion (whether success or failure)
     const cleanup = () => {
       setTimeout(() => inProgressCodes.delete(code), 5000); // Keep briefly for late duplicates

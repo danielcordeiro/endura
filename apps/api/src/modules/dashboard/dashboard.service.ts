@@ -33,6 +33,17 @@ interface TodayWorkout {
   scheduledDate: string;
 }
 
+interface TodayActivity {
+  id: string;
+  discipline: string;
+  title: string | null;
+  durationMin: number;
+  distanceM: number | null;
+  avgHr: number | null;
+  calories: number | null;
+  startedAt: string;
+}
+
 interface TodayProtocol {
   id: string;
   status: string | null;
@@ -54,6 +65,7 @@ interface DashboardSummary {
   currentPlan: CurrentPlanSummary | null;
   currentWeek: WeekSummary;
   todayWorkout: TodayWorkout | null;
+  todayActivity: TodayActivity | null;
   todayProtocol: TodayProtocol | null;
   alerts: Alert[];
 }
@@ -237,6 +249,27 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
     }
   }
 
+  // 6b. Atividade executada hoje (exibida quando nao ha treino planejado hoje)
+  let todayActivity: TodayActivity | null = null;
+  const todayStart = new Date(today + 'T00:00:00');
+  const todayEnd = new Date(today + 'T23:59:59');
+  const todayActRow = weekActivities
+    .filter((a) => a.startedAt >= todayStart && a.startedAt <= todayEnd)
+    .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0];
+
+  if (todayActRow) {
+    todayActivity = {
+      id: todayActRow.id,
+      discipline: todayActRow.discipline,
+      title: todayActRow.title,
+      durationMin: Math.round((todayActRow.durationSec ?? 0) / 60),
+      distanceM: todayActRow.distanceM != null ? Number(todayActRow.distanceM) : null,
+      avgHr: todayActRow.avgHr,
+      calories: todayActRow.calories,
+      startedAt: todayActRow.startedAt.toISOString(),
+    };
+  }
+
   // 7. Alertas
 
   // Strava nao conectado?
@@ -289,6 +322,7 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
     currentPlan: currentPlanSummary,
     currentWeek,
     todayWorkout,
+    todayActivity,
     todayProtocol,
     alerts,
   };

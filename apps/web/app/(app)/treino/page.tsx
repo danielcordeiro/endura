@@ -43,18 +43,24 @@ function formatDistance(meters: number | null): string | null {
   return `${meters}m`;
 }
 
+// Interpreta 'YYYY-MM-DD' como data local (nao UTC), para nao ter shift por timezone.
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
+}
+
 function formatWeekday(dateStr: string): string {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
 }
 
 function formatDayMonth(dateStr: string): string {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
 function isToday(dateStr: string): boolean {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
   const today = new Date();
   return (
     d.getDate() === today.getDate() &&

@@ -2,23 +2,26 @@
 
 import { cn } from '@/lib/utils';
 
-type Discipline = 'swim' | 'bike' | 'run' | 'brick';
+type Discipline = 'swim' | 'bike' | 'run' | 'brick' | 'other';
 
 interface DisciplineBadgeProps {
-  discipline: Discipline;
+  discipline: string;
   size?: 'sm' | 'md';
   className?: string;
 }
 
-const config: Record<Discipline, { label: string; icon: string; colorClass: string; bgClass: string }> = {
-  swim: { label: 'SWIM', icon: 'pool', colorClass: 'text-swim', bgClass: 'bg-swim/20' },
-  bike: { label: 'BIKE', icon: 'directions_bike', colorClass: 'text-bike', bgClass: 'bg-bike/20' },
-  run: { label: 'RUN', icon: 'directions_run', colorClass: 'text-run', bgClass: 'bg-run/20' },
-  brick: { label: 'BRICK', icon: 'bolt', colorClass: 'text-brick', bgClass: 'bg-brick/20' },
+// Classes precisam ser literais no codigo para nao serem purgadas pelo Tailwind.
+const config: Record<Discipline, { label: string; icon: string; colorClass: string; bgClass: string; borderClass: string }> = {
+  swim:  { label: 'SWIM',  icon: 'pool',            colorClass: 'text-swim',     bgClass: 'bg-swim/20',         borderClass: 'border-swim/30' },
+  bike:  { label: 'BIKE',  icon: 'directions_bike', colorClass: 'text-bike',     bgClass: 'bg-bike/20',         borderClass: 'border-bike/30' },
+  run:   { label: 'RUN',   icon: 'directions_run',  colorClass: 'text-run',      bgClass: 'bg-run/20',          borderClass: 'border-run/30' },
+  brick: { label: 'BRICK', icon: 'bolt',            colorClass: 'text-brick',    bgClass: 'bg-brick/20',        borderClass: 'border-brick/30' },
+  other: { label: 'OUTRO', icon: 'fitness_center',  colorClass: 'text-slate-300', bgClass: 'bg-slate-500/20',   borderClass: 'border-slate-500/30' },
 };
 
 export function DisciplineBadge({ discipline, size = 'sm', className }: DisciplineBadgeProps) {
-  const { label, icon, colorClass, bgClass } = config[discipline];
+  const key: Discipline = (discipline in config ? discipline : 'other') as Discipline;
+  const { label, icon, colorClass, bgClass, borderClass } = config[key];
 
   return (
     <span
@@ -28,7 +31,7 @@ export function DisciplineBadge({ discipline, size = 'sm', className }: Discipli
         size === 'sm' ? 'px-2.5 py-1' : 'px-3 py-1.5',
         bgClass,
         colorClass,
-        `border-${discipline}/30`,
+        borderClass,
         className,
       )}
     >
