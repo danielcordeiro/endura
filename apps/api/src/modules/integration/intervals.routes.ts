@@ -8,6 +8,7 @@ import { callbackQuery } from './integration.schemas.js';
 import { authenticate } from '../auth/auth.middleware.js';
 import { generateTokens } from '../auth/auth.service.js';
 import { syncWellnessForUser, getLatestWellness, getWeightHistory } from './wellness-sync.service.js';
+import { pullPlannedWorkouts } from './intervals-pull.service.js';
 import type {
   ConnectResponse,
   StatusResponse,
@@ -371,6 +372,49 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
         request.log.error(err, 'Erro ao buscar historico de peso');
         return reply.code(500).send(
           errorPayload('ERR_WEIGHT_HISTORY', 'Erro ao buscar historico de peso', 500),
+        );
+      }
+    },
+  );
+
+  // ── POST /api/integrations/intervals/pull-workouts ──────────
+  // Importa treinos planejados do intervals.icu (category=WORKOUT)
+  app.post<{ Querystring: { oldest?: string; newest?: string } }>(
+    '/api/integrations/intervals/pull-workouts',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+      const today = new Date();
+      const defaultNewest = today.toISOString().split('T')[0]!;
+      const defaultOldest = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
+        .toISOString().split('T')[0]!;
+
+      const oldest = request.query.oldest ?? defaultOldest;
+      const newest = request.query.newest ?? defaultNewest;
+
+      if (!dateRe.test(oldest) || !dateRe.test(newest)) {
+        return reply.code(400).send(
+          errorPayload('ERR_INVALID_DATE', 'oldest e newest devem estar no formato YYYY-MM-DD', 400),
+        );
+      }
+      if (oldest > newest) {
+        return reply.code(400).send(
+          errorPayload('ERR_INVALID_RANGE', 'oldest deve ser menor ou igual a newest', 400),
+        );
+      }
+
+      try {
+        const result = await pullPlannedWorkouts(request.userId, oldest, newest);
+        request.log.info({ provider: PROVIDER, ...result }, 'Pull de planned workouts concluido');
+        return reply.send({ data: result });
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err) {
+          const e = err as { code: string; message: string; status: number };
+          return reply.code(e.status).send(errorPayload(e.code, e.message, e.status));
+        }
+        request.log.error(err, 'Erro no pull de planned workouts');
+        return reply.code(500).send(
+          errorPayload('ERR_PULL_WORKOUTS', 'Erro ao importar treinos do intervals.icu', 500),
         );
       }
     },

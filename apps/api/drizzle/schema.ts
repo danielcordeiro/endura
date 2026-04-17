@@ -154,7 +154,7 @@ export const trainingPlansRelations = relations(trainingPlans, ({ one, many }) =
 
 export const plannedWorkouts = pgTable('planned_workouts', {
   id: uuid('id').primaryKey().defaultRandom(),
-  planId: uuid('plan_id').notNull().references(() => trainingPlans.id, { onDelete: 'cascade' }),
+  planId: uuid('plan_id').references(() => trainingPlans.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   scheduledDate: date('scheduled_date').notNull(),
   discipline: varchar('discipline', { length: 10 }).notNull(),
