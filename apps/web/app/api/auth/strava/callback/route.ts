@@ -26,46 +26,50 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=missing_params`);
   }
 
-  try {
-    // Wake up API first if needed (hit health endpoint)
-    const healthRes = await fetch(`${apiUrl}/health`).catch(() => null);
-    const healthType = healthRes?.headers.get('content-type') ?? '';
-    if (!healthType.includes('application/json')) {
-      // API is waking up — wait for it
-      console.log('[strava-callback] API waking up, waiting 5s...');
-      await new Promise((r) => setTimeout(r, 5000));
-      // Try health again
-      await fetch(`${apiUrl}/health`).catch(() => null);
-      await new Promise((r) => setTimeout(r, 2000));
+  const fetchUrl = `${apiUrl}/api/integrations/strava/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+  console.log('[strava-callback] Fetching:', fetchUrl);
+
+  // Try up to 3 times. The API has a code-cache that prevents double-consumption.
+  // So if the first attempt times out but actually exchanged the code with Strava,
+  // the retry will return the cached JWT instead of re-exchanging.
+  let lastError: string = 'unknown';
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(fetchUrl, {
+        signal: AbortSignal.timeout(60000), // 60s timeout for wake-up
+      });
+      const contentType = response.headers.get('content-type') ?? '';
+
+      if (!contentType.includes('application/json')) {
+        console.log(`[strava-callback] Attempt ${attempt}: API returned non-JSON, retrying...`);
+        lastError = 'api_not_ready';
+        await new Promise((r) => setTimeout(r, 3000));
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`[strava-callback] Attempt ${attempt}: API error ${response.status}: ${errorBody.substring(0, 300)}`);
+        return NextResponse.redirect(
+          `${baseUrl}/login?strava=error&reason=api_${response.status}`,
+        );
+      }
+
+      const { data } = await response.json() as {
+        data: { token: string; refreshToken: string; provider: string };
+      };
+
+      console.log('[strava-callback] Success!');
+      const fragment = `token=${encodeURIComponent(data.token)}`;
+      return NextResponse.redirect(`${baseUrl}/login?strava=callback#${fragment}`);
+    } catch (err) {
+      console.error(`[strava-callback] Attempt ${attempt} error:`, err instanceof Error ? err.message : err);
+      lastError = 'network';
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 3000));
+      }
     }
-
-    // Now call the actual callback — single attempt only (code is single-use)
-    const fetchUrl = `${apiUrl}/api/integrations/strava/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
-    console.log('[strava-callback] Fetching:', fetchUrl);
-
-    const response = await fetch(fetchUrl);
-    const contentType = response.headers.get('content-type') ?? '';
-
-    if (!contentType.includes('application/json')) {
-      console.error('[strava-callback] API returned HTML — still waking up');
-      return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=api_unavailable`);
-    }
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[strava-callback] API error:', response.status, errorBody.substring(0, 200));
-      return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=api_${response.status}`);
-    }
-
-    const { data } = await response.json() as {
-      data: { token: string; refreshToken: string; provider: string };
-    };
-
-    console.log('[strava-callback] Success!');
-    const fragment = `token=${encodeURIComponent(data.token)}`;
-    return NextResponse.redirect(`${baseUrl}/login?strava=callback#${fragment}`);
-  } catch (err) {
-    console.error('[strava-callback] Error:', err instanceof Error ? err.message : err);
-    return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=network`);
   }
+
+  return NextResponse.redirect(`${baseUrl}/login?strava=error&reason=${lastError}`);
 }

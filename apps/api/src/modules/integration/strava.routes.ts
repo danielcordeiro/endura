@@ -26,11 +26,24 @@ interface CsrfEntry {
 const csrfStore = new Map<string, CsrfEntry>();
 const CSRF_TTL_MS = 5 * 60 * 1000;
 
+// Cache de codes ja processados (evita double-call consumir code 2x)
+interface ProcessedCode {
+  result: { token: string; refreshToken: string; provider: string; externalUserId: string | null };
+  expiresAt: number;
+}
+const processedCodes = new Map<string, ProcessedCode>();
+const CODE_CACHE_TTL_MS = 60 * 1000; // 1 minuto
+
 function cleanExpiredStates(): void {
   const now = Date.now();
   for (const [key, entry] of csrfStore.entries()) {
     if (now - entry.createdAt > CSRF_TTL_MS) {
       csrfStore.delete(key);
+    }
+  }
+  for (const [key, entry] of processedCodes.entries()) {
+    if (now > entry.expiresAt) {
+      processedCodes.delete(key);
     }
   }
 }
@@ -105,6 +118,13 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
 
     const { code, state } = parsed.data;
 
+    // Check if this code was already processed (protects against double-calls)
+    const cachedResult = processedCodes.get(code);
+    if (cachedResult && Date.now() < cachedResult.expiresAt) {
+      console.log(`[strava-callback] Returning cached result for code (len=${code.length})`);
+      return reply.send({ data: cachedResult.result });
+    }
+
     const csrfEntry = csrfStore.get(state);
 
     // On Render free tier, the API may restart and lose in-memory CSRF state.
@@ -128,14 +148,16 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
     const clientId = getEnvOrThrow('STRAVA_CLIENT_ID');
     const clientSecret = getEnvOrThrow('STRAVA_CLIENT_SECRET');
 
-    console.log(`[strava-token] Exchanging code (len=${code.length}) with client_id=${clientId}`);
+    console.log(`[strava-token] Exchanging code (len=${code.length}, prefix=${code.substring(0, 8)}) with client_id=${clientId}`);
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: clientId, client_secret: clientSecret,
-        code, grant_type: 'authorization_code',
-      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        grant_type: 'authorization_code',
+      }).toString(),
     });
 
     const tokenBody = await tokenResponse.text();
@@ -250,6 +272,13 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
     }
 
     const tokens = await generateTokens(user[0].id, user[0].email, user[0].role);
+    const result = { ...tokens, provider: PROVIDER, externalUserId };
+
+    // Cache o resultado para proteger contra double-calls com mesmo code
+    processedCodes.set(code, {
+      result,
+      expiresAt: Date.now() + CODE_CACHE_TTL_MS,
+    });
 
     // Login flow: redireciona para o frontend com tokens na URL
     if (isLoginFlow) {
@@ -265,7 +294,7 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       return reply.redirect(`${corsOrigin}/login?strava=success&${params.toString()}`);
     }
 
-    return reply.send({ data: { ...tokens, provider: PROVIDER, externalUserId } });
+    return reply.send({ data: result });
   });
 
   // ── GET /api/integrations/strava/status ─────────────────────
