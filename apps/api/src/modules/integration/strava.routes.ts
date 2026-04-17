@@ -34,6 +34,10 @@ interface ProcessedCode {
 const processedCodes = new Map<string, ProcessedCode>();
 const CODE_CACHE_TTL_MS = 60 * 1000; // 1 minuto
 
+// Tracking de codes em processamento (Render LB pode enviar a mesma req 2x)
+// Se duas requisicoes chegam com o mesmo code, a 2a espera a 1a terminar
+const inProgressCodes = new Map<string, Promise<ProcessedCode['result']>>();
+
 function cleanExpiredStates(): void {
   const now = Date.now();
   for (const [key, entry] of csrfStore.entries()) {
@@ -125,6 +129,32 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       return reply.send({ data: cachedResult.result });
     }
 
+    // Check if another request is currently processing this code (Render LB may duplicate)
+    const inProgress = inProgressCodes.get(code);
+    if (inProgress) {
+      console.log(`[strava-callback] Waiting for in-progress exchange of code (len=${code.length})`);
+      try {
+        const result = await inProgress;
+        return reply.send({ data: result });
+      } catch (err) {
+        console.error('[strava-callback] In-progress exchange failed:', err);
+        return reply.code(502).send(errorPayload('ERR_IN_PROGRESS_FAILED', 'In-flight exchange failed', 502));
+      }
+    }
+
+    // Create a deferred promise to mark this code as being processed
+    let resolveInProgress!: (result: ProcessedCode['result']) => void;
+    let rejectInProgress!: (err: unknown) => void;
+    const inProgressPromise = new Promise<ProcessedCode['result']>((resolve, reject) => {
+      resolveInProgress = resolve;
+      rejectInProgress = reject;
+    });
+    inProgressCodes.set(code, inProgressPromise);
+    // Cleanup on completion (whether success or failure)
+    const cleanup = () => {
+      setTimeout(() => inProgressCodes.delete(code), 5000); // Keep briefly for late duplicates
+    };
+
     const csrfEntry = csrfStore.get(state);
 
     // On Render free tier, the API may restart and lose in-memory CSRF state.
@@ -165,6 +195,8 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
 
     if (!tokenResponse.ok) {
       request.log.error({ status: tokenResponse.status, body: tokenBody }, 'Erro token exchange Strava');
+      rejectInProgress(new Error(`Strava ${tokenResponse.status}`));
+      cleanup();
       return reply.code(502).send(
         errorPayload('ERR_STRAVA_TOKEN_EXCHANGE', `Strava: ${tokenResponse.status} - ${tokenBody.substring(0, 100)}`, 502),
       );
@@ -279,6 +311,8 @@ export default async function stravaRoutes(app: FastifyInstance): Promise<void> 
       result,
       expiresAt: Date.now() + CODE_CACHE_TTL_MS,
     });
+    resolveInProgress(result);
+    cleanup();
 
     // Login flow: redireciona para o frontend com tokens na URL
     if (isLoginFlow) {
