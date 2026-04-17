@@ -4,6 +4,11 @@ import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
 import { buildNutritionProtocolPrompt } from '../plan/prompts/nutrition-protocol.prompt.js';
 import type { CustomizeProtocolBody } from './nutrition-planner.schemas.js';
+import {
+  calculateIntraWorkoutProtocol,
+  type IntraWorkoutItem,
+  type IntraWorkoutProtocol,
+} from './intra-workout-rules.js';
 
 // ── Tipos ─────────────────────────────────────────────────────────
 
@@ -184,6 +189,103 @@ export async function generateProtocol(userId: string, workoutId: string) {
     .returning();
 
   return protocol!;
+}
+
+// ── getIntraWorkoutSuggestion ─────────────────────────────────────
+// Calcula sugestao via regras deterministicas sem persistir.
+// Retorna tambem o protocolo existente (se ja aceito) para a UI decidir.
+
+export async function getIntraWorkoutSuggestion(userId: string, workoutId: string): Promise<{
+  suggestion: IntraWorkoutProtocol;
+  existingProtocol: typeof schema.nutritionProtocols.$inferSelect | null;
+}> {
+  const workout = await db.query.plannedWorkouts.findFirst({
+    where: and(
+      eq(schema.plannedWorkouts.id, workoutId),
+      eq(schema.plannedWorkouts.userId, userId),
+    ),
+  });
+
+  if (!workout) {
+    throw { code: 'ERR_WORKOUT_NOT_FOUND', message: 'Treino nao encontrado', status: 404 };
+  }
+
+  const profile = await db.query.athleteProfiles.findFirst({
+    where: eq(schema.athleteProfiles.userId, userId),
+  });
+
+  const suggestion = calculateIntraWorkoutProtocol({
+    durationMin: workout.durationMin,
+    discipline: workout.discipline,
+    intensityZone: workout.intensityZone,
+    weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+    sweatRateHigh: profile?.sweatRateHigh ?? null,
+    giSensitivity: profile?.giSensitivity ?? null,
+    hotWeather: null, // reservado para integracao futura com clima
+  });
+
+  const existingProtocol = await db.query.nutritionProtocols.findFirst({
+    where: eq(schema.nutritionProtocols.plannedWorkoutId, workoutId),
+  });
+
+  return { suggestion, existingProtocol: existingProtocol ?? null };
+}
+
+// ── acceptDefaultSuggestion ───────────────────────────────────────
+// Persiste a sugestao (ou uma customizacao) como protocolo aceito.
+
+export async function acceptDefaultSuggestion(
+  userId: string,
+  workoutId: string,
+  customItems?: IntraWorkoutItem[],
+): Promise<typeof schema.nutritionProtocols.$inferSelect> {
+  const { suggestion, existingProtocol } = await getIntraWorkoutSuggestion(userId, workoutId);
+
+  // Se ja existe protocolo aceito, retorna idempotente
+  if (existingProtocol && existingProtocol.status === 'accepted') {
+    return existingProtocol;
+  }
+
+  const items = customItems && customItems.length > 0 ? customItems : suggestion.items;
+  const totals = items.reduce(
+    (acc, item) => {
+      acc.totalCarbsG += item.carbsG * item.quantity;
+      acc.totalSodiumMg += item.sodiumMg * item.quantity;
+      acc.totalCaffeineMg += (item.caffeineMg ?? 0) * item.quantity;
+      acc.totalKcal += item.kcal * item.quantity;
+      return acc;
+    },
+    { totalCarbsG: 0, totalSodiumMg: 0, totalCaffeineMg: 0, totalKcal: 0 },
+  );
+
+  if (existingProtocol) {
+    const [updated] = await db.update(schema.nutritionProtocols)
+      .set({
+        items,
+        totalCarbsG: totals.totalCarbsG.toFixed(2),
+        totalSodiumMg: totals.totalSodiumMg.toFixed(2),
+        totalCaffeineMg: totals.totalCaffeineMg.toFixed(2),
+        totalKcal: Math.round(totals.totalKcal),
+        status: 'accepted',
+        acceptedAt: new Date(),
+      })
+      .where(eq(schema.nutritionProtocols.id, existingProtocol.id))
+      .returning();
+    return updated!;
+  }
+
+  const [created] = await db.insert(schema.nutritionProtocols).values({
+    plannedWorkoutId: workoutId,
+    items,
+    totalCarbsG: totals.totalCarbsG.toFixed(2),
+    totalSodiumMg: totals.totalSodiumMg.toFixed(2),
+    totalCaffeineMg: totals.totalCaffeineMg.toFixed(2),
+    totalKcal: Math.round(totals.totalKcal),
+    status: 'accepted',
+    acceptedAt: new Date(),
+  }).returning();
+
+  return created!;
 }
 
 // ── acceptProtocol ────────────────────────────────────────────────

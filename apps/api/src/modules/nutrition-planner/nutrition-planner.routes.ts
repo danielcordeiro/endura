@@ -49,6 +49,55 @@ export default async function nutritionPlannerRoutes(app: FastifyInstance): Prom
     }
   });
 
+  // ── GET /api/nutrition-planner/suggestion/:workoutId ─────────
+  // Sugestao deterministica (sem IA) — nao persiste.
+  app.get('/api/nutrition-planner/suggestion/:workoutId', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const parsed = workoutIdParams.safeParse(request.params);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          code: 'ERR_VALIDATION',
+          message: parsed.error.errors[0]?.message ?? 'Parametros invalidos',
+          status: 400,
+        });
+      }
+      const result = await plannerService.getIntraWorkoutSuggestion(
+        request.userId,
+        parsed.data.workoutId,
+      );
+      return reply.send({ data: result });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
+  // ── POST /api/nutrition-planner/accept-default/:workoutId ────
+  // Persiste a sugestao (ou versao customizada) como protocolo aceito.
+  app.post<{ Body: { items?: Array<{ phase: 'during'; minuteOffset: number; productName: string; quantity: number; unit: 'un'|'ml'|'g'|'scoop'; carbsG: number; sodiumMg: number; caffeineMg?: number; kcal: number }> } }>(
+    '/api/nutrition-planner/accept-default/:workoutId',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = workoutIdParams.safeParse(request.params);
+        if (!parsed.success) {
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: parsed.error.errors[0]?.message ?? 'Parametros invalidos',
+            status: 400,
+          });
+        }
+        const result = await plannerService.acceptDefaultSuggestion(
+          request.userId,
+          parsed.data.workoutId,
+          request.body?.items,
+        );
+        return reply.send({ data: result });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
   // ── POST /api/nutrition-planner/generate/:workoutId ──────────
   // Gera protocolo nutricional via IA
   app.post('/api/nutrition-planner/generate/:workoutId', { onRequest: authenticate }, async (request, reply) => {

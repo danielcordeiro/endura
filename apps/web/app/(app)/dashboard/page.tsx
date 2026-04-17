@@ -20,6 +20,7 @@ import { WellnessCard } from '@/components/dashboard/wellness-card';
 import { WeightCard } from '@/components/dashboard/weight-card';
 import { FatigueStrainCard } from '@/components/dashboard/fatigue-strain-card';
 import { WeeklyLoadChart } from '@/components/dashboard/weekly-load-chart';
+import { LogPendingCard } from '@/components/nutrition/log-pending-card';
 
 /* ── Types ── */
 
@@ -677,6 +678,11 @@ export default function DashboardPage() {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* ── Log pendente de nutricao (post-treino) ── */}
+          <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
+            <LogPendingCard />
           </div>
 
           {/* ── Daily Nutrition Card ── */}

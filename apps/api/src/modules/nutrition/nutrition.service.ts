@@ -650,3 +650,67 @@ export async function getReadinessScore(userId: string) {
 
   return { score: Math.round(score * 100) / 100 };
 }
+
+// ── getPendingLogs ────────────────────────────────────────────────
+// Lista atividades executadas vinculadas a treinos planejados com
+// protocolo aceito e que ainda nao tem nutrition_log criado.
+// Ordenadas por data desc, janela de 30 dias.
+
+export async function getPendingLogs(userId: string): Promise<Array<{
+  activityId: string;
+  plannedWorkoutId: string;
+  workoutTitle: string | null;
+  scheduledDate: string;
+  discipline: string;
+  durationSec: number | null;
+  protocolId: string;
+  startedAt: Date;
+}>> {
+  const cutoff = new Date(Date.now() - 30 * 86400000);
+
+  const rows = await db
+    .select({
+      activityId: schema.activities.id,
+      plannedWorkoutId: schema.activities.plannedWorkoutId,
+      startedAt: schema.activities.startedAt,
+      discipline: schema.activities.discipline,
+      durationSec: schema.activities.durationSec,
+      scheduledDate: schema.plannedWorkouts.scheduledDate,
+      workoutTitle: schema.plannedWorkouts.title,
+      protocolId: schema.nutritionProtocols.id,
+      protocolStatus: schema.nutritionProtocols.status,
+    })
+    .from(schema.activities)
+    .innerJoin(
+      schema.plannedWorkouts,
+      eq(schema.activities.plannedWorkoutId, schema.plannedWorkouts.id),
+    )
+    .innerJoin(
+      schema.nutritionProtocols,
+      eq(schema.nutritionProtocols.plannedWorkoutId, schema.plannedWorkouts.id),
+    )
+    .leftJoin(
+      schema.nutritionLogs,
+      eq(schema.nutritionLogs.activityId, schema.activities.id),
+    )
+    .where(and(
+      eq(schema.activities.userId, userId),
+      gte(schema.activities.startedAt, cutoff),
+      eq(schema.nutritionProtocols.status, 'accepted'),
+      sql`${schema.nutritionLogs.id} IS NULL`,
+    ))
+    .orderBy(desc(schema.activities.startedAt));
+
+  return rows
+    .filter((r) => r.plannedWorkoutId !== null)
+    .map((r) => ({
+      activityId: r.activityId,
+      plannedWorkoutId: r.plannedWorkoutId!,
+      workoutTitle: r.workoutTitle,
+      scheduledDate: r.scheduledDate,
+      discipline: r.discipline,
+      durationSec: r.durationSec,
+      protocolId: r.protocolId,
+      startedAt: r.startedAt,
+    }));
+}

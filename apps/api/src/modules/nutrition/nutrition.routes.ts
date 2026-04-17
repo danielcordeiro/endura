@@ -264,6 +264,17 @@ export default async function nutritionRoutes(app: FastifyInstance): Promise<voi
     }
   });
 
+  // ── GET /api/nutrition/log/pending ──────────────────────────────
+  // Lista atividades com protocolo aceito e sem log (janela 30 dias)
+  app.get('/api/nutrition/log/pending', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const items = await nutritionService.getPendingLogs(request.userId);
+      return reply.send({ data: items });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
   // ── POST /api/nutrition/log/:activityId/follow-protocol ─────────
   // Copia protocolo prescrito para o log (1 tap)
   app.post('/api/nutrition/log/:activityId/follow-protocol', { onRequest: authenticate }, async (request, reply) => {

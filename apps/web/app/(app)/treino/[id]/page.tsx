@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DisciplineBadge } from '@/components/ui/discipline-badge';
 import { NutritionTimeline } from '@/components/ui/nutrition-timeline';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { IntraWorkoutSuggestionCard } from '@/components/nutrition/intra-workout-suggestion-card';
 
 /* ── Types ── */
 
@@ -473,51 +474,10 @@ export default function TreinoDetailPage() {
         </div>
       )}
 
-      {/* ── Nutrition ── */}
-      {data.nutritionProtocol && data.nutritionProtocol.items.length > 0 && (
-        <div
-          className="animate-fade-in-up stagger-4"
-          style={{ opacity: 0 }}
-        >
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">
-            Nutricao
-          </p>
-
-          {/* Summary row */}
-          <div className="flex items-center gap-4 mb-4 flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm text-slate-500">bolt</span>
-              <span className="font-[var(--font-mono)] text-xs text-slate-400">
-                {data.nutritionProtocol.totalCarbsG}g carbs
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm text-slate-500">water_drop</span>
-              <span className="font-[var(--font-mono)] text-xs text-slate-400">
-                {data.nutritionProtocol.totalSodiumMg}mg sodio
-              </span>
-            </div>
-            {data.nutritionProtocol.totalCaffeineMg > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm text-slate-500">medication</span>
-                <span className="font-[var(--font-mono)] text-xs text-slate-400">
-                  {data.nutritionProtocol.totalCaffeineMg}mg cafeina
-                </span>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm text-slate-500">local_fire_department</span>
-              <span className="font-[var(--font-mono)] text-xs text-slate-400">
-                {data.nutritionProtocol.totalKcal}kcal
-              </span>
-            </div>
-          </div>
-
-          <NutritionTimeline items={timelineItems} />
-
-          <NutritionDetailPanel items={data.nutritionProtocol.items} />
-        </div>
-      )}
+      {/* ── Nutrition (sugestao intratreino default + log) ── */}
+      <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
+        <IntraWorkoutSuggestionCard workoutId={data.id} durationMin={data.durationMin} />
+      </div>
 
       {/* ── Fixed Bottom Action Buttons ── */}
       <div
