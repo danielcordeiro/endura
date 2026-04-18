@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatCard } from '@/components/ui/stat-card';
+import { SectionLabel } from '@/components/ui/section-label';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { DailyNutritionCard } from '@/components/nutrition/daily-nutrition-card';
 import { PMCChart } from '@/components/dashboard/pmc-chart';
@@ -246,9 +247,9 @@ function HeaderSkeleton() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-7 pb-6">
       <HeaderSkeleton />
-      <div className="rounded-[2rem] bg-bg-surface p-6 shadow-xl ring-1 ring-white/5 space-y-4">
+      <div className="rounded-card bg-bg-surface p-6 shadow-xl ring-1 ring-white/5 space-y-4">
         <div className="skeleton h-7 w-40 rounded-full" />
         <div className="flex items-end justify-between">
           <div className="skeleton h-14 w-32 rounded" />
@@ -259,11 +260,11 @@ function DashboardSkeleton() {
         </div>
         <div className="skeleton h-3 w-full rounded-full" />
       </div>
-      <div className="skeleton h-48 w-full rounded-[2rem]" />
-      <div className="skeleton h-40 w-full rounded-[2rem]" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="skeleton h-48 w-full rounded-card" />
+      <div className="skeleton h-40 w-full rounded-card" />
+      <div className="grid grid-cols-2 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-3xl bg-bg-surface border border-slate-800/50 p-4 space-y-3">
+          <div key={i} className="rounded-2xl bg-bg-surface ring-1 ring-white/5 p-5 space-y-3">
             <div className="skeleton h-3 w-16 rounded" />
             <div className="skeleton h-8 w-12 rounded" />
           </div>
@@ -424,7 +425,7 @@ export default function DashboardPage() {
   const hasOnboarding = !!alerts?.find((a) => a.type === 'onboarding');
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-7 pb-6">
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 bg-bg-base/80 backdrop-blur-xl pt-4 pb-3 animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="flex items-center gap-4">
@@ -531,7 +532,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setShowRaceForm(true)}
-                className="w-full rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
+                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
                   <span className="material-symbols-outlined text-3xl text-primary">flag</span>
@@ -553,16 +554,19 @@ export default function DashboardPage() {
 
           {/* ── Today's Workout ── */}
           <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
-            <div className="flex items-center justify-between mb-4 px-2">
-              <h2 className="text-lg font-bold tracking-tight">TREINO DE HOJE</h2>
-              <span className="text-xs font-[var(--font-mono)] text-slate-400 bg-slate-800/50 px-2 py-1 rounded-md border border-slate-700/50">
-                {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
-              </span>
-            </div>
+            <SectionLabel
+              action={
+                <span className="text-[11px] font-[var(--font-mono)] text-slate-400 bg-slate-800/60 px-2 py-1 rounded-md border border-slate-700/50">
+                  {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
+                </span>
+              }
+            >
+              TREINO DE HOJE
+            </SectionLabel>
 
             {todayWorkout ? (
-              <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
-                <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-[1.8rem] p-5">
+              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+                <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-card-inner p-5">
                   <div className="flex items-start gap-4">
                     <div className={cn(
                       'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
@@ -628,8 +632,8 @@ export default function DashboardPage() {
               </div>
             ) : todayActivity ? (
               <Link href="/atividades">
-                <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
-                  <div className="bg-gradient-to-br from-emerald-900/40 to-[#1c242c] rounded-[1.8rem] p-5">
+                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+                  <div className="bg-gradient-to-br from-emerald-900/40 to-[#1c242c] rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(
                         'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
@@ -668,7 +672,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <div className="rounded-[2rem] bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
+              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                   <span className="material-symbols-outlined text-3xl text-slate-500">bedtime</span>
                 </div>
@@ -698,13 +702,16 @@ export default function DashboardPage() {
 
           {/* ── Stats Grid (2x2) ── */}
           <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
-            <div className="flex items-center justify-between mb-3 px-2">
-              <h2 className="text-lg font-bold tracking-tight">SEMANA ATUAL</h2>
-              <Link href="/atividades" className="text-primary text-sm font-medium hover:text-blue-400 transition-colors">
-                Ver detalhes
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            <SectionLabel
+              action={
+                <Link href="/atividades" className="text-primary text-sm font-medium hover:text-blue-400 transition-colors">
+                  Ver detalhes
+                </Link>
+              }
+            >
+              SEMANA ATUAL
+            </SectionLabel>
+            <div className="grid grid-cols-2 gap-4">
               <StatCard label="Calorias" value={week.totalCalories} unit="kcal" icon="local_fire_department" />
               <StatCard label="Treinos" value={`${week.workoutsCompleted}/${week.workoutsPlanned}`} context="concluidos" icon="fitness_center" />
               <StatCard label="Volume" value={week.volumeHours.toFixed(1)} unit="horas" icon="schedule" />
@@ -715,7 +722,7 @@ export default function DashboardPage() {
           {/* ── Alerts ── */}
           {alerts.filter((a) => a.type !== 'onboarding').length > 0 && (
             <div className="space-y-3 animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Alertas</p>
+              <SectionLabel className="mb-0">Alertas</SectionLabel>
               {alerts.filter((a) => a.type !== 'onboarding').map((alert, i) => (
                 <AlertBanner key={`${alert.type}-${i}`} variant={alertLevelToVariant(alert.level)}>
                   {alert.message}
@@ -733,9 +740,9 @@ export default function DashboardPage() {
         <>
           {perfLoading ? (
             <div className="space-y-4">
-              <div className="skeleton h-80 w-full rounded-[2rem]" />
-              <div className="skeleton h-48 w-full rounded-[2rem]" />
-              <div className="skeleton h-48 w-full rounded-[2rem]" />
+              <div className="skeleton h-80 w-full rounded-card" />
+              <div className="skeleton h-48 w-full rounded-card" />
+              <div className="skeleton h-48 w-full rounded-card" />
             </div>
           ) : perfData ? (
             <>
@@ -796,8 +803,8 @@ export default function DashboardPage() {
 
               {/* ── Stats grid ── */}
               <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
-                <h2 className="text-lg font-bold tracking-tight mb-3 px-2">METRICAS</h2>
-                <div className="grid grid-cols-2 gap-3">
+                <SectionLabel>METRICAS</SectionLabel>
+                <div className="grid grid-cols-2 gap-4">
                   <StatCard
                     label="CTL"
                     value={perfData.pmc.currentCTL.toFixed(0)}
@@ -827,7 +834,7 @@ export default function DashboardPage() {
 
             </>
           ) : (
-            <div className="rounded-[2rem] bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
+            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                 <span className="material-symbols-outlined text-3xl text-slate-500">monitoring</span>
               </div>

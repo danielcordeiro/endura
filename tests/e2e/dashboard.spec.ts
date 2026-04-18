@@ -41,4 +41,16 @@ test.describe('Dashboard', () => {
       await expect(dashboard.nutritionCard).toBeVisible({ timeout: 5_000 });
     }
   });
+
+  test('nao deve ter scroll horizontal em viewport mobile', async ({ authenticatedPage: page }) => {
+    const dashboard = new DashboardPage(page);
+    await dashboard.waitForLoad();
+
+    const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+    }));
+
+    expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
+  });
 });
