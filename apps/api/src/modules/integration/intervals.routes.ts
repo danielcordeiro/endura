@@ -147,13 +147,31 @@ export default async function intervalsRoutes(app: FastifyInstance): Promise<voi
 
       request.log.info({ provider: PROVIDER, athleteId }, 'intervals.icu conectado via API Key');
 
-      // Trigger initial wellness sync
-      try {
-        const syncResult = await syncWellnessForUser(request.userId);
-        return reply.send({ data: { message: 'Conectado com sucesso', synced: syncResult.synced } });
-      } catch {
-        return reply.send({ data: { message: 'Conectado com sucesso. Sync de wellness sera feito em breve.' } });
+      // Sync inicial em paralelo: wellness + atividades.
+      // Atividades sao a regra de fallback quando o usuario nao tem Strava — precisam
+      // vir ja no connect, senao o usuario fica ate 2h (proximo cron) sem ver nada.
+      const [wellnessResult, activitiesResult] = await Promise.allSettled([
+        syncWellnessForUser(request.userId),
+        syncActivitiesForUser(request.userId),
+      ]);
+
+      if (wellnessResult.status === 'rejected') {
+        request.log.warn({ err: wellnessResult.reason }, 'Falha no wellness sync inicial');
       }
+      if (activitiesResult.status === 'rejected') {
+        request.log.warn({ err: activitiesResult.reason }, 'Falha no activities sync inicial');
+      }
+
+      const wellnessSynced = wellnessResult.status === 'fulfilled' ? wellnessResult.value.synced : 0;
+      const activitiesSynced = activitiesResult.status === 'fulfilled' ? activitiesResult.value.inserted : 0;
+
+      return reply.send({
+        data: {
+          message: 'Conectado com sucesso',
+          synced: wellnessSynced,
+          activitiesSynced,
+        },
+      });
     },
   );
 
