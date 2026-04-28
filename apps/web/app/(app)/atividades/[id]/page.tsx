@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { Button } from '@/components/ui/button';
 import { DisciplineBadge } from '@/components/ui/discipline-badge';
 import { PhaseTag } from '@/components/ui/phase-tag';
@@ -123,10 +124,26 @@ export default function ActivityDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const { token } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [showLogSheet, setShowLogSheet] = useState(false);
   const [showAdverseSheet, setShowAdverseSheet] = useState(false);
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/activities/${params.id}`, {
+        method: 'DELETE',
+        token: token ?? undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['performance-dashboard'] });
+      router.push('/atividades');
+    },
+  });
 
   const { data, isLoading, isError, refetch } = useQuery<ActivityDetail>({
     queryKey: ['activity', params.id],
@@ -236,8 +253,12 @@ export default function ActivityDetailPage() {
           <h1 className="font-heading font-bold text-lg text-slate-100 truncate flex-1">
             Detalhes da Atividade
           </h1>
-          <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors shrink-0">
-            <span className="material-symbols-outlined text-[20px]">more_horiz</span>
+          <button
+            onClick={() => setShowDeleteSheet(true)}
+            aria-label="Excluir atividade"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-[#283139] transition-colors shrink-0"
+          >
+            <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>
         </div>
 
@@ -480,6 +501,48 @@ export default function ActivityDetailPage() {
                 disabled={selectedEvents.length === 0}
               >
                 Enviar
+              </Button>
+            </div>
+          </div>
+        </BottomSheet>
+
+        {/* Delete confirmation bottom sheet */}
+        <BottomSheet
+          open={showDeleteSheet}
+          onClose={() => {
+            if (!deleteMutation.isPending) setShowDeleteSheet(false);
+          }}
+          title="Excluir atividade"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20">
+              <span className="material-symbols-outlined text-[20px] text-red-400 shrink-0">warning</span>
+              <p className="font-body text-sm text-slate-200">
+                Esta acao nao pode ser desfeita. A atividade sera removida do Endura junto com a nutricao registrada e o calculo de CTL/ATL/TSB sera recalculado.
+              </p>
+            </div>
+            {deleteMutation.isError && (
+              <AlertBanner variant="danger">
+                {(deleteMutation.error as { message?: string })?.message ?? 'Erro ao excluir atividade.'}
+              </AlertBanner>
+            )}
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => setShowDeleteSheet(false)}
+                disabled={deleteMutation.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => deleteMutation.mutate()}
+                loading={deleteMutation.isPending}
+                className="bg-red-500 hover:bg-red-600 shadow-red-500/25"
+              >
+                Excluir
               </Button>
             </div>
           </div>

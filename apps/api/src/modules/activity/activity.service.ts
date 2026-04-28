@@ -77,6 +77,31 @@ export async function listActivities(
   };
 }
 
+// ── Exclusao de atividade ───────────────────────────────────────
+
+export async function deleteActivity(userId: string, activityId: string): Promise<void> {
+  const existing = await db.query.activities.findFirst({
+    where: and(
+      eq(schema.activities.id, activityId),
+      eq(schema.activities.userId, userId),
+    ),
+    columns: { id: true },
+  });
+
+  if (!existing) {
+    throw {
+      code: 'ERR_ACTIVITY_NOT_FOUND',
+      message: 'Atividade nao encontrada',
+      status: 404,
+    };
+  }
+
+  // activity_comments nao tem ON DELETE CASCADE, remover explicitamente.
+  // nutrition_logs/items e ai_insights cascateiam pelo schema.
+  await db.delete(schema.activityComments).where(eq(schema.activityComments.activityId, activityId));
+  await db.delete(schema.activities).where(eq(schema.activities.id, activityId));
+}
+
 // ── Detalhes de uma atividade com nutrition log e items ─────────
 
 export async function getActivity(userId: string, activityId: string) {

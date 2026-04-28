@@ -167,4 +167,33 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
       }
     },
   );
+
+  // ── DELETE /api/activities/:id ──────────────────────────────
+  app.delete(
+    '/api/activities/:id',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = activityParams.safeParse(request.params);
+        if (!parsed.success) {
+          const firstError = parsed.error.errors[0];
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: firstError?.message ?? 'Parametro de ID invalido',
+            status: 400,
+          });
+        }
+
+        await activityService.deleteActivity(request.userId, parsed.data.id);
+
+        request.log.info(
+          { userId: request.userId, activityId: parsed.data.id },
+          'Atividade removida',
+        );
+        return reply.send({ data: { message: 'Atividade removida' } });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
 }
