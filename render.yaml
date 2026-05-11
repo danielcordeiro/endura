@@ -17,7 +17,7 @@ services:
     region: oregon
     plan: starter
     branch: main
-    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    buildCommand: npm install -g pnpm@9 && pnpm install && pnpm build
     startCommand: cd apps/api && node dist/src/server.js
     preDeployCommand: cd apps/api && npx drizzle-kit migrate
     healthCheckPath: /health
@@ -72,7 +72,7 @@ services:
     region: oregon
     plan: starter
     branch: main
-    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    buildCommand: npm install -g pnpm@9 && pnpm install && pnpm build
     startCommand: cd apps/web && npx next start -p $PORT
     envVars:
       - key: NODE_ENV
