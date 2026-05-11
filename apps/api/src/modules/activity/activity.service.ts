@@ -102,6 +102,51 @@ export async function deleteActivity(userId: string, activityId: string): Promis
   await db.delete(schema.activities).where(eq(schema.activities.id, activityId));
 }
 
+// ── Update de feedback pos-treino ───────────────────────────────
+// perceivedEffort 1-10, notes livre, adverseEvents lista de tags.
+// Qualquer campo undefined nao e tocado.
+
+export interface UpdateFeedbackInput {
+  perceivedEffort?: number;
+  notes?: string;
+  adverseEvents?: string[];
+}
+
+export async function updateFeedback(
+  userId: string,
+  activityId: string,
+  input: UpdateFeedbackInput,
+): Promise<typeof schema.activities.$inferSelect> {
+  const existing = await db.query.activities.findFirst({
+    where: and(
+      eq(schema.activities.id, activityId),
+      eq(schema.activities.userId, userId),
+    ),
+    columns: { id: true },
+  });
+
+  if (!existing) {
+    throw {
+      code: 'ERR_ACTIVITY_NOT_FOUND',
+      message: 'Atividade nao encontrada',
+      status: 404,
+    };
+  }
+
+  const patch: Record<string, unknown> = { updatedAt: new Date() };
+  if (input.perceivedEffort !== undefined) patch.perceivedEffort = input.perceivedEffort;
+  if (input.notes !== undefined) patch.notes = input.notes;
+  if (input.adverseEvents !== undefined) patch.adverseEvents = input.adverseEvents;
+
+  const [updated] = await db
+    .update(schema.activities)
+    .set(patch)
+    .where(eq(schema.activities.id, activityId))
+    .returning();
+
+  return updated!;
+}
+
 // ── Detalhes de uma atividade com nutrition log e items ─────────
 
 export async function getActivity(userId: string, activityId: string) {

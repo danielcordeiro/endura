@@ -1,7 +1,7 @@
 import { eq, and, gte, lte, or, ilike, sql, desc } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
-import type { CreateItemBody, UpdateItemBody, CreatePresetBody } from './nutrition.schemas.js';
+import type { CreateItemBody, UpdateItemBody, CreatePresetBody, BulkItemsBody } from './nutrition.schemas.js';
 
 // ── Tipos internos ────────────────────────────────────────────────
 
@@ -105,6 +105,99 @@ export async function addItem(userId: string, activityId: string, data: CreateIt
   await recalculateTotals(log.id);
 
   return item!;
+}
+
+// ── addItemsBulk ──────────────────────────────────────────────────
+// Adiciona varios itens em uma transacao. Cria o log se nao existir.
+// All-or-nothing: se 1 item falhar, nada e gravado.
+
+export async function addItemsBulk(
+  userId: string,
+  activityId: string,
+  data: BulkItemsBody,
+): Promise<{ logId: string; itemsAdded: number }> {
+  const activity = await db.query.activities.findFirst({
+    where: and(
+      eq(schema.activities.id, activityId),
+      eq(schema.activities.userId, userId),
+    ),
+  });
+
+  if (!activity) {
+    throw {
+      code: 'ERR_ACTIVITY_NOT_FOUND',
+      message: 'Atividade nao encontrada ou nao pertence ao usuario',
+      status: 404,
+    };
+  }
+
+  return await db.transaction(async (tx) => {
+    let log = await tx.query.nutritionLogs.findFirst({
+      where: and(
+        eq(schema.nutritionLogs.activityId, activityId),
+        eq(schema.nutritionLogs.userId, userId),
+      ),
+    });
+
+    if (!log) {
+      const [created] = await tx
+        .insert(schema.nutritionLogs)
+        .values({
+          activityId,
+          userId,
+          totalCarbsG: '0',
+          totalSodiumMg: '0',
+          totalCaffeineMg: '0',
+          totalKcal: 0,
+        })
+        .returning();
+      log = created!;
+    }
+
+    for (const item of data.items) {
+      await tx.insert(schema.nutritionItems).values({
+        logId: log.id,
+        phase: item.phase,
+        minuteOffset: item.minuteOffset ?? null,
+        productName: item.productName,
+        brand: item.brand ?? null,
+        quantity: item.quantity?.toString() ?? null,
+        unit: item.unit ?? null,
+        carbsG: item.carbsG?.toString() ?? null,
+        sodiumMg: item.sodiumMg?.toString() ?? null,
+        caffeineMg: item.caffeineMg?.toString() ?? null,
+        kcal: item.kcal ?? null,
+        source: item.source ?? 'manual',
+      });
+    }
+
+    // Recalcula totais dentro da mesma transacao
+    const itemsRows = await tx
+      .select()
+      .from(schema.nutritionItems)
+      .where(eq(schema.nutritionItems.logId, log.id));
+
+    let totalCarbsG = 0, totalSodiumMg = 0, totalCaffeineMg = 0, totalKcal = 0;
+    for (const it of itemsRows) {
+      totalCarbsG += Number(it.carbsG ?? 0);
+      totalSodiumMg += Number(it.sodiumMg ?? 0);
+      totalCaffeineMg += Number(it.caffeineMg ?? 0);
+      totalKcal += Number(it.kcal ?? 0);
+    }
+
+    await tx
+      .update(schema.nutritionLogs)
+      .set({
+        totalCarbsG: totalCarbsG.toFixed(2),
+        totalSodiumMg: totalSodiumMg.toFixed(2),
+        totalCaffeineMg: totalCaffeineMg.toFixed(2),
+        totalKcal: Math.round(totalKcal),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.nutritionLogs.id, log.id));
+
+    return { logId: log.id, itemsAdded: data.items.length };
+  });
 }
 
 // ── updateItem ────────────────────────────────────────────────────

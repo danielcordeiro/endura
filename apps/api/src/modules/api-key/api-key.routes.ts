@@ -2,9 +2,12 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { authenticate } from '../auth/auth.middleware.js';
 import { createApiKey, listApiKeys, revokeApiKey } from './api-key.service.js';
+import { ALL_SCOPES, normalizeScopes, type Scope } from './scopes.js';
 
 const createBody = z.object({
   name: z.string().min(1, 'name obrigatorio').max(100),
+  scopes: z.array(z.enum(ALL_SCOPES)).optional(),
+  expiresInDays: z.number().int().positive().max(3650).nullable().optional(),
 });
 
 const idParams = z.object({
@@ -37,8 +40,18 @@ export default async function apiKeyRoutes(app: FastifyInstance): Promise<void> 
       }
 
       try {
-        const result = await createApiKey(request.userId, parsed.data.name);
-        request.log.info({ userId: request.userId, keyId: result.id }, 'API Key criada');
+        const scopes = parsed.data.scopes
+          ? normalizeScopes(parsed.data.scopes) as Scope[]
+          : undefined;
+        const result = await createApiKey(request.userId, {
+          name: parsed.data.name,
+          scopes,
+          expiresInDays: parsed.data.expiresInDays ?? null,
+        });
+        request.log.info(
+          { userId: request.userId, keyId: result.id, scopes: result.scopes },
+          'API Key criada',
+        );
         return reply.code(201).send({ data: result });
       } catch (err) {
         if (isAppError(err)) {
@@ -57,6 +70,24 @@ export default async function apiKeyRoutes(app: FastifyInstance): Promise<void> 
     async (request, reply) => {
       const items = await listApiKeys(request.userId);
       return reply.send({ data: items });
+    },
+  );
+
+  // ── GET /api/auth/api-keys/scopes ───────────────────────────
+  // Catalogo de scopes disponiveis (usado pela UI para montar checkboxes)
+  app.get(
+    '/api/auth/api-keys/scopes',
+    { onRequest: authenticate },
+    async (_request, reply) => {
+      return reply.send({
+        data: {
+          scopes: ALL_SCOPES,
+          bundles: {
+            coach: ['read:profile', 'read:activities', 'read:planned', 'read:wellness', 'read:catalog', 'write:nutrition', 'write:checkin', 'write:comments'],
+            readOnly: ['read:profile', 'read:activities', 'read:planned', 'read:wellness', 'read:catalog'],
+          },
+        },
+      });
     },
   );
 

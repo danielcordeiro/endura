@@ -1,6 +1,6 @@
 # Endura Public API
 
-API pública read-only para consulta de dados de atletas. Autenticação via API Key por usuário.
+API pública para consulta E escrita de dados de atletas via API Key. Pensada para integração com agentes IA (ex: openclaw) usando function calling, mas também útil para automações pessoais.
 
 **Base URL (produção):** `https://api.endura.app`
 **Base URL (local):** `http://localhost:8080`
@@ -10,7 +10,7 @@ API pública read-only para consulta de dados de atletas. Autenticação via API
 
 ## Autenticação
 
-Toda rota pública exige uma API Key válida em **um** dos dois headers:
+Toda rota pública (exceto `/openapi.json` e `/openapi/tools.json`) exige uma API Key em **um** dos dois headers:
 
 ```http
 X-API-Key: endura_sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -25,486 +25,278 @@ Authorization: Bearer endura_sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ### Gerando uma API Key
 
 1. Acesse **Endura → Configurações → API Keys → Nova**
-2. Dê um nome descritivo (ex: `"Home Assistant"`, `"GPT Nutricionista"`)
-3. **Copie a chave no momento da criação** — ela NUNCA será exibida novamente.
-4. Guarde em cofre seguro (env var, secret manager, etc).
-
-### Revogando
-
-`DELETE /api/auth/api-keys/:id` ou UI em Configurações → botão lixeira.
+2. Dê um nome descritivo (ex: `"openclaw"`, `"Home Assistant"`)
+3. Selecione um **bundle** (Coach / Read-only) ou marque **scopes** individuais
+4. Escolha **expiração** (Nunca / 30 / 90 / 365 dias)
+5. **Copie a chave imediatamente** — ela NUNCA será exibida novamente
 
 ### Scopes
 
-Todas as keys hoje têm scope `read:all` (leitura total dos próprios dados do usuário). Escopos granulares podem ser adicionados no futuro.
+| Scope | Acesso |
+|---|---|
+| `read:profile` | Perfil, snapshot e provas alvo |
+| `read:activities` | Atividades executadas, nutrição, insights, comentários |
+| `read:planned` | Treinos planejados e protocolos prescritos |
+| `read:wellness` | HRV, sono, PMC, readiness, fitness tests, check-ins, analytics |
+| `read:catalog` | Catálogo de produtos e presets de suplementação |
+| `write:nutrition` | Registrar/atualizar consumo de produtos |
+| `write:checkin` | Check-in diário e feedback pós-treino (RPE/notas) |
+| `write:comments` | Postar comentários em atividades |
+| `read:all` | (legacy) Wildcard que satisfaz qualquer `read:*` |
+| `write:all` | Wildcard que satisfaz qualquer `write:*` |
 
-### Rate limit
+**Bundles convenientes:**
+- **Coach Mode** = todos os scopes (read + write). Use para o agente coach.
+- **Read-only** = apenas reads.
 
-Sem limite oficial no MVP. Um único usuário não deve exceder ~60 req/min.
+### Rate limits
+
+- **Reads** (GET, HEAD): 120 req/min por escopo
+- **Writes** (POST, PUT, DELETE): 30 req/min por escopo
+
+### Revogação e expiração
+
+`DELETE /api/auth/api-keys/:id` ou UI → ícone lixeira. Keys expiradas (se `expiresAt` foi configurado) deixam de autenticar automaticamente.
+
+### Audit log
+
+Todas as operações de escrita são gravadas em `api_audit_logs` (método, path, status, resource_id) com retenção de 90 dias.
 
 ---
 
 ## Envelope padrão de resposta
 
-Sucesso:
-
-```json
-{ "data": { ... } }
-```
-
-Erro:
-
-```json
-{ "code": "ERR_*", "message": "...", "status": 4xx|5xx }
-```
-
-Códigos de erro comuns:
+Sucesso: `{ "data": { ... } }`. Erro: `{ "code": "ERR_*", "message": "...", "status": 4xx|5xx }`.
 
 | Código | Status | Quando |
 |---|---|---|
 | `ERR_NO_API_KEY` | 401 | Header ausente |
-| `ERR_INVALID_API_KEY` | 401 | Key inválida ou revogada |
+| `ERR_INVALID_API_KEY` | 401 | Key inválida, revogada ou expirada |
+| `ERR_INSUFFICIENT_SCOPE` | 403 | Key não tem o scope exigido pelo endpoint |
+| `ERR_VALIDATION` | 400 | Body/query/params inválido |
 | `ERR_INVALID_RANGE` | 400 | `from > to` |
-| `ERR_VALIDATION` | 400 | UUID ou formato inválido |
-| `ERR_NOT_FOUND` | 404 | Recurso não encontrado / não pertence ao usuário |
+| `ERR_NOT_FOUND` | 404 | Recurso não pertence ao usuário |
+| `ERR_ACTIVITY_NOT_FOUND` | 404 | Activity inexistente |
 
 ---
 
 ## Convenções
 
-- **Datas puras** (sem hora): `YYYY-MM-DD` (ex: `2026-04-18`)
-- **Timestamps**: ISO 8601 UTC (ex: `2026-04-17T14:35:47.000Z`)
-- **Duração**: sempre em **segundos** em atividades, **minutos** em treinos planejados
-- **Distância**: sempre em **metros**
-- **Potência**: watts · **FC**: bpm · **Peso**: kg · **Temperatura**: °C
+- **Datas puras**: `YYYY-MM-DD` (ex: `2026-04-18`)
+- **Timestamps**: ISO 8601 UTC
+- **Duração**: segundos em atividades, minutos em treinos planejados
+- **Distância**: metros · **Potência**: watts · **FC**: bpm · **Peso**: kg · **Temperatura**: °C
 - **Disciplinas**: `run` | `bike` | `swim` | `other` | `brick`
-- **Paginação**: `?limit=<1-200>&offset=<N>` (default `limit=50`, max `200`)
-- **Ranges**: `?from=YYYY-MM-DD&to=YYYY-MM-DD` (defaults variam por endpoint)
+- **Paginação**: `?limit=<1-200>&offset=<N>` (default `limit=50`)
+- **Ranges**: `?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
 ---
 
-## Endpoints
+## Discovery (sem auth)
 
-### `GET /api/v1/public/me`
+### `GET /llms.txt`
+Entry point padrão [llmstxt.org](https://llmstxt.org) com links para todos os recursos abaixo. Servido na raiz do domínio da API.
 
-Perfil do atleta dono da API Key.
+### `GET /api/v1/public/llm-manual.md`
+**Manual narrativo para agentes IA**: glossário de domínio (TSS, CTL, ATL, TSB, RPE, fueling), conceitos do modelo de dados, fluxos canônicos para registrar suplementação em linguagem natural, regras invariantes e boas práticas conversacionais. Versão HTML em `/docs/llm`.
 
-**Response:**
+### `GET /api/v1/public/openapi.json`
+Spec OpenAPI 3.1 completo da API pública.
+
+### `GET /api/v1/public/openapi/tools.json`
+Catálogo de tools no formato Anthropic, pronto pra `system.tools = [...]`. Cole no openclaw e os 15 endpoints viram tools.
+
+---
+
+## Endpoints de LEITURA
+
+### `GET /me` — `read:profile`
+Perfil + athleteProfile.
+
+### `GET /summary` — `read:profile`
+Snapshot: nextPlannedWorkout, todayActivity, latestWellness, activeRace.
+
+### `GET /activities?from=&to=&discipline=&limit=&offset=` — `read:activities`
+Lista paginada de atividades executadas.
+
+### `GET /activities/:id` — `read:activities`
+Detalhe completo (incluindo `rawData`, `adverseEvents`, RPE, notes).
+
+### `GET /activities/:id/nutrition` — `read:activities`
+Log de suplementação + comparison vs protocolo (status green/yellow/red por macro).
+
+### `GET /activities/:id/insights` — `read:activities`
+Lista de insights de IA da atividade (gerados pelo Mentor interno).
+
+### `GET /activities/:id/comments` — `read:activities`
+Comentários da atividade (do treinador/coach IA).
+
+### `GET /planned-workouts?from=&to=&discipline=` — `read:planned`
+Lista de treinos planejados (plano Endura + intervals.icu).
+
+### `GET /planned-workouts/:id` — `read:planned`
+Detalhe com `structure` (steps JSONB) e `nutritionProtocol`.
+
+### `GET /wellness?from=&to=` — `read:wellness`
+HRV, sono, peso, SpO2, stress, body battery, source.
+
+### `GET /performance/pmc?from=&to=` — `read:wellness`
+PMC: TSS / CTL / ATL / TSB por dia.
+
+### `GET /performance/readiness` — `read:wellness`
+Readiness mais recente: score, level, mentorRecommendation, fatores.
+
+### `GET /race-goals` — `read:profile`
+Provas cadastradas.
+
+### `GET /fitness-tests` — `read:wellness`
+Testes T30/FTP20/Cooper realizados.
+
+### `GET /daily-checkin?from=&to=` — `read:wellness`
+Histórico de check-ins diários.
+
+### `GET /nutrition/catalog/search?q=&category=&limit=` — `read:catalog`
+Busca produto no catálogo curado. Retorna macros canônicos por serving.
+
+### `GET /nutrition/presets` — `read:catalog`
+Presets de suplementação do usuário.
+
+### `GET /analytics/weekly?weeks=8` — `read:wellness`
+Agregação semanal por disciplina: TSS, distância, duração, contagem.
+
+### `GET /analytics/nutrition-summary?days=30` — `read:wellness`
+Média carbs/h, sodium/h e adherence por disciplina nos últimos N dias.
+
+---
+
+## Endpoints de ESCRITA
+
+### `POST /activities/:id/nutrition-items` — `write:nutrition`
+Adiciona 1 item de suplementação ao log da atividade.
+
+Body (`NutritionItem`):
 ```json
 {
-  "data": {
-    "id": "uuid",
-    "email": "atleta@example.com",
-    "name": "Daniel Cordeiro",
-    "role": "athlete",
-    "createdAt": "2026-02-23T02:00:18.677Z",
-    "profile": {
-      "level": "intermediate",
-      "weakestDiscipline": "swim",
-      "weeklyHours": "8.0",
-      "availableDays": [1,2,3,4,5,6],
-      "weightKg": "72.5",
-      "heightCm": 178,
-      "vdot": null,
-      "ftp": 230,
-      "swimCss": null,
-      "runThreshold": null
-    }
-  }
+  "phase": "during",
+  "minuteOffset": 45,
+  "productName": "Gel Carb-Up Frutas",
+  "brand": "Athletica",
+  "quantity": 1,
+  "unit": "unit",
+  "carbsG": 30,
+  "sodiumMg": 30,
+  "caffeineMg": 0,
+  "kcal": 120,
+  "source": "agent"
 }
 ```
 
----
+### `POST /activities/:id/nutrition-items/bulk` — `write:nutrition`
+Adiciona até 30 itens em transação. **Preferir sempre** que o usuário descrever múltiplos produtos numa frase só ("comi 2 géis, 1 sache e 1 isotônico"). All-or-nothing.
 
-### `GET /api/v1/public/summary`
+Body: `{ "items": [NutritionItem, ...] }` (1 ≤ N ≤ 30)
 
-Snapshot conveniente para LLMs/dashboards: próximo treino, atividade de hoje, wellness recente, prova alvo.
+### `PUT /activities/:id/nutrition-items/:itemId` — `write:nutrition`
+Atualiza um item. Body com campos parciais.
 
-**Response:**
+### `DELETE /activities/:id/nutrition-items/:itemId` — `write:nutrition`
+Remove um item.
+
+### `POST /activities/:id/follow-protocol` — `write:nutrition`
+Copia o protocolo prescrito para o log (1-tap). Body: `{ "protocolId": "uuid" }`.
+
+### `POST /activities/:id/feedback` — `write:checkin`
+Registra feedback pós-treino. Body:
 ```json
 {
-  "data": {
-    "today": "2026-04-17",
-    "nextPlannedWorkout": {
-      "id": "uuid",
-      "scheduledDate": "2026-04-18",
-      "discipline": "run",
-      "title": "Será que vai?",
-      "durationMin": 63,
-      "distanceM": 10911,
-      "tssEstimate": 42.0
-    },
-    "todayActivity": {
-      "id": "uuid",
-      "discipline": "run",
-      "title": "Corrida leve",
-      "startedAt": "2026-04-17T10:00:00.000Z",
-      "durationSec": 2700,
-      "distanceM": 7500,
-      "avgHr": 142,
-      "calories": 520
-    },
-    "latestWellness": {
-      "date": "2026-04-17",
-      "hrvMs": 58.2,
-      "restingHr": 48,
-      "sleepScore": 82,
-      "readinessScore": 76,
-      "readinessLevel": "moderate",
-      "ctl": 48.3,
-      "atl": 52.1,
-      "tsb": -3.8
-    },
-    "activeRace": {
-      "id": "uuid",
-      "raceName": "IM 70.3 Rio",
-      "raceDate": "2026-09-12",
-      "distance": "70.3",
-      "goal": "competitive",
-      "targetTimeSec": 18000
-    }
-  }
+  "perceivedEffort": 8,
+  "notes": "Pernas pesadas no segundo intervalo",
+  "adverseEvents": ["calor", "cabeça pesada"]
 }
 ```
 
----
-
-### `GET /api/v1/public/activities`
-
-Lista de atividades executadas (vindas de Strava ou manuais).
-
-**Query params:**
-- `from`, `to` — range de datas (default: últimos 90 dias)
-- `discipline` — filtro opcional (`run`, `bike`, `swim`, ...)
-- `limit`, `offset` — paginação
-
-**Response:**
+### `POST /daily-checkin` — `write:checkin`
+Upsert do check-in do dia. Body:
 ```json
 {
-  "data": {
-    "range": { "from": "2026-01-17", "to": "2026-04-17" },
-    "pagination": { "limit": 50, "offset": 0, "count": 23 },
-    "items": [
-      {
-        "id": "uuid",
-        "source": "strava",
-        "externalId": "12345678",
-        "discipline": "run",
-        "title": "Corrida matinal",
-        "startedAt": "2026-04-17T09:00:00.000Z",
-        "durationSec": 2700,
-        "distanceM": 7500,
-        "avgHr": 142,
-        "maxHr": 168,
-        "avgPowerW": null,
-        "elevationM": 82.5,
-        "calories": 520,
-        "perceivedEffort": 6,
-        "plannedWorkoutId": "uuid | null"
-      }
-    ]
-  }
+  "date": "2026-05-11",
+  "feeling": 4,
+  "muscleSoreness": 2,
+  "injuryNote": null
 }
 ```
 
+### `POST /activities/:id/comments` — `write:comments`
+Posta comentário (ex: observação do coach IA). Body: `{ "text": "Cuidar do fueling — carbs/h ficou abaixo do alvo" }`.
+
 ---
 
-### `GET /api/v1/public/activities/:id`
+## Como integrar no openclaw (function calling)
 
-Detalhe completo de uma atividade (inclui `rawData` e `adverseEvents`).
+1. No setup do agente, faça `GET /api/v1/public/openapi/tools.json` (sem auth)
+2. Cole o array `tools` no `system.tools` do Claude/OpenAI
+3. Para cada tool call do modelo, dispare a chamada HTTP correspondente com `X-API-Key`
+4. Devolva o body da resposta como `tool_result`
 
-**Response:**
-```json
-{ "data": { ...todos os campos de activity... } }
+### System prompt sugerido
+
+```
+Você é o openclaw, coach de triatlon. Você tem acesso via tools à plataforma
+Endura do atleta (treinos sincronizados de Strava/intervals.icu, métricas
+PMC, wellness, suplementação).
+
+Regras:
+- SEMPRE chame endura_get_summary() no início da conversa para ancorar contexto.
+- Antes de recomendar intensidade, consulte endura_get_readiness.
+- Para registrar suplementação descrita pelo usuário em linguagem natural:
+  1. Identifique a atividade alvo (default: todayActivity do summary).
+  2. Pra cada produto mencionado, use endura_search_catalog pra resolver
+     nome canônico e macros. Se ambíguo, pergunte.
+  3. Bata tudo em UMA chamada endura_log_nutrition_bulk(items[]).
+  4. Se o usuário disse "segui o protocolo", use endura_follow_protocol.
+- Após registrar nutrição, analise (carbs/h vs alvo) e deixe um
+  endura_post_comment com observação curta pra histórico.
+
+Unidades: distância em metros, duração em segundos (activities) ou
+minutos (planejados). Datas em YYYY-MM-DD UTC.
 ```
 
 ---
 
-### `GET /api/v1/public/planned-workouts`
-
-Treinos planejados (de planos Endura + importados do intervals.icu).
-
-**Query params:**
-- `from`, `to` — range (default: próximos 30 dias)
-- `discipline` — filtro opcional
-- `limit`, `offset`
-
-**Response:**
-```json
-{
-  "data": {
-    "range": { "from": "2026-04-17", "to": "2026-05-17" },
-    "pagination": { "limit": 50, "offset": 0, "count": 8 },
-    "items": [
-      {
-        "id": "uuid",
-        "scheduledDate": "2026-04-18",
-        "discipline": "run",
-        "title": "Será que vai?",
-        "description": "9x\n- CAMINHADA 3m...",
-        "durationMin": 63,
-        "distanceM": 10911,
-        "intensityZone": null,
-        "tssEstimate": 42.0,
-        "sentToWatch": true,
-        "intervalsWorkoutId": "104935415",
-        "planId": "uuid | null",
-        "week": null,
-        "phase": null
-      }
-    ]
-  }
-}
-```
-
-**Distinção origem:**
-- `planId != null` → gerado pelo plano Endura (IA)
-- `intervalsWorkoutId != null && planId == null` → importado do intervals.icu
-
----
-
-### `GET /api/v1/public/planned-workouts/:id`
-
-Detalhe completo do treino planejado, incluindo `structure` (JSONB com steps) e `nutritionProtocol`.
-
-**Response:**
-```json
-{
-  "data": {
-    "id": "uuid",
-    "scheduledDate": "2026-04-18",
-    "discipline": "run",
-    "title": "Série de pace",
-    "structure": { "steps": [ ... ] },
-    "nutritionProtocol": {
-      "id": "uuid",
-      "items": [ ... ],
-      "totalCarbsG": "60.0",
-      "totalSodiumMg": "400.0",
-      "totalCaffeineMg": "0.0",
-      "totalKcal": 240
-    }
-  }
-}
-```
-
----
-
-### `GET /api/v1/public/wellness`
-
-Métricas diárias de recuperação (HRV, sono, peso, SpO2, stress, etc).
-
-**Query params:** `from`, `to` (default: 30 dias)
-
-**Response:**
-```json
-{
-  "data": {
-    "range": { "from": "2026-03-18", "to": "2026-04-17" },
-    "items": [
-      {
-        "date": "2026-04-17",
-        "hrvMs": 58.2,
-        "restingHr": 48,
-        "sleepDurationH": 7.3,
-        "sleepScore": 82,
-        "spo2": 97,
-        "stressLevel": 22,
-        "bodyBattery": 78,
-        "weightKg": 72.4,
-        "source": "intervals_icu"
-      }
-    ]
-  }
-}
-```
-
----
-
-### `GET /api/v1/public/performance/pmc`
-
-Performance Management Chart: **CTL** (Fitness, EMA 42d do TSS), **ATL** (Fatigue, EMA 7d), **TSB** (Form = CTL - ATL).
-
-**Query params:** `from`, `to` (default: 90 dias)
-
-**Response:**
-```json
-{
-  "data": {
-    "range": { "from": "2026-01-17", "to": "2026-04-17" },
-    "items": [
-      { "date": "2026-04-17", "tss": 42.0, "ctl": 48.3, "atl": 52.1, "tsb": -3.8 }
-    ]
-  }
-}
-```
-
-**Interpretação:**
-- `tsb > 10`: descansado/fresco (risco de destreinamento se persistir)
-- `tsb` entre `-10` e `10`: equilíbrio ótimo
-- `tsb < -30`: risco de overtraining
-- `ctl` crescendo: ganho de condicionamento
-
----
-
-### `GET /api/v1/public/performance/readiness`
-
-Avaliação de prontidão mais recente (score AI + fatores).
-
-**Response:**
-```json
-{
-  "data": {
-    "date": "2026-04-17",
-    "readinessScore": 76,
-    "readinessLevel": "moderate",
-    "fatigueScore": 58.2,
-    "mentorRecommendation": "Bom para treino moderado (Z2/Z3). HRV acima da baseline.",
-    "ctl": 48.3, "atl": 52.1, "tsb": -3.8,
-    "hrvMs": 58.2, "restingHr": 48, "sleepScore": 82
-  }
-}
-```
-
-`readinessLevel`: `intense` | `moderate` | `light` | `rest`
-
----
-
-### `GET /api/v1/public/race-goals`
-
-Provas cadastradas (ativas e arquivadas), ordem cronológica ascendente.
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "distance": "70.3",
-      "raceDate": "2026-09-12",
-      "goal": "competitive",
-      "targetTime": 18000,
-      "raceName": "IM 70.3 Rio",
-      "bikeElevationGainM": "850.00",
-      "runElevationGainM": "120.00",
-      "active": true
-    }
-  ]
-}
-```
-
-`distance`: `sprint` | `olympic` | `70.3` | `140.6` | `5k` | `10k` | `21k` | `42k` | ...
-`goal`: `finish` | `competitive` | `qualifying`
-
----
-
-### `GET /api/v1/public/fitness-tests`
-
-Testes de fitness realizados (FTP bike, T30 swim, Cooper run, etc), mais recentes primeiro.
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "testType": "bike_ftp20",
-      "testDate": "2026-04-10",
-      "durationSec": 1200,
-      "distanceM": "14200.00",
-      "avgPowerW": 246,
-      "avgHr": 168,
-      "derivedPace": null,
-      "derivedFtp": 234,
-      "derivedVo2max": null,
-      "notes": "Vento lateral"
-    }
-  ]
-}
-```
-
-`testType`: `bike_ftp20` | `swim_t30` | `run_cooper12` | `run_5k` | ...
-
----
-
-## Modelo de dados resumido (para LLMs)
+## Modelo de dados resumido
 
 ```
 user
- └─ athleteProfile (1:1)
- ├─ activities (N)      ← executadas, source=strava|manual|garmin
- ├─ plannedWorkouts (N) ← origem: plan AI ou intervals.icu
+ ├─ athleteProfile (1:1)
+ ├─ activities (N)        ← executadas
+ │   ├─ nutritionLog (1:1)
+ │   │   └─ nutritionItems (N) [phase, minuteOffset, productName, macros]
+ │   ├─ aiInsights (N)
+ │   └─ activityComments (N)
+ ├─ plannedWorkouts (N)   ← origem: plan AI ou intervals.icu
+ │   └─ nutritionProtocol (1:1)  ← prescrito
  ├─ raceGoals (N)
  ├─ fitnessTests (N)
- └─ dailyMetrics (N)    ← wellness + PMC (CTL/ATL/TSB) por data
+ ├─ dailyMetrics (N)      ← wellness + PMC por data
+ ├─ dailyCheckins (N)     ← feeling/soreness subjetivo
+ └─ supplementPresets (N)
 ```
 
-**Vínculo treino planejado ↔ atividade:** `activities.plannedWorkoutId → plannedWorkouts.id`. Quando a atividade foi "o cumprimento" de um treino planejado, o vínculo existe. Caso contrário `plannedWorkoutId = null`.
-
----
-
-## Exemplos de uso
-
-### curl — snapshot rápido
-
-```bash
-curl -H "X-API-Key: endura_sk_XXX" \
-  https://api.endura.app/api/v1/public/summary | jq
-```
-
-### curl — atividades da última semana
-
-```bash
-curl -H "X-API-Key: endura_sk_XXX" \
-  "https://api.endura.app/api/v1/public/activities?from=2026-04-10&to=2026-04-17" | jq
-```
-
-### Python
-
-```python
-import httpx
-
-API_KEY = "endura_sk_XXX"
-BASE = "https://api.endura.app/api/v1/public"
-h = {"X-API-Key": API_KEY}
-
-with httpx.Client(headers=h, base_url=BASE, timeout=10) as c:
-    summary = c.get("/summary").json()["data"]
-    pmc = c.get("/performance/pmc", params={"from": "2026-03-01"}).json()["data"]
-    print(f"TSB atual: {summary['latestWellness']['tsb']}")
-```
-
-### Prompt inicial para LLM
-
-```
-Você é um assistente de treino. Para responder, consulte a Endura Public API.
-
-Autenticação: header `X-API-Key: endura_sk_XXX`
-Base URL: https://api.endura.app
-
-Endpoints principais:
-- GET /api/v1/public/summary — estado atual (use primeiro)
-- GET /api/v1/public/activities?from=&to= — histórico executado
-- GET /api/v1/public/planned-workouts?from=&to= — próximos treinos
-- GET /api/v1/public/performance/pmc?from=&to= — CTL/ATL/TSB
-- GET /api/v1/public/wellness?from=&to= — HRV, sono, peso
-
-Regras:
-- Toda distância em metros, duração em segundos (activities) ou minutos (planejados)
-- Datas em YYYY-MM-DD
-- Disciplinas: run, bike, swim, other
-- Antes de recomendar intensidade, consulte /performance/readiness
-```
+`activities.plannedWorkoutId → plannedWorkouts.id` quando a atividade cumpre um treino planejado.
 
 ---
 
 ## Segurança
 
-- A key é **armazenada hasheada (SHA-256)** no banco. O texto puro existe apenas na resposta de criação.
-- Hash comparado em tempo constante via lookup indexado.
-- Revogação é imediata (`revoked_at`) — keys revogadas não autenticam mesmo que válidas em cache de cliente.
-- `last_used_at` é atualizado em fire-and-forget (não bloqueia latência).
-- Uma key compromete apenas dados do próprio usuário. Não há acesso cross-tenant.
+- Keys hasheadas (SHA-256). Texto plano só existe na resposta de criação.
+- Revogação imediata (`revoked_at`), expiração opcional (`expires_at`).
+- `last_used_at` atualizado em fire-and-forget.
+- Audit log de escritas com retenção 90d.
+- Uma key compromete apenas dados do próprio usuário.
+
+---
 
 ## Changelog
 
-- **2026-04-17** — v1 inicial: /me, /summary, /activities, /planned-workouts, /wellness, /performance/pmc, /performance/readiness, /race-goals, /fitness-tests
+- **2026-05-11** — v1.1: scopes granulares, expiresAt opcional, audit log, 13 novos endpoints (writes de nutrição/feedback/checkin/comments, leituras de insights/comments/nutrition/catalog, analytics), discovery via `/openapi.json` e `/openapi/tools.json`.
+- **2026-04-17** — v1 inicial.

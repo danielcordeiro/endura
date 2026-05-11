@@ -573,6 +573,7 @@ export const apiKeys = pgTable('api_keys', {
   keyHash: varchar('key_hash', { length: 64 }).notNull().unique(),
   keyPrefix: varchar('key_prefix', { length: 24 }).notNull(),
   scopes: text('scopes').array().default(['read:all']),
+  expiresAt: timestamp('expires_at'),
   lastUsedAt: timestamp('last_used_at'),
   createdAt: timestamp('created_at').defaultNow(),
   revokedAt: timestamp('revoked_at'),
@@ -587,3 +588,19 @@ export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// ── AUDIT LOG DE OPERACOES DE ESCRITA VIA API KEY ────────────────
+
+export const apiAuditLogs = pgTable('api_audit_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  apiKeyId: uuid('api_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  method: varchar('method', { length: 10 }).notNull(),
+  path: varchar('path', { length: 255 }).notNull(),
+  statusCode: integer('status_code').notNull(),
+  resourceId: varchar('resource_id', { length: 100 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  index('idx_api_audit_logs_user_created').on(table.userId, table.createdAt),
+  index('idx_api_audit_logs_key_created').on(table.apiKeyId, table.createdAt),
+]);

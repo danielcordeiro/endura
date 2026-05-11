@@ -28,14 +28,19 @@ const nutritionItemBase = z.object({
   sodiumMg: z.number().min(0).optional(),
   caffeineMg: z.number().min(0).optional(),
   kcal: z.number().int().min(0).optional(),
-  source: z.string().optional().default('manual'),
+  source: z.enum(['manual', 'protocol', 'ocr', 'agent']).optional().default('manual'),
 });
 
-export const createItemBody = nutritionItemBase;
-export const updateItemBody = nutritionItemBase.partial();
+export const createItemBody = nutritionItemBase.strict();
+export const updateItemBody = nutritionItemBase.partial().strict();
+
+export const bulkItemsBody = z.object({
+  items: z.array(nutritionItemBase).min(1, 'items nao pode ser vazio').max(30, 'Max 30 items por chamada'),
+}).strict();
 
 export type CreateItemBody = z.infer<typeof createItemBody>;
 export type UpdateItemBody = z.infer<typeof updateItemBody>;
+export type BulkItemsBody = z.infer<typeof bulkItemsBody>;
 
 // ── Preset de suplementacao ───────────────────────────────────────
 

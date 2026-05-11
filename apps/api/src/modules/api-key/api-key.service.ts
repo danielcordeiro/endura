@@ -1,7 +1,8 @@
 import { randomBytes, createHash } from 'node:crypto';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, or, gt } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
+import { normalizeScopes, READ_ONLY_BUNDLE, type Scope } from './scopes.js';
 
 // ── Constantes ──────────────────────────────────────────────────
 
@@ -27,20 +28,28 @@ function maskKey(plainKey: string): string {
 
 // ── Tipos ───────────────────────────────────────────────────────
 
+export interface CreateApiKeyInput {
+  name: string;
+  scopes?: Scope[];
+  expiresInDays?: number | null; // null/undefined = sem expiracao
+}
+
 export interface ApiKeyCreatedDTO {
   id: string;
   name: string;
   key: string; // plain text — mostrado UMA vez
   prefix: string;
   scopes: string[];
+  expiresAt: string | null;
   createdAt: string;
 }
 
 export interface ApiKeyListItemDTO {
   id: string;
   name: string;
-  prefix: string; // ex: endura_sk_AbCd12...XyZ9
+  prefix: string;
   scopes: string[];
+  expiresAt: string | null;
   lastUsedAt: string | null;
   createdAt: string;
   revokedAt: string | null;
@@ -48,18 +57,29 @@ export interface ApiKeyListItemDTO {
 
 // ── Criacao ─────────────────────────────────────────────────────
 
-export async function createApiKey(userId: string, name: string): Promise<ApiKeyCreatedDTO> {
+export async function createApiKey(userId: string, input: CreateApiKeyInput): Promise<ApiKeyCreatedDTO> {
   const plainKey = `${KEY_PREFIX}${generateRandomToken()}`;
   const keyHash = hashKey(plainKey);
   const keyPrefix = maskKey(plainKey);
-  const scopes = ['read:all'];
+  const normalizedScopes = input.scopes && input.scopes.length > 0
+    ? normalizeScopes(input.scopes)
+    : READ_ONLY_BUNDLE;
+
+  if (normalizedScopes.length === 0) {
+    throw { code: 'ERR_INVALID_SCOPES', message: 'Nenhum scope valido informado', status: 400 };
+  }
+
+  const expiresAt = input.expiresInDays && input.expiresInDays > 0
+    ? new Date(Date.now() + input.expiresInDays * 86400_000)
+    : null;
 
   const [row] = await db.insert(schema.apiKeys).values({
     userId,
-    name,
+    name: input.name,
     keyHash,
     keyPrefix,
-    scopes,
+    scopes: normalizedScopes,
+    expiresAt,
   }).returning();
 
   if (!row) {
@@ -71,7 +91,8 @@ export async function createApiKey(userId: string, name: string): Promise<ApiKey
     name: row.name,
     key: plainKey,
     prefix: row.keyPrefix,
-    scopes: row.scopes ?? scopes,
+    scopes: row.scopes ?? normalizedScopes,
+    expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
     createdAt: (row.createdAt ?? new Date()).toISOString(),
   };
 }
@@ -89,6 +110,7 @@ export async function listApiKeys(userId: string): Promise<ApiKeyListItemDTO[]> 
     name: r.name,
     prefix: r.keyPrefix,
     scopes: r.scopes ?? [],
+    expiresAt: r.expiresAt ? r.expiresAt.toISOString() : null,
     lastUsedAt: r.lastUsedAt ? r.lastUsedAt.toISOString() : null,
     createdAt: (r.createdAt ?? new Date()).toISOString(),
     revokedAt: r.revokedAt ? r.revokedAt.toISOString() : null,
@@ -122,6 +144,7 @@ export async function validateApiKey(plainKey: string): Promise<{ userId: string
     where: and(
       eq(schema.apiKeys.keyHash, keyHash),
       isNull(schema.apiKeys.revokedAt),
+      or(isNull(schema.apiKeys.expiresAt), gt(schema.apiKeys.expiresAt, new Date())),
     ),
   });
 

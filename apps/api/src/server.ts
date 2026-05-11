@@ -20,10 +20,13 @@ import performanceRoutes from './modules/performance/performance.routes.js';
 import fitnessTestsRoutes from './modules/fitness-tests/fitness-tests.routes.js';
 import apiKeyRoutes from './modules/api-key/api-key.routes.js';
 import publicApiRoutes from './modules/public-api/public-api.routes.js';
+import openapiRoutes from './modules/public-api/openapi.routes.js';
+import llmManualRoutes from './modules/public-api/llm-manual.routes.js';
 import { startStravaSyncJob } from './jobs/strava-sync.job.js';
 import { startTokenRefreshJob } from './jobs/token-refresh.job.js';
 import { startWellnessSyncJob } from './jobs/wellness-sync.job.js';
 import { startIntervalsActivitiesSyncJob } from './jobs/intervals-activities-sync.job.js';
+import { startAuditLogCleanupJob } from './jobs/audit-log-cleanup.job.js';
 import { db } from './lib/db.js';
 import { sql } from 'drizzle-orm';
 
@@ -65,14 +68,24 @@ await app.register(rateLimit, {
 });
 
 // ── API publica: rate-limit dedicado em escopo isolado ────────────
+// Reads: 120 req/min. Writes (POST/PUT/DELETE): 30 req/min — protegem o agente
+// IA contra loops bug e a infra contra abuso.
 await app.register(async (scope) => {
   await scope.register(rateLimit, {
-    max: 120,
+    max: (request) => {
+      const method = request.method.toUpperCase();
+      return method === 'GET' || method === 'HEAD' || method === 'OPTIONS' ? 120 : 30;
+    },
     timeWindow: '1 minute',
-    global: true, // aplica a todas rotas do escopo
+    global: true,
   });
   await scope.register(publicApiRoutes);
 });
+
+// ── Discovery: OpenAPI spec + tools.json + llm-manual + llms.txt (SEM auth) ──
+// Servidos em escopo isolado pra ficar fora dos hooks de api key.
+await app.register(openapiRoutes);
+await app.register(llmManualRoutes);
 
 // ── Health check ──────────────────────────────────────────────────
 app.get('/health', async () => {
@@ -105,6 +118,7 @@ startStravaSyncJob();
 startTokenRefreshJob();
 startWellnessSyncJob();
 startIntervalsActivitiesSyncJob();
+startAuditLogCleanupJob();
 
 // ── Start ─────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 8080);

@@ -1,12 +1,24 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { validateApiKey } from './api-key.service.js';
+import { satisfies, type Scope } from './scopes.js';
+
+// ── Augmentacao do tipo FastifyRequest ────────────────────────────
+// userId/userRole ja sao declarados em auth.middleware.ts; apenas
+// adicionamos os campos especificos de API Key.
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    apiKeyId?: string;
+    apiKeyScopes?: readonly string[];
+  }
+}
 
 /**
  * Middleware para autenticacao via API Key (publica).
  * Aceita:
  *   - Header "X-API-Key: endura_sk_..."
  *   - Header "Authorization: Bearer endura_sk_..."
- * Define request.userId quando valida.
+ * Define request.userId, request.apiKeyId e request.apiKeyScopes quando valida.
  * Retorna 401 quando ausente ou invalida.
  */
 export async function authenticateApiKey(
@@ -41,7 +53,7 @@ export async function authenticateApiKey(
     if (!result) {
       reply.status(401).send({
         code: 'ERR_INVALID_API_KEY',
-        message: 'API Key invalida ou revogada',
+        message: 'API Key invalida, expirada ou revogada',
         status: 401,
       });
       return;
@@ -49,6 +61,8 @@ export async function authenticateApiKey(
 
     request.userId = result.userId;
     request.userRole = 'api';
+    request.apiKeyId = result.keyId;
+    request.apiKeyScopes = result.scopes;
   } catch (err) {
     request.log.error(err, 'Erro ao validar API Key');
     reply.status(500).send({
@@ -57,4 +71,26 @@ export async function authenticateApiKey(
       status: 500,
     });
   }
+}
+
+/**
+ * Hook factory que rejeita requests cuja API Key nao possui o scope informado.
+ * Deve ser registrado APOS authenticateApiKey:
+ *
+ *   { onRequest: [authenticateApiKey, requireScope('write:nutrition')] }
+ *
+ * Wildcards `read:all` e `write:all` satisfazem qualquer scope da sua familia
+ * — preserva keys legacy criadas com scope `['read:all']`.
+ */
+export function requireScope(scope: Scope) {
+  return async function scopeGuard(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const granted = request.apiKeyScopes ?? [];
+    if (!satisfies(granted, scope)) {
+      reply.status(403).send({
+        code: 'ERR_INSUFFICIENT_SCOPE',
+        message: `API Key nao possui o scope necessario: ${scope}`,
+        status: 403,
+      });
+    }
+  };
 }
