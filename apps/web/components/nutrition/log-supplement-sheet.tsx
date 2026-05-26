@@ -23,8 +23,8 @@ interface LogSupplementSheetProps {
 
 interface LogPayload {
   phase: Phase;
-  product: string;
-  quantity: string;
+  productName: string;
+  quantity: number;
   carbsG: number;
   sodiumMg: number;
   caffeineMg: number;
@@ -97,8 +97,8 @@ export function LogSupplementSheet({
 
     mutation.mutate({
       phase,
-      product: product.trim(),
-      quantity: quantity.trim(),
+      productName: product.trim(),
+      quantity: Number(quantity) || 1,
       carbsG: Number(carbsG) || 0,
       sodiumMg: Number(sodiumMg) || 0,
       caffeineMg: Number(caffeineMg) || 0,
