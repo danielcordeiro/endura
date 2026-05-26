@@ -42,6 +42,7 @@ const products = [
   { name: 'Hydra 10 Isotonic', brand: 'Exceed', category: 'isotonic', servingSize: '1 sachet (30g)', carbsG: '27.00', sodiumMg: '200.00', caffeineMg: '0.00', kcal: 108 },
   { name: 'Isotonic Sports Drink', brand: 'Probiotica', category: 'isotonic', servingSize: '1 scoop (30g)', carbsG: '25.00', sodiumMg: '180.00', caffeineMg: '0.00', kcal: 100 },
   { name: 'HEED Sports Drink', brand: 'Hammer', category: 'isotonic', servingSize: '1 scoop (29g)', carbsG: '26.00', sodiumMg: '40.00', caffeineMg: '0.00', kcal: 106 },
+  { name: 'Hydrolite', brand: 'Dux', category: 'isotonic', servingSize: '1 scoop (23g)', carbsG: '20.00', sodiumMg: '222.00', caffeineMg: '0.00', kcal: 80 },
 
   // ── Barras ──
   { name: 'GO Energy Bar', brand: 'SiS', category: 'bar', servingSize: '1 bar (40g)', carbsG: '26.00', sodiumMg: '30.00', caffeineMg: '0.00', kcal: 148 },
