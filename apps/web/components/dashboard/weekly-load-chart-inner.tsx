@@ -37,7 +37,7 @@ function CustomTooltip(props: any) {
       fontSize: 12,
       boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
     }}>
-      <p style={{ color: '#94a3b8', marginBottom: 4 }}>{label ? formatDay(String(label)) : ''}</p>
+      <p style={{ color: '#94a3b8', marginBottom: 4 }}>{label ? String(label) : ''}</p>
       <p style={{ color: '#fff', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
         TSS: {isFinite(val) ? val.toFixed(0) : '—'}
       </p>
