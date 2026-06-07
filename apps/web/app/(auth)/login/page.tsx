@@ -163,44 +163,45 @@ function LoginPageInner() {
   }
 
   const inputClass =
-    'w-full h-14 px-5 bg-[#1c262f] border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 text-[15px] outline-none transition-colors focus:border-primary';
+    'w-full h-14 px-5 bg-bg-surface border border-border-strong/50 rounded-2xl text-text-primary placeholder:text-text-muted text-[15px] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20';
 
   return (
     <div className="w-full max-w-[400px] animate-fade-in-up">
       {/* Logo */}
       <div className="text-center mb-10">
-        <div className="flex items-center justify-center gap-3 mb-3">
-          <span className="material-symbols-outlined text-primary text-4xl">bolt</span>
-          <h1 className="font-bold text-[48px] leading-none text-white tracking-tight">
+        <div className="inline-flex items-center justify-center gap-3 mb-3">
+          <span className="relative flex items-center justify-center">
+            <span className="absolute inset-0 -m-2 rounded-full bg-primary/20 blur-lg" aria-hidden="true" />
+            <span className="material-symbols-outlined relative text-primary text-4xl">bolt</span>
+          </span>
+          <h1 className="font-bold text-[48px] leading-none text-text-primary tracking-tight">
             ENDURA
           </h1>
         </div>
-        <p className="text-slate-400 text-sm">
+        <p className="text-text-secondary text-sm">
           Performance para triatletas
         </p>
       </div>
 
       {/* Tab Toggle — segmented pill */}
-      <div className="flex mb-8 bg-[#1c262f] border border-slate-700/50 rounded-full p-1.5 gap-1">
+      <div className="segmented mb-8 h-12" role="tablist">
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'login'}
           onClick={() => switchTab('login')}
-          className={`flex-1 h-11 rounded-full text-sm font-semibold transition-all ${
-            activeTab === 'login'
-              ? 'bg-primary text-white shadow-md'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          data-active={activeTab === 'login'}
+          className="segmented-item"
         >
           Entrar
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'register'}
           onClick={() => switchTab('register')}
-          className={`flex-1 h-11 rounded-full text-sm font-semibold transition-all ${
-            activeTab === 'register'
-              ? 'bg-primary text-white shadow-md'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          data-active={activeTab === 'register'}
+          className="segmented-item"
         >
           Criar conta
         </button>
@@ -208,8 +209,8 @@ function LoginPageInner() {
 
       {/* Error banner */}
       {errors.general && (
-        <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-[13px] flex items-center gap-2">
-          <span className="material-symbols-outlined text-base text-red-400">error</span>
+        <div className="mb-4 p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[13px] flex items-center gap-2" role="alert">
+          <span className="material-symbols-outlined text-base shrink-0" aria-hidden="true">error</span>
           {errors.general}
         </div>
       )}
@@ -227,7 +228,7 @@ function LoginPageInner() {
               autoComplete="email"
             />
             {errors.email && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.email}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.email}</p>
             )}
           </div>
           <div>
@@ -240,7 +241,7 @@ function LoginPageInner() {
               autoComplete="current-password"
             />
             {errors.password && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.password}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.password}</p>
             )}
           </div>
           <Button type="submit" fullWidth loading={isLoading}>
@@ -249,9 +250,9 @@ function LoginPageInner() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-2">
-            <div className="flex-1 h-px bg-slate-700/50" />
-            <span className="text-slate-500 text-xs uppercase tracking-wider">ou</span>
-            <div className="flex-1 h-px bg-slate-700/50" />
+            <div className="flex-1 h-px bg-border-strong/50" />
+            <span className="text-text-muted text-xs uppercase tracking-wider">ou</span>
+            <div className="flex-1 h-px bg-border-strong/50" />
           </div>
 
           {/* Strava OAuth */}
@@ -287,7 +288,7 @@ function LoginPageInner() {
               autoComplete="name"
             />
             {errors.name && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.name}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.name}</p>
             )}
           </div>
           <div>
@@ -300,7 +301,7 @@ function LoginPageInner() {
               autoComplete="email"
             />
             {errors.email && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.email}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.email}</p>
             )}
           </div>
           <div>
@@ -313,7 +314,7 @@ function LoginPageInner() {
               autoComplete="new-password"
             />
             {errors.password && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.password}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.password}</p>
             )}
           </div>
           <div>
@@ -326,7 +327,7 @@ function LoginPageInner() {
               autoComplete="new-password"
             />
             {errors.confirmPassword && (
-              <p className="mt-1.5 text-red-400 text-[12px] pl-1">{errors.confirmPassword}</p>
+              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.confirmPassword}</p>
             )}
           </div>
           <Button type="submit" fullWidth loading={isLoading}>

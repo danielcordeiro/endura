@@ -15,11 +15,11 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary: [
     'bg-primary text-white font-bold',
     'shadow-lg shadow-primary/25',
-    'hover:bg-blue-600',
+    'hover:bg-primary-hover',
     'active:scale-[0.98]',
   ].join(' '),
   secondary: [
-    'bg-bg-surface border border-slate-700/50 text-text-primary',
+    'bg-bg-surface border border-border-strong/50 text-text-primary',
     'hover:bg-bg-elevated',
     'active:scale-[0.98]',
   ].join(' '),

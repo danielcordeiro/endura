@@ -249,7 +249,7 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-7 pb-6">
       <HeaderSkeleton />
-      <div className="rounded-card bg-bg-surface p-6 shadow-xl ring-1 ring-white/5 space-y-4">
+      <div className="rounded-card bg-bg-surface p-6 shadow-xl ring-1 ring-hairline space-y-4">
         <div className="skeleton h-7 w-40 rounded-full" />
         <div className="flex items-end justify-between">
           <div className="skeleton h-14 w-32 rounded" />
@@ -264,7 +264,7 @@ function DashboardSkeleton() {
       <div className="skeleton h-40 w-full rounded-card" />
       <div className="grid grid-cols-2 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-2xl bg-bg-surface ring-1 ring-white/5 p-5 space-y-3">
+          <div key={i} className="rounded-2xl bg-bg-surface ring-1 ring-hairline p-5 space-y-3">
             <div className="skeleton h-3 w-16 rounded" />
             <div className="skeleton h-8 w-12 rounded" />
           </div>
@@ -427,51 +427,50 @@ export default function DashboardPage() {
   return (
     <div className="space-y-7 pb-6">
       {/* ── Header ── */}
-      <div className="sticky top-0 z-10 bg-bg-base/80 backdrop-blur-xl pt-4 pb-3 animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+      <div className="sticky top-0 z-10 -mx-4 px-4 bg-bg-base/70 backdrop-blur-xl pt-4 pb-3 animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-heading font-bold text-sm shrink-0">
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center text-white font-heading font-bold text-sm shrink-0 ring-2 ring-primary/20 shadow-lg shadow-primary/20">
             {getUserInitials(user?.name ?? null)}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="font-heading text-lg font-bold text-slate-100 leading-tight truncate">
-              {getGreeting()}, {firstName}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted leading-none mb-1">
+              {getGreeting()}
+            </p>
+            <h1 className="font-heading text-xl font-bold text-text-primary leading-tight truncate">
+              {firstName || 'Atleta'}
             </h1>
-            <p className="text-sm text-slate-400">Vamos treinar?</p>
           </div>
           <Link
             href="/configuracoes"
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors active:scale-[0.98] shrink-0"
+            aria-label="Configurações"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-bg-surface border border-hairline text-text-secondary hover:text-text-primary hover:border-border-strong/50 transition-colors active:scale-[0.98] shrink-0"
           >
-            <span className="material-symbols-outlined text-xl">settings</span>
+            <span className="material-symbols-outlined text-xl" aria-hidden="true">settings</span>
           </Link>
         </div>
       </div>
 
       {/* ── Tab Switcher ── */}
       <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
-        <div className="flex gap-1 bg-bg-surface rounded-full p-1 ring-1 ring-white/5">
+        <div className="segmented h-12" role="tablist" aria-label="Visão do dashboard">
           <button
             onClick={() => setActiveTab('today')}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-bold transition-all',
-              activeTab === 'today'
-                ? 'bg-primary text-white shadow-lg'
-                : 'text-slate-400 hover:text-slate-200',
-            )}
+            role="tab"
+            aria-selected={activeTab === 'today'}
+            data-active={activeTab === 'today'}
+            className="segmented-item"
           >
-            <span className="material-symbols-outlined text-lg">today</span>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">today</span>
             Hoje
           </button>
           <button
             onClick={() => setActiveTab('performance')}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-bold transition-all',
-              activeTab === 'performance'
-                ? 'bg-primary text-white shadow-lg'
-                : 'text-slate-400 hover:text-slate-200',
-            )}
+            role="tab"
+            aria-selected={activeTab === 'performance'}
+            data-active={activeTab === 'performance'}
+            className="segmented-item"
           >
-            <span className="material-symbols-outlined text-lg">monitoring</span>
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">monitoring</span>
             Performance
           </button>
         </div>
@@ -487,7 +486,7 @@ export default function DashboardPage() {
           <h2 className="font-heading text-lg font-bold text-primary">
             Complete seu perfil
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-text-secondary mt-1">
             Configure seu perfil atletico e prova alvo para receber treinos personalizados.
           </p>
           <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary mt-3">
@@ -532,13 +531,13 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setShowRaceForm(true)}
-                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
+                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
                   <span className="material-symbols-outlined text-3xl text-primary">flag</span>
                 </div>
-                <h3 className="font-heading text-lg font-bold text-slate-100">Cadastrar Prova Alvo</h3>
-                <p className="text-sm text-slate-400 mt-1 max-w-[280px]">
+                <h3 className="font-heading text-lg font-bold text-text-primary">Cadastrar Prova Alvo</h3>
+                <p className="text-sm text-text-secondary mt-1 max-w-[280px]">
                   Defina sua proxima prova para acompanhar prontidao, previsao de tempo e periodizacao.
                 </p>
                 <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary mt-4">
@@ -556,7 +555,7 @@ export default function DashboardPage() {
           <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
             <SectionLabel
               action={
-                <span className="text-[11px] font-[var(--font-mono)] text-slate-400 bg-slate-800/60 px-2 py-1 rounded-md border border-slate-700/50">
+                <span className="text-[11px] font-[var(--font-mono)] text-text-secondary bg-bg-elevated/60 px-2 py-1 rounded-md border border-border-strong/50">
                   {new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
                 </span>
               }
@@ -565,16 +564,16 @@ export default function DashboardPage() {
             </SectionLabel>
 
             {todayWorkout ? (
-              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-xl">
                 <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-card-inner p-5">
                   <div className="flex items-start gap-4">
                     <div className={cn(
                       'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
-                      disciplineColors[todayWorkout.discipline]?.bg ?? 'bg-slate-700',
+                      disciplineColors[todayWorkout.discipline]?.bg ?? 'bg-bg-elevated',
                     )}>
                       <span className={cn(
                         'material-symbols-outlined text-2xl',
-                        disciplineColors[todayWorkout.discipline]?.text ?? 'text-slate-400',
+                        disciplineColors[todayWorkout.discipline]?.text ?? 'text-text-secondary',
                       )}>
                         {disciplineIcons[todayWorkout.discipline] ?? 'fitness_center'}
                       </span>
@@ -582,19 +581,19 @@ export default function DashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h2 className="font-heading text-lg font-bold text-slate-100 leading-tight">
+                          <h2 className="font-heading text-lg font-bold text-text-primary leading-tight">
                             {todayWorkout.title}
                           </h2>
                           {todayWorkout.structure && (
-                            <p className="text-xs text-slate-500 mt-0.5">Z2-Z3</p>
+                            <p className="text-xs text-text-muted mt-0.5">Z2-Z3</p>
                           )}
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-sm font-semibold text-slate-100">
+                          <p className="text-sm font-semibold text-text-primary">
                             {formatDuration(todayWorkout.durationMin)}
                           </p>
                           {todayWorkout.distanceM != null && (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-text-muted">
                               {formatDistance(todayWorkout.distanceM)}
                             </p>
                           )}
@@ -611,7 +610,7 @@ export default function DashboardPage() {
                   )}
 
                   {todayWorkout.structure && (
-                    <p className="text-xs text-slate-500 mt-3 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-text-muted mt-3 line-clamp-2 leading-relaxed">
                       {todayWorkout.structure.main}
                     </p>
                   )}
@@ -632,29 +631,29 @@ export default function DashboardPage() {
               </div>
             ) : todayActivity ? (
               <Link href="/atividades">
-                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
-                  <div className="bg-gradient-to-br from-emerald-900/40 to-[#1c242c] rounded-card-inner p-5">
+                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-xl">
+                  <div className="bg-gradient-to-br from-success/10 to-[#1c242c] rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(
                         'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
-                        disciplineColors[todayActivity.discipline]?.bg ?? 'bg-slate-700',
+                        disciplineColors[todayActivity.discipline]?.bg ?? 'bg-bg-elevated',
                       )}>
                         <span className={cn(
                           'material-symbols-outlined text-2xl',
-                          disciplineColors[todayActivity.discipline]?.text ?? 'text-slate-400',
+                          disciplineColors[todayActivity.discipline]?.text ?? 'text-text-secondary',
                         )}>
                           {disciplineIcons[todayActivity.discipline] ?? 'fitness_center'}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="material-symbols-outlined text-base text-emerald-400">check_circle</span>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Concluido</span>
+                          <span className="material-symbols-outlined text-base text-success">check_circle</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-success">Concluido</span>
                         </div>
-                        <h2 className="font-heading text-lg font-bold text-slate-100 leading-tight truncate">
+                        <h2 className="font-heading text-lg font-bold text-text-primary leading-tight truncate">
                           {todayActivity.title ?? `Treino ${todayActivity.discipline}`}
                         </h2>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                        <div className="flex items-center gap-3 mt-2 text-xs text-text-secondary">
                           <span>{formatDuration(todayActivity.durationMin)}</span>
                           {todayActivity.distanceM != null && (
                             <span>{formatDistance(todayActivity.distanceM)}</span>
@@ -672,12 +671,12 @@ export default function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
+              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
-                  <span className="material-symbols-outlined text-3xl text-slate-500">bedtime</span>
+                  <span className="material-symbols-outlined text-3xl text-text-muted">bedtime</span>
                 </div>
-                <h2 className="font-heading text-xl font-bold text-slate-100">Dia de descanso</h2>
-                <p className="text-sm text-slate-400 mt-2 max-w-[260px]">
+                <h2 className="font-heading text-xl font-bold text-text-primary">Dia de descanso</h2>
+                <p className="text-sm text-text-secondary mt-2 max-w-[260px]">
                   Aproveite para recuperar. Amanha voce volta mais forte.
                 </p>
               </div>
@@ -704,7 +703,7 @@ export default function DashboardPage() {
           <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
             <SectionLabel
               action={
-                <Link href="/atividades" className="text-primary text-sm font-medium hover:text-blue-400 transition-colors">
+                <Link href="/atividades" className="text-primary text-sm font-medium hover:text-primary-bright transition-colors">
                   Ver detalhes
                 </Link>
               }
@@ -834,12 +833,12 @@ export default function DashboardPage() {
 
             </>
           ) : (
-            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-white/5 shadow-xl flex flex-col items-center text-center">
+            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
-                <span className="material-symbols-outlined text-3xl text-slate-500">monitoring</span>
+                <span className="material-symbols-outlined text-3xl text-text-muted">monitoring</span>
               </div>
-              <h2 className="font-heading text-xl font-bold text-slate-100">Sem dados de performance</h2>
-              <p className="text-sm text-slate-400 mt-2 max-w-[280px]">
+              <h2 className="font-heading text-xl font-bold text-text-primary">Sem dados de performance</h2>
+              <p className="text-sm text-text-secondary mt-2 max-w-[280px]">
                 Conecte o Strava e sincronize suas atividades para ver seus dados de performance.
               </p>
               <Link href="/configuracoes" className="mt-4">

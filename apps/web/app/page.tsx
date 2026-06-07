@@ -31,7 +31,7 @@ export default function Home() {
   if (!hydrated || token) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-bg-base">
-        <span className="material-symbols-outlined text-4xl text-slate-600 animate-spin">
+        <span className="material-symbols-outlined text-4xl text-text-muted animate-spin">
           progress_activity
         </span>
       </main>
@@ -51,14 +51,14 @@ export default function Home() {
       <h1 className="font-bold text-[56px] leading-none text-primary tracking-tight">
         ENDURA
       </h1>
-      <p className="text-slate-500 text-sm uppercase tracking-[0.2em] mt-3">
+      <p className="text-text-secondary text-sm uppercase tracking-[0.2em] mt-3">
         Performance para triatletas
       </p>
 
       <div className="mt-12">
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold uppercase tracking-wider text-white shadow-lg shadow-primary/25 transition-all hover:bg-blue-600 active:scale-[0.98]"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold uppercase tracking-wider text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-hover active:scale-[0.98]"
         >
           Entrar
           <span className="material-symbols-outlined text-xl">arrow_forward</span>
@@ -66,7 +66,7 @@ export default function Home() {
       </div>
 
       {/* Version */}
-      <p className="absolute bottom-8 text-xs text-slate-600 font-[var(--font-mono)]">
+      <p className="absolute bottom-8 text-xs text-text-faint font-[var(--font-mono)]">
         v1.0.0
       </p>
     </main>

@@ -16,29 +16,43 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#283139] bg-[#1c2227]/95 backdrop-blur-lg px-4 pb-6 pt-2">
-      <div className="flex items-center justify-between max-w-sm mx-auto w-full">
+    <nav
+      aria-label="Navegação principal"
+      className="glass-nav fixed bottom-0 left-0 right-0 z-40 px-2 pt-1.5"
+      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+    >
+      <div className="flex items-stretch justify-between max-w-sm mx-auto w-full">
         {tabs.map(({ href, label, icon }) => {
           const isActive = pathname.startsWith(href);
           return (
             <Link
               key={href}
               href={href}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-1 group transition-colors',
-                isActive ? 'text-primary' : 'text-[#9dacb9] hover:text-white',
+                'group relative flex flex-1 flex-col items-center justify-center gap-1 py-1.5 rounded-xl transition-colors',
+                isActive ? 'text-primary' : 'text-text-secondary hover:text-text-primary',
               )}
             >
+              {/* indicador ativo */}
               <span
+                aria-hidden="true"
                 className={cn(
-                  'material-symbols-outlined text-[24px] transition-transform',
-                  !isActive && 'group-hover:scale-110',
+                  'absolute -top-1.5 h-1 w-1 rounded-full bg-primary transition-all duration-300',
+                  isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-0',
                 )}
-                style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400" } : undefined}
+              />
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'material-symbols-outlined text-[24px] transition-transform duration-200',
+                  isActive ? 'scale-105' : 'group-hover:scale-110 group-active:scale-95',
+                )}
+                style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 500" } : undefined}
               >
                 {icon}
               </span>
-              <span className="text-[10px] font-medium tracking-wide">
+              <span className={cn('text-[10px] tracking-wide', isActive ? 'font-semibold' : 'font-medium')}>
                 {label}
               </span>
             </Link>
