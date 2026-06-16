@@ -25,6 +25,7 @@ const products = [
   { name: 'Energy Gel', brand: 'Exceed', category: 'gel', servingSize: '1 sachet (30g)', carbsG: '20.00', sodiumMg: '50.00', caffeineMg: '0.00', kcal: 84 },
   { name: 'Energy Gel Caffeine', brand: 'Exceed', category: 'gel', servingSize: '1 sachet (30g)', carbsG: '20.00', sodiumMg: '50.00', caffeineMg: '30.00', kcal: 84 },
   { name: 'Speed Gel', brand: 'Z2N', category: 'gel', servingSize: '1 sachet (30g)', carbsG: '22.00', sodiumMg: '30.00', caffeineMg: '0.00', kcal: 88 },
+  { name: 'EnerGel Black', brand: 'BodyAction', category: 'gel', servingSize: '1 sachet (30g)', carbsG: '19.00', sodiumMg: '57.00', caffeineMg: '11.00', kcal: 76 },
 
   // ── Isotônicos / Bebidas ──
   { name: 'Beta Fuel 80 Drink Mix', brand: 'SiS', category: 'isotonic', servingSize: '1 scoop (82g)', carbsG: '80.00', sodiumMg: '500.00', caffeineMg: '0.00', kcal: 320 },
