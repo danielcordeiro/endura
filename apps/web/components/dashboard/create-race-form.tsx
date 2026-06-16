@@ -67,7 +67,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up max-h-[85vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up max-h-[85dvh] overflow-y-auto">
         {/* Handle */}
         <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
 
@@ -247,7 +247,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Error */}
           {mutation.isError && (
-            <p className="text-sm text-rose-400">Erro ao cadastrar prova. Tente novamente.</p>
+            <p className="text-sm text-danger">Erro ao cadastrar prova. Tente novamente.</p>
           )}
 
           {/* Actions */}

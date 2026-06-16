@@ -183,7 +183,7 @@ export default function AtividadesPage() {
       </div>
 
       {/* Discipline pill filters */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
         {disciplineOptions.map((opt) => (
           <button
             key={opt.value}
@@ -242,7 +242,7 @@ export default function AtividadesPage() {
           {Object.entries(grouped).map(([month, activities]) => (
             <Fragment key={month}>
               {/* Sticky month header */}
-              <div className="sticky top-0 z-10 -mx-5 px-5 py-2.5 bg-[#101a22]/95 backdrop-blur-md">
+              <div className="sticky top-0 z-10 -mx-4 px-4 py-2.5 bg-bg-base/85 backdrop-blur-md">
                 <h2 className="font-heading font-semibold text-[12px] text-slate-500 uppercase tracking-[0.12em]">
                   {month}
                 </h2>
@@ -320,7 +320,7 @@ export default function AtividadesPage() {
               'w-full inline-flex items-center justify-center gap-2 h-14 rounded-full',
               'bg-primary text-white font-bold text-sm',
               'shadow-lg shadow-primary/25',
-              'hover:bg-blue-600 transition-all duration-200',
+              'hover:bg-primary-hover transition-all duration-200',
               'active:scale-[0.98]',
               'disabled:opacity-50',
             )}

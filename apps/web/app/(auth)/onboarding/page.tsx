@@ -238,7 +238,7 @@ export default function OnboardingPage() {
       {step === 2 && <Step2 data={data} update={update} inputClass={inputClass} />}
       {step === 3 && <Step3 data={data} update={update} inputClass={inputClass} />}
       {step === 4 && <Step4 data={data} update={update} inputClass={inputClass} />}
-      {step === 5 && <Step5 data={data} update={update} />}
+      {step === 5 && <Step5 data={data} update={update} onSkip={handleSubmit} />}
 
       {/* Navigation */}
       <div className="mt-8 flex items-center gap-3">
@@ -725,7 +725,7 @@ function Step4({ data, update, inputClass }: StepProps) {
    Step 5 — Integrações
    ═══════════════════════════════════════════════════════ */
 
-function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
+function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSkip: () => void }) {
   function handleConnectStrava() {
     window.location.href = `${API_URL}/api/integrations/strava/connect`;
   }
@@ -809,7 +809,8 @@ function Step5({ data, update }: Omit<StepProps, 'inputClass'>) {
       <div className="text-center">
         <button
           type="button"
-          className="text-slate-500 text-sm hover:text-slate-300 transition-colors underline underline-offset-4"
+          onClick={onSkip}
+          className="text-text-muted text-sm hover:text-text-secondary transition-colors underline underline-offset-4"
         >
           Pular por enquanto
         </button>

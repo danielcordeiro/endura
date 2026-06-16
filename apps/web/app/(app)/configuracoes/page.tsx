@@ -130,7 +130,7 @@ function IntegrationCard({
         ) : (
           <button
             onClick={onConnect}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-primary hover:bg-blue-600 transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-sm">link</span>
             Conectar
@@ -147,25 +147,37 @@ function MenuItem({
   icon,
   label,
   onClick,
+  soon,
 }: {
   icon: string;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
+  soon?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-3 w-full px-4 py-3.5 hover:bg-[#283139] transition-colors group"
+      disabled={soon}
+      className={cn(
+        'flex items-center gap-3 w-full px-4 py-3.5 transition-colors group',
+        soon ? 'cursor-not-allowed' : 'hover:bg-[#283139]',
+      )}
     >
-      <div className="w-9 h-9 rounded-xl bg-[#283139] flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors">
+      <div className="w-9 h-9 rounded-xl bg-[#283139] flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors shrink-0">
         <span className="material-symbols-outlined text-lg">{icon}</span>
       </div>
-      <span className="text-[15px] text-slate-100 flex-1 text-left">
+      <span className={cn('text-[15px] flex-1 text-left', soon ? 'text-slate-500' : 'text-slate-100')}>
         {label}
       </span>
-      <span className="material-symbols-outlined text-lg text-slate-500 group-hover:text-slate-400 transition-colors">
-        chevron_right
-      </span>
+      {soon ? (
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-[#283139] px-2 py-1 rounded-md shrink-0">
+          Em breve
+        </span>
+      ) : (
+        <span className="material-symbols-outlined text-lg text-slate-500 group-hover:text-slate-400 transition-colors shrink-0">
+          chevron_right
+        </span>
+      )}
     </button>
   );
 }
@@ -342,14 +354,11 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="py-6 space-y-6">
-      {/* ── Header: Title + Settings gear ── */}
-      <div className="flex items-center justify-between animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+      {/* ── Header ── */}
+      <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-slate-100 tracking-tight">
           Perfil
         </h1>
-        <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors">
-          <span className="material-symbols-outlined text-xl">settings</span>
-        </button>
       </div>
 
       {/* ── Avatar + User Info ── */}
@@ -359,7 +368,11 @@ export default function ConfiguracoesPage() {
             <span className="material-symbols-outlined text-4xl text-slate-400">person</span>
           </div>
           {/* Edit badge */}
-          <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+          <button
+            onClick={() => router.push('/onboarding')}
+            aria-label="Editar perfil"
+            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+          >
             <span className="material-symbols-outlined text-sm text-white">edit</span>
           </button>
         </div>
@@ -470,12 +483,12 @@ export default function ConfiguracoesPage() {
           <MenuItem
             icon="lock"
             label="Alterar senha"
-            onClick={() => {}}
+            soon
           />
           <MenuItem
             icon="credit_card"
             label="Gerenciar assinatura"
-            onClick={() => {}}
+            soon
           />
         </div>
       </div>
@@ -555,7 +568,7 @@ export default function ConfiguracoesPage() {
               </div>
 
               {intervalsConnectError && (
-                <p className="text-sm text-rose-400">{intervalsConnectError}</p>
+                <p className="text-sm text-danger">{intervalsConnectError}</p>
               )}
 
               <div className="flex gap-3 pt-1">

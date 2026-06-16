@@ -129,7 +129,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
             resetCreateForm();
             setShowCreate(true);
           }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white bg-primary hover:bg-blue-600 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors"
         >
           <span className="material-symbols-outlined text-sm">add</span>
           Nova
@@ -181,7 +181,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               <span className="material-symbols-outlined text-xl">delete</span>
             </button>
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-3 pl-13">
+          <div className="flex flex-wrap gap-1.5 mt-3 pl-[52px]">
             {k.scopes.map((s) => (
               <span
                 key={s}
@@ -211,7 +211,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               resetCreateForm();
             }}
           />
-          <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 max-h-[90dvh] overflow-y-auto">
             <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
             <div className="flex items-center gap-3 mb-5">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/15">

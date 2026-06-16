@@ -240,7 +240,7 @@ function NutritionDetailPanel({ items }: { items: NutritionItem[] }) {
         className={cn(
           'flex items-center gap-1.5',
           'text-[13px] font-semibold text-primary',
-          'hover:text-blue-400 transition-colors mt-3',
+          'hover:text-primary-bright transition-colors mt-3',
         )}
       >
         {expanded ? 'Ocultar detalhes' : 'Ver protocolo completo'}
@@ -379,6 +379,16 @@ export default function TreinoDetailPage() {
           Detalhes do Treino
         </span>
         <button
+          onClick={async () => {
+            const shareData = { title: data.title, text: `Treino: ${data.title}`, url: window.location.href };
+            try {
+              if (navigator.share) await navigator.share(shareData);
+              else await navigator.clipboard.writeText(window.location.href);
+            } catch {
+              /* usuário cancelou ou indisponível */
+            }
+          }}
+          aria-label="Compartilhar treino"
           className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
         >
           <span className="material-symbols-outlined text-xl">share</span>

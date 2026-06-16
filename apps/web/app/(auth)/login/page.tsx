@@ -260,6 +260,7 @@ function LoginPageInner() {
             type="button"
             variant="strava"
             fullWidth
+            loading={stravaLoading}
             onClick={handleStravaLogin}
           >
             <svg

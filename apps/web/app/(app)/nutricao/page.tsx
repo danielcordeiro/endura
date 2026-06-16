@@ -455,7 +455,7 @@ export default function NutricaoPage() {
 
             <button
               onClick={addPresetItem}
-              className="flex items-center gap-1.5 text-primary text-[13px] font-semibold hover:text-blue-400 transition-colors"
+              className="flex items-center gap-1.5 text-primary text-[13px] font-semibold hover:text-primary-bright transition-colors"
             >
               <span className="material-symbols-outlined text-sm">add</span>
               Adicionar item

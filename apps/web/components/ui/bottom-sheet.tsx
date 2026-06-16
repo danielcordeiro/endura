@@ -42,11 +42,14 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
 
       {/* Sheet */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className={cn(
           'absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px]',
           'bg-[#111518] rounded-t-[2rem]',
           'shadow-2xl animate-slide-up',
-          'max-h-[90vh] overflow-hidden flex flex-col',
+          'max-h-[90dvh] overflow-hidden flex flex-col',
           className,
         )}
       >
@@ -61,7 +64,7 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
           </h2>
         )}
 
-        <div className="flex-1 overflow-y-auto px-5 pb-6 flex flex-col">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col">{children}</div>
       </div>
     </div>
   );
