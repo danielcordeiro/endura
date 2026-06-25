@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../auth/auth.middleware.js';
-import { createProfileBody, updateProfileBody, createRaceGoalBody } from './athlete.schemas.js';
+import { createProfileBody, updateProfileBody, createRaceGoalBody, updateRaceGoalBody } from './athlete.schemas.js';
 import * as athleteService from './athlete.service.js';
 
 interface AppError {
@@ -104,6 +104,7 @@ export default async function athleteRoutes(app: FastifyInstance): Promise<void>
   });
 
   // ── GET /api/athlete/race-goal ──────────────────────────────
+  // Prova alvo principal (prioridade A ativa mais próxima).
   app.get('/api/athlete/race-goal', { onRequest: authenticate }, async (request, reply) => {
     try {
       const goal = await athleteService.getActiveRaceGoal(request.userId);
@@ -112,4 +113,57 @@ export default async function athleteRoutes(app: FastifyInstance): Promise<void>
       await handleError(err, request, reply);
     }
   });
+
+  // ── GET /api/athlete/race-goals ─────────────────────────────
+  // Calendário de provas. ?includeArchived=true inclui arquivadas.
+  app.get<{ Querystring: { includeArchived?: string } }>(
+    '/api/athlete/race-goals',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const includeArchived = request.query.includeArchived === 'true';
+        const goals = await athleteService.listRaceGoals(request.userId, { includeArchived });
+        return reply.send({ data: goals });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  // ── PUT /api/athlete/race-goal/:id ──────────────────────────
+  app.put<{ Params: { id: string } }>(
+    '/api/athlete/race-goal/:id',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = updateRaceGoalBody.safeParse(request.body);
+        if (!parsed.success) {
+          const firstError = parsed.error.errors[0];
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: firstError?.message ?? 'Dados invalidos',
+            status: 400,
+          });
+        }
+        const goal = await athleteService.updateRaceGoal(request.userId, request.params.id, parsed.data);
+        return reply.send({ data: goal });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  // ── DELETE /api/athlete/race-goal/:id ───────────────────────
+  app.delete<{ Params: { id: string } }>(
+    '/api/athlete/race-goal/:id',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const result = await athleteService.deleteRaceGoal(request.userId, request.params.id);
+        return reply.send({ data: result });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
 }

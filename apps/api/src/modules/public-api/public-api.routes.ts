@@ -10,6 +10,8 @@ import * as activityService from '../activity/activity.service.js';
 import * as dailyCheckinService from '../daily-checkin/daily-checkin.service.js';
 import * as analyticsService from './analytics.service.js';
 import * as performanceService from '../performance/performance.service.js';
+import * as athleteService from '../athlete/athlete.service.js';
+import { createRaceGoalBody, updateRaceGoalBody } from '../athlete/athlete.schemas.js';
 import {
   createItemBody as createNutritionItemBody,
   updateItemBody as updateNutritionItemBody,
@@ -476,6 +478,51 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     });
     return reply.send({ data: rows });
   });
+
+  // ── POST /api/v1/public/race-goals ─────────────────────────
+  // Registra uma prova no calendário (A/B/C). Criar prova A rebaixa a A anterior para B.
+  app.post('/api/v1/public/race-goals', { onRequest: requireScope('write:planned') }, async (request, reply) => {
+    const body = createRaceGoalBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    const goal = await athleteService.createRaceGoal(request.userId, body.data);
+    return reply.code(201).send({ data: goal });
+  });
+
+  // ── PUT /api/v1/public/race-goals/:id ──────────────────────
+  app.put<{ Params: { id: string } }>(
+    '/api/v1/public/race-goals/:id',
+    { onRequest: requireScope('write:planned') },
+    async (request, reply) => {
+      const body = updateRaceGoalBody.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      try {
+        const goal = await athleteService.updateRaceGoal(request.userId, request.params.id, body.data);
+        return reply.send({ data: goal });
+      } catch (err) {
+        const e = err as { code?: string; message?: string; status?: number };
+        return reply.code(e.status ?? 500).send({ code: e.code ?? 'ERR_INTERNAL', message: e.message ?? 'Erro', status: e.status ?? 500 });
+      }
+    },
+  );
+
+  // ── DELETE /api/v1/public/race-goals/:id ───────────────────
+  app.delete<{ Params: { id: string } }>(
+    '/api/v1/public/race-goals/:id',
+    { onRequest: requireScope('write:planned') },
+    async (request, reply) => {
+      try {
+        const result = await athleteService.deleteRaceGoal(request.userId, request.params.id);
+        return reply.send({ data: result });
+      } catch (err) {
+        const e = err as { code?: string; message?: string; status?: number };
+        return reply.code(e.status ?? 500).send({ code: e.code ?? 'ERR_INTERNAL', message: e.message ?? 'Erro', status: e.status ?? 500 });
+      }
+    },
+  );
 
   // ── GET /api/v1/public/fitness-tests ───────────────────────
   app.get('/api/v1/public/fitness-tests', { onRequest: requireScope('read:wellness') }, async (request, reply) => {

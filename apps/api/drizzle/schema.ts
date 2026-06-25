@@ -84,6 +84,10 @@ export const raceGoals = pgTable('race_goals', {
   raceName: varchar('race_name', { length: 255 }),
   bikeElevationGainM: numeric('bike_elevation_gain_m', { precision: 8, scale: 2 }),
   runElevationGainM: numeric('run_elevation_gain_m', { precision: 8, scale: 2 }),
+  // Prioridade no calendário: 'A' (prova alvo principal), 'B' (importante), 'C' (treino/preparação).
+  priority: varchar('priority', { length: 1 }).default('A'),
+  location: varchar('location', { length: 255 }),
+  notes: text('notes'),
   active: boolean('active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
 });

@@ -35,13 +35,29 @@ export type UpdateProfileBody = z.infer<typeof updateProfileBody>;
 // ── Race goal schemas ───────────────────────────────────────────
 
 export const createRaceGoalBody = z.object({
-  distance: z.enum(['sprint', 'olympic', '70.3', 'full']),
+  // Triathlon + provas avulsas de preparação (corrida/ciclismo) para o calendário.
+  distance: z.enum([
+    'sprint', 'olympic', '70.3', 'full',
+    'run_5k', 'run_10k', 'run_21k', 'run_42k',
+    'bike_event', 'swim_event', 'other',
+  ]),
   raceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data invalido (YYYY-MM-DD)'),
   goal: z.enum(['finish', 'time']),
   targetTime: z.number().int().positive().nullable().optional(),
   raceName: z.string().max(255).nullable().optional(),
   bikeElevationGainM: z.number().min(0).max(5000).nullable().optional(),
   runElevationGainM: z.number().min(0).max(3000).nullable().optional(),
+  // Calendário de provas
+  priority: z.enum(['A', 'B', 'C']).optional().default('A'),
+  location: z.string().max(255).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
 });
 
 export type CreateRaceGoalBody = z.infer<typeof createRaceGoalBody>;
+
+// Atualização parcial de uma prova do calendário (inclui active para arquivar)
+export const updateRaceGoalBody = createRaceGoalBody.partial().extend({
+  active: z.boolean().optional(),
+});
+
+export type UpdateRaceGoalBody = z.infer<typeof updateRaceGoalBody>;

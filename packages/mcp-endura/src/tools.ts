@@ -57,6 +57,18 @@ const plannedWorkoutProps = {
   week: { type: 'integer' },
   phase: { type: 'string', enum: ['base', 'build', 'peak', 'taper'] },
 };
+const raceProps = {
+  distance: { type: 'string', enum: ['sprint', 'olympic', '70.3', 'full', 'run_5k', 'run_10k', 'run_21k', 'run_42k', 'bike_event', 'swim_event', 'other'] },
+  raceDate: { type: 'string', description: 'YYYY-MM-DD' },
+  goal: { type: 'string', enum: ['finish', 'time'] },
+  targetTime: { type: 'integer', description: 'tempo alvo em segundos' },
+  raceName: { type: 'string' },
+  priority: { type: 'string', enum: ['A', 'B', 'C'], description: 'A=prova alvo, B=importante, C=treino/preparação' },
+  location: { type: 'string' },
+  notes: { type: 'string' },
+  bikeElevationGainM: { type: 'number' },
+  runElevationGainM: { type: 'number' },
+};
 
 export const TOOLS: ToolDef[] = [
   // ═══════════════ LEITURA — estado do atleta ═══════════════
@@ -280,6 +292,35 @@ export const TOOLS: ToolDef[] = [
     scope: 'read:profile',
     inputSchema: { type: 'object', properties: {} },
     call: (_a, c) => c.get(`${BASE}/race-projection`),
+  },
+  // ═══════════════ CALENDÁRIO DE PROVAS ═══════════════
+  {
+    name: 'endura_list_races',
+    description: 'Lista o calendário de provas do atleta (alvo A + provas B/C de preparação), ordenado por data.',
+    scope: 'read:profile',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/race-goals`),
+  },
+  {
+    name: 'endura_create_race',
+    description: 'Adiciona uma prova ao calendário. priority A=prova alvo principal (rebaixa a A anterior para B), B=importante, C=treino/preparação. Ex.: registrar uma meia maratona de preparação como C.',
+    scope: 'write:planned',
+    inputSchema: { type: 'object', required: ['distance', 'raceDate', 'goal'], properties: raceProps },
+    call: (a, c) => c.post(`${BASE}/race-goals`, omit(a, [])),
+  },
+  {
+    name: 'endura_update_race',
+    description: 'Atualiza uma prova do calendário (envie só os campos que mudam). Use active=false para arquivar.',
+    scope: 'write:planned',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' }, ...raceProps, active: { type: 'boolean' } } },
+    call: (a, c) => c.put(`${BASE}/race-goals/${uid(a.id)}`, omit(a, ['id'])),
+  },
+  {
+    name: 'endura_delete_race',
+    description: 'Remove uma prova do calendário.',
+    scope: 'write:planned',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
+    call: (a, c) => c.del(`${BASE}/race-goals/${uid(a.id)}`),
   },
   {
     name: 'endura_create_training_plan',

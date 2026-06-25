@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { ApiKeysSection } from '@/components/settings/api-keys-section';
+import { RaceCalendarSection } from '@/components/settings/race-calendar-section';
 
 /* ---------- Types ---------- */
 
@@ -418,6 +419,11 @@ export default function ConfiguracoesPage() {
           </div>
         </div>
       )}
+
+      {/* ── Race Calendar section ── */}
+      <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
+        <RaceCalendarSection token={token} />
+      </div>
 
       {/* ── Integrations section ── */}
       <div className="space-y-3 animate-fade-in-up stagger-3" style={{ opacity: 0 }}>

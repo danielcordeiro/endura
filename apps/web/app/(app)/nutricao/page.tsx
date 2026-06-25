@@ -9,6 +9,7 @@ import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { ProductAutocomplete, type CatalogProduct } from '@/components/ui/product-autocomplete';
 
 /* ---------- Types ---------- */
 
@@ -149,6 +150,21 @@ export default function NutricaoPage() {
   ) {
     setPresetItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    );
+  }
+
+  /* Catalogo: ao escolher um produto, preenche carb/sodio (presets so guardam esses dois). */
+  function handlePresetProductSelect(index: number, product: CatalogProduct) {
+    setPresetItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              carbsG: product.carbsG ?? item.carbsG,
+              sodiumMg: product.sodiumMg ?? item.sodiumMg,
+            }
+          : item,
+      ),
     );
   }
 
@@ -402,14 +418,12 @@ export default function NutricaoPage() {
                     </button>
                   )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Produto"
+                <ProductAutocomplete
                   value={item.product}
-                  onChange={(e) =>
-                    updatePresetItem(index, 'product', e.target.value)
-                  }
-                  className={inputClass}
+                  onChange={(v) => updatePresetItem(index, 'product', v)}
+                  onProductSelect={(p) => handlePresetProductSelect(index, p)}
+                  placeholder="Produto"
+                  className="h-11 px-3 pr-10 border bg-[#283139] rounded-xl text-sm"
                 />
                 <input
                   type="text"
