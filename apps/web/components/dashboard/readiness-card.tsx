@@ -18,6 +18,11 @@ interface ReadinessAssessment {
   };
   recommendation: string;
   mentorMessage: string;
+  loadTarget?: {
+    tssLow: number;
+    tssHigh: number;
+    label: string;
+  };
 }
 
 interface ReadinessCardProps {
@@ -278,6 +283,25 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
         <span className="material-symbols-outlined text-base text-slate-500 mt-0.5">tips_and_updates</span>
         <p className="text-xs text-slate-400 leading-relaxed">{readiness.recommendation}</p>
       </div>
+
+      {/* Alvo de carga de hoje (estilo WHOOP strain target) */}
+      {readiness.loadTarget && (
+        <div className="flex items-center justify-between rounded-2xl bg-bg-elevated px-4 py-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-base text-primary">bolt</span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Alvo de hoje</p>
+              <p className="text-xs text-slate-300">{readiness.loadTarget.label}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-mono text-lg font-bold text-white leading-none">
+              {readiness.loadTarget.tssLow}–{readiness.loadTarget.tssHigh}
+            </p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider">TSS</p>
+          </div>
+        </div>
+      )}
 
       {/* Factors */}
       <div className="grid grid-cols-3 gap-3">

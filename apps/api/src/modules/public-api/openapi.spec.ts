@@ -544,7 +544,7 @@ export function buildAnthropicTools(): AnthropicTool[] {
     },
     {
       name: 'endura_get_readiness',
-      description: 'Avaliacao de prontidao mais recente (score + nivel + mentor recommendation). Use antes de recomendar intensidade.',
+      description: 'Avaliacao de prontidao mais recente (score + nivel + mentor recommendation + loadTarget: faixa de TSS-alvo sugerida pra hoje). Use antes de recomendar intensidade/carga.',
       input_schema: { type: 'object', properties: {} },
     },
     {

@@ -40,6 +40,12 @@ interface ReadinessAssessment {
   };
   recommendation: string;
   mentorMessage: string;
+  /** Alvo de carga para hoje (estilo WHOOP "strain target"): faixa de TSS sugerida */
+  loadTarget: {
+    tssLow: number;
+    tssHigh: number;
+    label: string;
+  };
 }
 
 interface RacePrediction {
@@ -608,7 +614,30 @@ Gere uma mensagem de mentor (2-3 frases, motivacional e especifica) e uma recome
     },
     recommendation,
     mentorMessage,
+    loadTarget: computeLoadTarget(level, currentCTL),
   };
+}
+
+// Alvo de carga diária (TSS) por nível de prontidão — o "quanto treinar hoje".
+// Ancora no CTL (TSS diário ≈ CTL mantém a forma) e escala pela prontidão.
+// É a peça que o WHOOP tem (strain target) e o TrainingPeaks não dá mastigado.
+function computeLoadTarget(
+  level: 'intense' | 'moderate' | 'light' | 'rest',
+  ctl: number,
+): { tssLow: number; tssHigh: number; label: string } {
+  const round5 = (n: number) => Math.max(0, Math.round(n / 5) * 5);
+  // Piso de CTL para não zerar alvos quando o atleta ainda tem pouca base.
+  const base = Math.max(ctl, 25);
+  switch (level) {
+    case 'intense':
+      return { tssLow: round5(base * 1.2), tssHigh: round5(base * 1.6), label: 'Dia forte — pode puxar' };
+    case 'moderate':
+      return { tssLow: round5(base * 0.8), tssHigh: round5(base * 1.2), label: 'Treino moderado' };
+    case 'light':
+      return { tssLow: round5(base * 0.35), tssHigh: round5(base * 0.7), label: 'Treino leve' };
+    default:
+      return { tssLow: 0, tssHigh: round5(base * 0.25), label: 'Recuperação / descanso' };
+  }
 }
 
 function getDefaultMentorMessage(level: string, tsb: number, ctl: number): string {

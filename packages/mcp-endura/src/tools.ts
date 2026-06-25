@@ -81,7 +81,7 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'endura_get_readiness',
-    description: 'Avaliação de prontidão mais recente (score + nível + recomendação + HRV status + VO2max). Use antes de recomendar intensidade.',
+    description: 'Avaliação de prontidão mais recente (score + nível + recomendação + HRV status + VO2max + loadTarget: faixa de TSS-alvo pra hoje). Use antes de recomendar intensidade/carga.',
     scope: 'read:wellness',
     inputSchema: { type: 'object', properties: {} },
     call: (_a, c) => c.get(`${BASE}/performance/readiness`),
