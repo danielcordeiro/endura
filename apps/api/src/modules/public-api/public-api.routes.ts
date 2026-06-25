@@ -9,6 +9,7 @@ import * as nutritionService from '../nutrition/nutrition.service.js';
 import * as activityService from '../activity/activity.service.js';
 import * as dailyCheckinService from '../daily-checkin/daily-checkin.service.js';
 import * as analyticsService from './analytics.service.js';
+import * as performanceService from '../performance/performance.service.js';
 import {
   createItemBody as createNutritionItemBody,
   updateItemBody as updateNutritionItemBody,
@@ -56,6 +57,97 @@ function parsePagination(q: { limit?: string; offset?: string }): { limit: numbe
   const limit = Math.min(200, Math.max(1, Number(q.limit) || 50));
   const offset = Math.max(0, Number(q.offset) || 0);
   return { limit, offset };
+}
+
+// ── Schemas: memória do coach + escrita de plano ─────────────────────
+const dateStr = z.string().regex(dateRe, 'data deve ser YYYY-MM-DD');
+const disciplineEnum = z.enum(['run', 'bike', 'swim', 'other', 'brick']);
+
+const coachProfileBody = z.object({
+  philosophy: z.string().max(8000).nullable().optional(),
+  constraints: z.record(z.any()).nullable().optional(),
+  currentFocus: z.string().max(4000).nullable().optional(),
+  seasonGoal: z.string().max(4000).nullable().optional(),
+}).strict().refine((v) => Object.keys(v).length > 0, { message: 'Informe ao menos um campo' });
+
+const coachAssessmentBody = z.object({
+  type: z.enum(['weekly_review', 'readiness', 'race_projection', 'plan_rationale', 'ad_hoc']),
+  title: z.string().max(255).optional(),
+  summary: z.string().min(1).max(20000),
+  data: z.record(z.any()).optional(),
+  periodFrom: dateStr.optional(),
+  periodTo: dateStr.optional(),
+  raceGoalId: z.string().uuid().optional(),
+}).strict();
+
+const coachDirectiveBody = z.object({
+  kind: z.enum(['training', 'nutrition', 'recovery', 'supplementation']),
+  text: z.string().min(1).max(4000),
+  rationale: z.string().max(4000).optional(),
+  supersedesId: z.string().uuid().optional(),
+  expiresAt: z.string().datetime().optional(),
+}).strict();
+
+const coachDirectivePatchBody = z.object({
+  status: z.enum(['active', 'superseded', 'done']),
+}).strict();
+
+const trainingPlanBody = z.object({
+  raceGoalId: z.string().uuid().optional(),
+  currentPhase: z.enum(['base', 'build', 'peak', 'taper']).optional(),
+  startDate: dateStr,
+  endDate: dateStr,
+  totalWeeks: z.number().int().min(1).max(104).optional(),
+  status: z.enum(['active', 'draft', 'archived']).optional(),
+}).strict();
+
+const plannedWorkoutFields = z.object({
+  planId: z.string().uuid().nullable().optional(),
+  scheduledDate: dateStr,
+  discipline: disciplineEnum,
+  title: z.string().max(255).optional(),
+  description: z.string().max(8000).optional(),
+  structure: z.record(z.any()).optional(),
+  durationMin: z.number().int().min(0).max(2000).optional(),
+  distanceM: z.number().int().min(0).optional(),
+  intensityZone: z.string().max(10).optional(),
+  tssEstimate: z.number().min(0).max(2000).optional(),
+  week: z.number().int().min(0).max(104).optional(),
+  phase: z.enum(['base', 'build', 'peak', 'taper']).optional(),
+});
+
+const plannedWorkoutsBulkBody = z.object({
+  workouts: z.array(plannedWorkoutFields).min(1).max(80),
+}).strict();
+
+const plannedWorkoutUpdateBody = plannedWorkoutFields.partial().strict()
+  .refine((v) => Object.keys(v).length > 0, { message: 'Informe ao menos um campo' });
+
+const workoutNutritionItemSchema = z.object({
+  phase: z.string().max(20),
+  minuteOffset: z.number().int().optional(),
+  productName: z.string().max(255),
+  brand: z.string().max(100).optional(),
+  quantity: z.number().optional(),
+  unit: z.string().max(20).optional(),
+  carbsG: z.number().optional(),
+  sodiumMg: z.number().optional(),
+  caffeineMg: z.number().optional(),
+  kcal: z.number().int().optional(),
+}).passthrough();
+
+const workoutNutritionBody = z.object({
+  items: z.array(workoutNutritionItemSchema).min(1).max(40),
+  totalCarbsG: z.number().optional(),
+  totalSodiumMg: z.number().optional(),
+  totalCaffeineMg: z.number().optional(),
+  totalKcal: z.number().int().optional(),
+  weatherContext: z.record(z.any()).optional(),
+}).strict();
+
+// Converte número→string para colunas `numeric` (drizzle exige string).
+function numOrNull(v: number | null | undefined): string | null {
+  return v === null || v === undefined ? null : String(v);
 }
 
 // ── Plugin ────────────────────────────────────────────────────────
@@ -285,6 +377,8 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
           items: rows.map((m) => ({
             date: m.date,
             hrvMs: m.hrvMs != null ? Number(m.hrvMs) : null,
+            hrvBaseline: m.hrvBaseline != null ? Number(m.hrvBaseline) : null,
+            hrvStatus: m.hrvStatus,
             restingHr: m.restingHr,
             sleepDurationH: m.sleepDurationH != null ? Number(m.sleepDurationH) : null,
             sleepScore: m.sleepScore,
@@ -292,6 +386,9 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
             stressLevel: m.stressLevel,
             bodyBattery: m.bodyBattery,
             weightKg: m.weightKg != null ? Number(m.weightKg) : null,
+            vo2max: m.vo2max != null ? Number(m.vo2max) : null,
+            respirationRate: m.respirationRate != null ? Number(m.respirationRate) : null,
+            intervalsReadiness: m.intervalsReadiness != null ? Number(m.intervalsReadiness) : null,
             source: m.source,
           })),
         },
@@ -358,8 +455,12 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
         atl: latest.atl != null ? Number(latest.atl) : null,
         tsb: latest.tsb != null ? Number(latest.tsb) : null,
         hrvMs: latest.hrvMs != null ? Number(latest.hrvMs) : null,
+        hrvStatus: latest.hrvStatus,
         restingHr: latest.restingHr,
         sleepScore: latest.sleepScore,
+        vo2max: latest.vo2max != null ? Number(latest.vo2max) : null,
+        respirationRate: latest.respirationRate != null ? Number(latest.respirationRate) : null,
+        intervalsReadiness: latest.intervalsReadiness != null ? Number(latest.intervalsReadiness) : null,
       },
     });
   });
@@ -837,6 +938,394 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       const days = Math.max(7, Math.min(365, Number(request.query.days) || 30));
       const summary = await analyticsService.getNutritionSummary(request.userId, days);
       return reply.send({ data: { days, items: summary } });
+    },
+  );
+
+  // ═══════════════════════════════════════════════════════════════════
+  // MEMÓRIA DO COACH — contexto persistente para sessões de IA (MCP)
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/public/coach/context ───────────────────────────────
+  // Endpoint ÂNCORA: tudo que uma nova sessão precisa para ter "base".
+  // Chame isto PRIMEIRO em toda sessão de coaching.
+  app.get('/api/v1/public/coach/context', { onRequest: requireScope('read:coach') }, async (request, reply) => {
+    const userId = request.userId;
+    const todayStr = new Date().toISOString().split('T')[0]!;
+    const todayStart = new Date(todayStr + 'T00:00:00');
+    const todayEnd = new Date(todayStr + 'T23:59:59');
+
+    const [profile, directives, assessments, athlete, nextWorkout, todayActivity, latestWellness, activeRace] = await Promise.all([
+      db.query.coachProfile.findFirst({ where: eq(schema.coachProfile.userId, userId) }),
+      db.query.coachDirectives.findMany({
+        where: and(eq(schema.coachDirectives.userId, userId), eq(schema.coachDirectives.status, 'active')),
+        orderBy: [desc(schema.coachDirectives.createdAt)],
+      }),
+      db.query.coachAssessments.findMany({
+        where: eq(schema.coachAssessments.userId, userId),
+        orderBy: [desc(schema.coachAssessments.assessedAt)],
+        limit: 10,
+      }),
+      db.query.athleteProfiles.findFirst({ where: eq(schema.athleteProfiles.userId, userId) }),
+      db.query.plannedWorkouts.findFirst({
+        where: and(eq(schema.plannedWorkouts.userId, userId), gte(schema.plannedWorkouts.scheduledDate, todayStr)),
+        orderBy: [asc(schema.plannedWorkouts.scheduledDate)],
+      }),
+      db.query.activities.findFirst({
+        where: and(
+          eq(schema.activities.userId, userId),
+          gte(schema.activities.startedAt, todayStart),
+          lte(schema.activities.startedAt, todayEnd),
+        ),
+        orderBy: [desc(schema.activities.startedAt)],
+      }),
+      db.query.dailyMetrics.findFirst({
+        where: eq(schema.dailyMetrics.userId, userId),
+        orderBy: [desc(schema.dailyMetrics.date)],
+      }),
+      db.query.raceGoals.findFirst({
+        where: and(eq(schema.raceGoals.userId, userId), eq(schema.raceGoals.active, true)),
+      }),
+    ]);
+
+    return reply.send({
+      data: {
+        profile: profile ?? null,
+        activeDirectives: directives,
+        recentAssessments: assessments,
+        snapshot: {
+          today: todayStr,
+          athleteProfile: athlete ?? null,
+          nextPlannedWorkout: nextWorkout
+            ? { id: nextWorkout.id, scheduledDate: nextWorkout.scheduledDate, discipline: nextWorkout.discipline, title: nextWorkout.title, durationMin: nextWorkout.durationMin }
+            : null,
+          todayActivity: todayActivity
+            ? { id: todayActivity.id, discipline: todayActivity.discipline, title: todayActivity.title, startedAt: todayActivity.startedAt }
+            : null,
+          latestWellness: latestWellness
+            ? {
+                date: latestWellness.date,
+                readinessScore: latestWellness.readinessScore != null ? Number(latestWellness.readinessScore) : null,
+                readinessLevel: latestWellness.readinessLevel,
+                ctl: latestWellness.ctl != null ? Number(latestWellness.ctl) : null,
+                atl: latestWellness.atl != null ? Number(latestWellness.atl) : null,
+                tsb: latestWellness.tsb != null ? Number(latestWellness.tsb) : null,
+                hrvMs: latestWellness.hrvMs != null ? Number(latestWellness.hrvMs) : null,
+                hrvStatus: latestWellness.hrvStatus,
+                vo2max: latestWellness.vo2max != null ? Number(latestWellness.vo2max) : null,
+              }
+            : null,
+          activeRace: activeRace
+            ? { id: activeRace.id, raceName: activeRace.raceName, raceDate: activeRace.raceDate, distance: activeRace.distance, goal: activeRace.goal, targetTimeSec: activeRace.targetTime }
+            : null,
+        },
+      },
+    });
+  });
+
+  // ── GET /api/v1/public/coach/assessments ───────────────────────────
+  app.get<{ Querystring: { from?: string; to?: string; type?: string; limit?: string } }>(
+    '/api/v1/public/coach/assessments',
+    { onRequest: requireScope('read:coach') },
+    async (request, reply) => {
+      const conditions = [eq(schema.coachAssessments.userId, request.userId)];
+      if (request.query.type) conditions.push(eq(schema.coachAssessments.type, request.query.type));
+      if (request.query.from && dateRe.test(request.query.from)) {
+        conditions.push(gte(schema.coachAssessments.periodTo, request.query.from));
+      }
+      if (request.query.to && dateRe.test(request.query.to)) {
+        conditions.push(lte(schema.coachAssessments.periodFrom, request.query.to));
+      }
+      const limit = Math.min(100, Math.max(1, Number(request.query.limit) || 30));
+      const rows = await db.query.coachAssessments.findMany({
+        where: and(...conditions),
+        orderBy: [desc(schema.coachAssessments.assessedAt)],
+        limit,
+      });
+      return reply.send({ data: rows });
+    },
+  );
+
+  // ── POST /api/v1/public/coach/assessments ──────────────────────────
+  app.post('/api/v1/public/coach/assessments', { onRequest: requireScope('write:coach') }, async (request, reply) => {
+    const body = coachAssessmentBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    if (body.data.raceGoalId) {
+      const owns = await db.query.raceGoals.findFirst({
+        where: and(eq(schema.raceGoals.id, body.data.raceGoalId), eq(schema.raceGoals.userId, request.userId)),
+        columns: { id: true },
+      });
+      if (!owns) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Prova nao encontrada', status: 404 });
+    }
+    const [row] = await db.insert(schema.coachAssessments).values({
+      userId: request.userId,
+      raceGoalId: body.data.raceGoalId ?? null,
+      type: body.data.type,
+      title: body.data.title ?? null,
+      summary: body.data.summary,
+      data: body.data.data ?? null,
+      periodFrom: body.data.periodFrom ?? null,
+      periodTo: body.data.periodTo ?? null,
+      createdByKeyId: request.apiKeyId ?? null,
+    }).returning();
+    return reply.code(201).send({ data: row });
+  });
+
+  // ── GET /api/v1/public/coach/directives ────────────────────────────
+  app.get<{ Querystring: { status?: string } }>(
+    '/api/v1/public/coach/directives',
+    { onRequest: requireScope('read:coach') },
+    async (request, reply) => {
+      const conditions = [eq(schema.coachDirectives.userId, request.userId)];
+      if (request.query.status) conditions.push(eq(schema.coachDirectives.status, request.query.status));
+      const rows = await db.query.coachDirectives.findMany({
+        where: and(...conditions),
+        orderBy: [desc(schema.coachDirectives.createdAt)],
+      });
+      return reply.send({ data: rows });
+    },
+  );
+
+  // ── POST /api/v1/public/coach/directives ───────────────────────────
+  app.post('/api/v1/public/coach/directives', { onRequest: requireScope('write:coach') }, async (request, reply) => {
+    const body = coachDirectiveBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    // Se substitui uma diretriz, marca a antiga como superseded (valida ownership).
+    if (body.data.supersedesId) {
+      const prev = await db.query.coachDirectives.findFirst({
+        where: and(eq(schema.coachDirectives.id, body.data.supersedesId), eq(schema.coachDirectives.userId, request.userId)),
+        columns: { id: true },
+      });
+      if (!prev) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Diretriz a substituir nao encontrada', status: 404 });
+      await db.update(schema.coachDirectives)
+        .set({ status: 'superseded', updatedAt: new Date() })
+        .where(eq(schema.coachDirectives.id, body.data.supersedesId));
+    }
+    const [row] = await db.insert(schema.coachDirectives).values({
+      userId: request.userId,
+      kind: body.data.kind,
+      text: body.data.text,
+      rationale: body.data.rationale ?? null,
+      supersedesId: body.data.supersedesId ?? null,
+      expiresAt: body.data.expiresAt ? new Date(body.data.expiresAt) : null,
+      createdByKeyId: request.apiKeyId ?? null,
+    }).returning();
+    return reply.code(201).send({ data: row });
+  });
+
+  // ── PATCH /api/v1/public/coach/directives/:id ──────────────────────
+  app.patch<{ Params: { id: string } }>(
+    '/api/v1/public/coach/directives/:id',
+    { onRequest: requireScope('write:coach') },
+    async (request, reply) => {
+      const params = uuidParams.safeParse(request.params);
+      if (!params.success) return reply.code(400).send({ code: 'ERR_VALIDATION', message: 'ID invalido', status: 400 });
+      const body = coachDirectivePatchBody.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      const [updated] = await db.update(schema.coachDirectives)
+        .set({ status: body.data.status, updatedAt: new Date() })
+        .where(and(eq(schema.coachDirectives.id, params.data.id), eq(schema.coachDirectives.userId, request.userId)))
+        .returning();
+      if (!updated) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Diretriz nao encontrada', status: 404 });
+      return reply.send({ data: updated });
+    },
+  );
+
+  // ── PUT /api/v1/public/coach/profile ───────────────────────────────
+  app.put('/api/v1/public/coach/profile', { onRequest: requireScope('write:coach') }, async (request, reply) => {
+    const body = coachProfileBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    const fields: Record<string, unknown> = { updatedByKeyId: request.apiKeyId ?? null, updatedAt: new Date() };
+    if (body.data.philosophy !== undefined) fields.philosophy = body.data.philosophy;
+    if (body.data.constraints !== undefined) fields.constraints = body.data.constraints;
+    if (body.data.currentFocus !== undefined) fields.currentFocus = body.data.currentFocus;
+    if (body.data.seasonGoal !== undefined) fields.seasonGoal = body.data.seasonGoal;
+
+    const existing = await db.query.coachProfile.findFirst({ where: eq(schema.coachProfile.userId, request.userId), columns: { id: true } });
+    let row;
+    if (existing) {
+      [row] = await db.update(schema.coachProfile).set(fields).where(eq(schema.coachProfile.userId, request.userId)).returning();
+    } else {
+      [row] = await db.insert(schema.coachProfile).values({ userId: request.userId, ...fields }).returning();
+    }
+    return reply.send({ data: row });
+  });
+
+  // ── GET /api/v1/public/race-projection ─────────────────────────────
+  // Expõe a previsão físico-fisiológica do Endura (performance.service) para
+  // o Claude ler e refinar (e salvar como coach_assessment type=race_projection).
+  app.get('/api/v1/public/race-projection', { onRequest: requireScope('read:profile') }, async (request, reply) => {
+    const pmc = await performanceService.calculatePMC(request.userId);
+    const target = await performanceService.getTargetRace(request.userId, pmc);
+    return reply.send({
+      data: {
+        pmc: { ctl: pmc.currentCTL, atl: pmc.currentATL, tsb: pmc.currentTSB },
+        target,
+      },
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ESCRITA DE PLANO (autoritativa) — Claude grava treinos direto
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ── POST /api/v1/public/training-plans ─────────────────────────────
+  app.post('/api/v1/public/training-plans', { onRequest: requireScope('write:planned') }, async (request, reply) => {
+    const body = trainingPlanBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    if (body.data.startDate > body.data.endDate) {
+      return reply.code(400).send({ code: 'ERR_INVALID_RANGE', message: 'startDate > endDate', status: 400 });
+    }
+    if (body.data.raceGoalId) {
+      const owns = await db.query.raceGoals.findFirst({
+        where: and(eq(schema.raceGoals.id, body.data.raceGoalId), eq(schema.raceGoals.userId, request.userId)),
+        columns: { id: true },
+      });
+      if (!owns) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Prova nao encontrada', status: 404 });
+    }
+    const [row] = await db.insert(schema.trainingPlans).values({
+      userId: request.userId,
+      raceGoalId: body.data.raceGoalId ?? null,
+      currentPhase: body.data.currentPhase ?? null,
+      startDate: body.data.startDate,
+      endDate: body.data.endDate,
+      totalWeeks: body.data.totalWeeks ?? null,
+      status: body.data.status ?? 'active',
+    }).returning();
+    return reply.code(201).send({ data: row });
+  });
+
+  // ── POST /api/v1/public/planned-workouts/bulk ──────────────────────
+  app.post('/api/v1/public/planned-workouts/bulk', { onRequest: requireScope('write:planned') }, async (request, reply) => {
+    const body = plannedWorkoutsBulkBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    // Valida ownership de cada planId referenciado.
+    const planIds = [...new Set(body.data.workouts.map((w) => w.planId).filter((p): p is string => !!p))];
+    for (const planId of planIds) {
+      const owns = await db.query.trainingPlans.findFirst({
+        where: and(eq(schema.trainingPlans.id, planId), eq(schema.trainingPlans.userId, request.userId)),
+        columns: { id: true },
+      });
+      if (!owns) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: `Plano ${planId} nao encontrado`, status: 404 });
+    }
+    const values = body.data.workouts.map((w) => ({
+      userId: request.userId,
+      planId: w.planId ?? null,
+      scheduledDate: w.scheduledDate,
+      discipline: w.discipline,
+      title: w.title ?? null,
+      description: w.description ?? null,
+      structure: w.structure ?? null,
+      durationMin: w.durationMin ?? null,
+      distanceM: w.distanceM ?? null,
+      intensityZone: w.intensityZone ?? null,
+      tssEstimate: numOrNull(w.tssEstimate),
+      week: w.week ?? null,
+      phase: w.phase ?? null,
+    }));
+    const rows = await db.insert(schema.plannedWorkouts).values(values).returning();
+    return reply.code(201).send({ data: { count: rows.length, items: rows } });
+  });
+
+  // ── PUT /api/v1/public/planned-workouts/:id ────────────────────────
+  app.put<{ Params: { id: string } }>(
+    '/api/v1/public/planned-workouts/:id',
+    { onRequest: requireScope('write:planned') },
+    async (request, reply) => {
+      const params = uuidParams.safeParse(request.params);
+      if (!params.success) return reply.code(400).send({ code: 'ERR_VALIDATION', message: 'ID invalido', status: 400 });
+      const body = plannedWorkoutUpdateBody.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      const d = body.data;
+      const fields: Record<string, unknown> = {};
+      if (d.planId !== undefined) fields.planId = d.planId;
+      if (d.scheduledDate !== undefined) fields.scheduledDate = d.scheduledDate;
+      if (d.discipline !== undefined) fields.discipline = d.discipline;
+      if (d.title !== undefined) fields.title = d.title;
+      if (d.description !== undefined) fields.description = d.description;
+      if (d.structure !== undefined) fields.structure = d.structure;
+      if (d.durationMin !== undefined) fields.durationMin = d.durationMin;
+      if (d.distanceM !== undefined) fields.distanceM = d.distanceM;
+      if (d.intensityZone !== undefined) fields.intensityZone = d.intensityZone;
+      if (d.tssEstimate !== undefined) fields.tssEstimate = numOrNull(d.tssEstimate);
+      if (d.week !== undefined) fields.week = d.week;
+      if (d.phase !== undefined) fields.phase = d.phase;
+
+      const [updated] = await db.update(schema.plannedWorkouts)
+        .set(fields)
+        .where(and(eq(schema.plannedWorkouts.id, params.data.id), eq(schema.plannedWorkouts.userId, request.userId)))
+        .returning();
+      if (!updated) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Treino planejado nao encontrado', status: 404 });
+      return reply.send({ data: updated });
+    },
+  );
+
+  // ── DELETE /api/v1/public/planned-workouts/:id ─────────────────────
+  app.delete<{ Params: { id: string } }>(
+    '/api/v1/public/planned-workouts/:id',
+    { onRequest: requireScope('write:planned') },
+    async (request, reply) => {
+      const params = uuidParams.safeParse(request.params);
+      if (!params.success) return reply.code(400).send({ code: 'ERR_VALIDATION', message: 'ID invalido', status: 400 });
+      const [deleted] = await db.delete(schema.plannedWorkouts)
+        .where(and(eq(schema.plannedWorkouts.id, params.data.id), eq(schema.plannedWorkouts.userId, request.userId)))
+        .returning({ id: schema.plannedWorkouts.id });
+      if (!deleted) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Treino planejado nao encontrado', status: 404 });
+      return reply.code(204).send();
+    },
+  );
+
+  // ── POST /api/v1/public/planned-workouts/:id/nutrition-protocol ─────
+  // Diferencial Endura: prescreve a suplementação embutida no treino.
+  app.post<{ Params: { id: string } }>(
+    '/api/v1/public/planned-workouts/:id/nutrition-protocol',
+    { onRequest: requireScope('write:planned') },
+    async (request, reply) => {
+      const params = uuidParams.safeParse(request.params);
+      if (!params.success) return reply.code(400).send({ code: 'ERR_VALIDATION', message: 'ID invalido', status: 400 });
+      const body = workoutNutritionBody.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      const workout = await db.query.plannedWorkouts.findFirst({
+        where: and(eq(schema.plannedWorkouts.id, params.data.id), eq(schema.plannedWorkouts.userId, request.userId)),
+        columns: { id: true },
+      });
+      if (!workout) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Treino planejado nao encontrado', status: 404 });
+
+      const protocolFields = {
+        items: body.data.items,
+        totalCarbsG: numOrNull(body.data.totalCarbsG),
+        totalSodiumMg: numOrNull(body.data.totalSodiumMg),
+        totalCaffeineMg: numOrNull(body.data.totalCaffeineMg),
+        totalKcal: body.data.totalKcal ?? null,
+        weatherContext: body.data.weatherContext ?? null,
+        status: 'generated' as const,
+      };
+      const existing = await db.query.nutritionProtocols.findFirst({
+        where: eq(schema.nutritionProtocols.plannedWorkoutId, params.data.id),
+        columns: { id: true },
+      });
+      let row;
+      if (existing) {
+        [row] = await db.update(schema.nutritionProtocols).set(protocolFields).where(eq(schema.nutritionProtocols.id, existing.id)).returning();
+      } else {
+        [row] = await db.insert(schema.nutritionProtocols).values({ plannedWorkoutId: params.data.id, ...protocolFields }).returning();
+      }
+      return reply.code(201).send({ data: row });
     },
   );
 }

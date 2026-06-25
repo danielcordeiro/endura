@@ -45,7 +45,8 @@ function buildLlmsTxt(baseUrl: string): string {
 
 - [Manual para LLM](${baseUrl}/api/v1/public/llm-manual.md): glossario de dominio (TSS, CTL, ATL, TSB, RPE, fueling), conceitos do modelo de dados, fluxos canonicos para registrar suplementacao em linguagem natural, regras invariantes e boas praticas.
 - [OpenAPI 3.1 spec](${baseUrl}/api/v1/public/openapi.json): especificacao completa de todos os endpoints publicos.
-- [Tools para function calling](${baseUrl}/api/v1/public/openapi/tools.json): 15 tools no formato Anthropic, prontas para colar em \`system.tools\`. Cobre summary, atividades, planned workouts, wellness, PMC, readiness, busca de catalogo, log de nutricao (single + bulk), follow-protocol, feedback, daily check-in e comentarios.
+- [Tools para function calling](${baseUrl}/api/v1/public/openapi/tools.json): tools no formato Anthropic, prontas para colar em \`system.tools\`. Cobre summary, atividades, planned workouts, wellness, PMC, readiness, busca de catalogo, log de nutricao (single + bulk), follow-protocol, feedback, daily check-in e comentarios, **alem da memoria do coach (context/assessments/directives/profile), previsao de prova e escrita autoritativa de planos/treinos com suplementacao**.
+- Servidor MCP (stdio): pacote \`@endura/mcp\` expoe todas as tools acima ao Claude Code/Desktop. Veja \`packages/mcp-endura/README.md\`.
 
 ## Documentacao humana
 
@@ -54,7 +55,7 @@ function buildLlmsTxt(baseUrl: string): string {
 
 ## Autenticacao
 
-Toda rota publica (exceto este \`/llms.txt\` e os 3 endpoints de discovery acima) exige header \`X-API-Key: endura_sk_...\` ou \`Authorization: Bearer endura_sk_...\`. Keys sao geradas pelo usuario na UI do Endura com selecao de scopes (read:profile, read:activities, read:planned, read:wellness, read:catalog, write:nutrition, write:checkin, write:comments) e expiracao opcional.
+Toda rota publica (exceto este \`/llms.txt\` e os 3 endpoints de discovery acima) exige header \`X-API-Key: endura_sk_...\` ou \`Authorization: Bearer endura_sk_...\`. Keys sao geradas pelo usuario na UI do Endura com selecao de scopes (read:profile, read:activities, read:planned, read:wellness, read:catalog, read:coach, write:nutrition, write:checkin, write:comments, write:coach, write:planned) e expiracao opcional. Para o coach completo via MCP, use o bundle "Coach" (todos os scopes).
 `;
 }
 

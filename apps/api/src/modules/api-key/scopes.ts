@@ -10,12 +10,15 @@ export const READ_SCOPES = [
   'read:planned',
   'read:wellness',
   'read:catalog',
+  'read:coach',
 ] as const;
 
 export const WRITE_SCOPES = [
   'write:nutrition',
   'write:checkin',
   'write:comments',
+  'write:coach',
+  'write:planned',
 ] as const;
 
 export const WILDCARD_SCOPES = ['read:all', 'write:all'] as const;

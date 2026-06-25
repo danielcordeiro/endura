@@ -88,6 +88,8 @@ Use isso para julgar `comparison.metrics.carbsPerHour` retornado pela API.
 
 **SEMPRE** comece com `endura_get_summary()`. Ele retorna em 1 chamada: próximo treino planejado, atividade de hoje (se houver), wellness mais recente e prova alvo ativa. Isso ancora seu contexto sem você ter que perguntar nada ao usuário.
 
+> Para uma **sessão de coaching** (analisar/planejar), use `endura_get_coach_context()` no lugar — ele inclui tudo do summary **mais** a memória persistente (perfil do coach, diretrizes ativas e suas últimas análises). Veja 5.6.
+
 Se `summary.todayActivity` existe, é o candidato natural para registrar suplementação/feedback do dia. Se não existe mas o usuário menciona ter treinado, busque com `endura_list_activities` filtrando por data.
 
 ### 5.2. Registrar suplementação descrita em linguagem natural
@@ -128,6 +130,41 @@ Sequência:
 3. (analytics opcional) `GET /analytics/weekly?weeks=4` para tendência
 4. (analytics opcional) `GET /analytics/nutrition-summary?days=30` para padrão de fueling
 5. Síntese narrativa: aderência ao plano, evolução de carga, gaps de fueling, próximos focos
+
+### 5.6. Sessão de coaching completa (consultor/treinador via MCP)
+
+Este é o fluxo que faz o Endura virar um **treinador completo com memória permanente**. A "inteligência" é você (o LLM); o Endura **persiste** o que você produz para que **toda nova sessão tenha base**.
+
+**Passo 1 — Carregue a base (SEMPRE primeiro):**
+`endura_get_coach_context()` retorna em 1 chamada:
+- `profile` — filosofia de treino, restrições (lesões/tempo/equipamento), foco atual, meta da temporada
+- `activeDirectives` — diretrizes vigentes que você (ou uma sessão anterior) deixou
+- `recentAssessments` — suas últimas 10 análises salvas
+- `snapshot` — perfil do atleta, próximo treino, atividade de hoje, wellness recente, prova ativa
+
+Leia isso antes de qualquer coisa. É a memória do atleta — não recomece do zero.
+
+**Passo 2 — Colete dados objetivos:**
+`endura_get_pmc`, `endura_get_wellness` (agora inclui VO2max, FR, HRV status), `endura_list_activities`, `endura_get_race_projection` (previsão físico-fisiológica do Endura), `endura_list_planned_workouts`.
+
+**Passo 3 — Analise** (seu raciocínio): forma (TSB), tendência de carga, prontidão, gaps de fueling, aderência, risco de overtraining, viabilidade da meta de prova.
+
+**Passo 4 — Persista a análise (é assim que o contexto "fica no Endura para sempre"):**
+- `endura_save_assessment(type, summary, data, periodFrom, periodTo)` — grava a análise no histórico permanente. Use `type=race_projection` ao refinar a previsão de prova; `weekly_review` na revisão semanal; `readiness` na leitura de prontidão.
+- `endura_upsert_coach_profile(...)` — atualize o foco atual / restrições quando mudarem.
+- `endura_save_directive(kind, text, rationale)` — deixe instruções vigentes (ex: "proteger aquiles esq: zero corrida em ladeira por 2 semanas"). Use `supersedesId` para aposentar uma diretriz antiga.
+
+**Passo 5 — Escreva o plano (autoritativo):**
+- `endura_create_training_plan(startDate, endDate, currentPhase, totalWeeks, raceGoalId)` → cria o container.
+- `endura_upsert_planned_workouts(workouts=[...])` → grava os treinos em lote (data, disciplina, estrutura warmup/main/cooldown, duração, zona, TSS, semana, fase).
+- `endura_set_workout_nutrition(plannedWorkoutId, items=[...])` → **diferencial Endura**: embuta a suplementação no treino (carbs/sódio/cafeína por fase). Faça isso nos treinos-chave (longos, brick, intensos).
+- Para adaptar depois: `endura_update_planned_workout` / `endura_delete_planned_workout`.
+
+**Passo 6 (opcional):** `endura_post_comment` em atividades específicas.
+
+**Passo 7 — Próxima sessão:** volte ao Passo 1. Como tudo foi salvo no Endura, você recupera a base inteira — análises, diretrizes, foco e plano — sem o atleta repetir nada.
+
+> **Periodização:** respeite as fases `base → build → peak → taper`. Construa carga progressiva (regra ~10%/semana), insira semanas de recuperação a cada 3–4 semanas, e afunile (taper) ~2 semanas antes da prova alvo (`snapshot.activeRace.raceDate`).
 
 ## 6. Regras invariantes
 
@@ -179,10 +216,10 @@ A key é gerenciada pelo **usuário** na UI do Endura (Configurações → API K
 ### Scopes (você precisa dos certos)
 
 Para o fluxo coach completo, a key precisa do bundle **"Coach"**:
-- `read:profile`, `read:activities`, `read:planned`, `read:wellness`, `read:catalog`
-- `write:nutrition`, `write:checkin`, `write:comments`
+- `read:profile`, `read:activities`, `read:planned`, `read:wellness`, `read:catalog`, `read:coach`
+- `write:nutrition`, `write:checkin`, `write:comments`, `write:coach`, `write:planned`
 
-Se faltar algum, você receberá `403 ERR_INSUFFICIENT_SCOPE` — peça ao usuário recriar a key com bundle Coach.
+`read:coach`/`write:coach` cobrem a memória do coach (context, assessments, directives, profile). `write:planned` cobre a escrita autoritativa de planos e treinos. Se faltar algum, você receberá `403 ERR_INSUFFICIENT_SCOPE` — peça ao usuário recriar a key com bundle Coach.
 
 ## 10. Rate limits
 
@@ -199,14 +236,22 @@ Excedeu → 429. Espere e tente de novo. **Não entre em loop de retry**.
 - **Este manual em texto puro**: `/api/v1/public/llm-manual.md`
 - **Discovery padrão llms.txt**: `/llms.txt`
 
-## 12. Nota sobre MCP (Model Context Protocol)
+## 12. Servidor MCP (Model Context Protocol)
 
-Atualmente o Endura **não expõe servidor MCP**. A integração é via REST + function calling (tools.json). Isso é deliberado: para o caso de uso atual (agentes customizados como o openclaw), MCP adicionaria complexidade sem benefício direto.
+O Endura **expõe um servidor MCP** via o pacote `@endura/mcp` (`packages/mcp-endura`), em transporte **stdio** — feito para conectar no Claude Code / Claude Desktop. Ele é um wrapper fino sobre esta mesma API pública: cada tool MCP = 1 chamada REST, autenticada por API Key, respeitando scopes, audit log e rate limits.
 
-Se você é um cliente MCP-nativo (Claude Desktop, Cursor) e precisa MCP, abra uma issue no repo. Quando houver demanda, o servidor MCP rodará no mesmo Fastify usando Streamable HTTP transport — sem infra nova.
+Configuração (Claude Code):
+```
+claude mcp add endura -- node /caminho/para/packages/mcp-endura/dist/index.js
+```
+com as variáveis de ambiente `ENDURA_API_URL` (default = produção) e `ENDURA_API_KEY` (key com bundle Coach). Veja `packages/mcp-endura/README.md`.
+
+As tools expostas são as mesmas deste manual — incluindo a **memória do coach** (`endura_get_coach_context`, `endura_save_assessment`, `endura_save_directive`, `endura_upsert_coach_profile`), a **previsão de prova** (`endura_get_race_projection`) e a **escrita de plano** (`endura_create_training_plan`, `endura_upsert_planned_workouts`, `endura_set_workout_nutrition`).
+
+> Continua válido usar a API direto via REST + `tools.json` para agentes customizados (ex: openclaw). O MCP é só um transporte adicional para clientes MCP-nativos.
 
 ---
 
-**Versão deste manual:** 2026-05-11
+**Versão deste manual:** 2026-06-25
 **Repositório:** https://github.com/danielcordeiro/endura
 **Suporte:** abrir issue no repo
