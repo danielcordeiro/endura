@@ -5,6 +5,15 @@ const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
   register: true,
+  // Auto-update: o novo service worker assume na hora (skipWaiting) e passa a
+  // controlar as abas abertas (clientsClaim), então UM reload após o deploy já
+  // traz a versão nova — sem ficar preso em cache antigo.
+  reloadOnOnline: true,
+  cacheOnFrontEndNav: true,
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true,
+  },
 });
 
 const nextConfig: NextConfig = {
