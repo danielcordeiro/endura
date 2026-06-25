@@ -466,11 +466,20 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       return reply.send({ data: null });
     }
 
+    // loadTarget (strain target): faixa de TSS-alvo pra hoje, derivada do PMC ao
+    // vivo. Usa o nível do check-in se houver; senão, fallback determinístico
+    // por TSB (sem chamada de IA, mantendo o endpoint público leve e barato).
+    const effectiveLevel =
+      (todayCheckin?.readinessLevel as 'intense' | 'moderate' | 'light' | 'rest' | null | undefined) ??
+      performanceService.quickReadinessLevel(pmc.currentTSB);
+    const loadTarget = performanceService.computeLoadTarget(effectiveLevel, pmc.currentCTL);
+
     return reply.send({
       data: {
         date: latest.date,
         readinessScore: todayCheckin?.readinessScore ?? null,
         readinessLevel: todayCheckin?.readinessLevel ?? null,
+        loadTarget,
         fatigueScore: latest.fatigueScore != null ? Number(latest.fatigueScore) : null,
         mentorRecommendation: todayCheckin?.recommendation ?? latest.mentorRecommendation,
         ctl: pmc.currentCTL,

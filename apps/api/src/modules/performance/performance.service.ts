@@ -618,10 +618,19 @@ Gere uma mensagem de mentor (2-3 frases, motivacional e especifica) e uma recome
   };
 }
 
+// Nível de prontidão determinístico a partir do TSB (fallback sem IA, usado
+// pelo endpoint público quando não há check-in do dia).
+export function quickReadinessLevel(tsb: number): 'intense' | 'moderate' | 'light' | 'rest' {
+  if (tsb >= 10) return 'intense';
+  if (tsb >= -10) return 'moderate';
+  if (tsb >= -25) return 'light';
+  return 'rest';
+}
+
 // Alvo de carga diária (TSS) por nível de prontidão — o "quanto treinar hoje".
 // Ancora no CTL (TSS diário ≈ CTL mantém a forma) e escala pela prontidão.
 // É a peça que o WHOOP tem (strain target) e o TrainingPeaks não dá mastigado.
-function computeLoadTarget(
+export function computeLoadTarget(
   level: 'intense' | 'moderate' | 'light' | 'rest',
   ctl: number,
 ): { tssLow: number; tssHigh: number; label: string } {
