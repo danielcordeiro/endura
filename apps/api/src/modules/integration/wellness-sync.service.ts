@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { decrypt } from '../../lib/encryption.js';
@@ -81,7 +81,45 @@ interface IntervalsWellness {
   bodyBattery?: number | null;   // 0-100
   stressLevel?: number | null;   // 0-100
   sleepingHeartRate?: number | null;
+  // ── Lacunas Garmin via intervals.icu (sync estendido) ──
+  vo2max?: number | null;        // VO2max estimado (Garmin)
+  respiration?: number | null;   // frequencia respiratoria (resp/min)
+  readiness?: number | null;     // readiness proprio do intervals.icu (0-100)
   [key: string]: unknown;
+}
+
+// Estatisticas de baseline de HRV (media movel) para classificar o status do dia.
+interface HrvBaseline {
+  mean: number | null;
+  sd: number;
+  n: number;
+}
+
+// Classifica HRV do dia vs baseline pessoal (semantica estilo Garmin: low | balanced | high).
+// Usa media ± 0.75·desvio-padrao como faixa "balanced". < 14 amostras → unknown.
+function classifyHrvStatus(value: number | null | undefined, baseline: HrvBaseline): string {
+  if (value == null || value <= 0 || baseline.mean == null || baseline.n < 14) return 'unknown';
+  const lo = baseline.mean - 0.75 * baseline.sd;
+  const hi = baseline.mean + 0.75 * baseline.sd;
+  if (value < lo) return 'low';
+  if (value > hi) return 'high';
+  return 'balanced';
+}
+
+// Baseline de HRV dos ultimos 60 dias de daily_metrics do usuario.
+async function computeHrvBaseline(userId: string): Promise<HrvBaseline> {
+  const cutoff = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!;
+  const rows = await db.query.dailyMetrics.findMany({
+    where: and(eq(schema.dailyMetrics.userId, userId), gte(schema.dailyMetrics.date, cutoff)),
+    columns: { hrvMs: true },
+  });
+  const values = rows
+    .map((r) => (r.hrvMs != null ? Number(r.hrvMs) : null))
+    .filter((v): v is number => v != null && v > 0);
+  if (values.length === 0) return { mean: null, sd: 0, n: 0 };
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+  return { mean, sd: Math.sqrt(variance), n: values.length };
 }
 
 // ── Sync wellness for a single user ───────────────────────────────
@@ -123,12 +161,15 @@ export async function syncWellnessForUser(userId: string): Promise<{ synced: num
       throw new Error('Unexpected response format from intervals.icu wellness API');
     }
 
+    // Baseline de HRV (media movel 60d) para classificar o status de cada dia.
+    const hrvBaseline = await computeHrvBaseline(userId);
+
     let synced = 0;
     let errors = 0;
 
     for (const record of data) {
       try {
-        await upsertWellnessRecord(userId, record);
+        await upsertWellnessRecord(userId, record, hrvBaseline);
         synced++;
       } catch {
         errors++;
@@ -169,7 +210,7 @@ export async function syncWellnessForUser(userId: string): Promise<{ synced: num
 
 // ── Upsert wellness record ────────────────────────────────────────
 
-async function upsertWellnessRecord(userId: string, record: IntervalsWellness): Promise<void> {
+async function upsertWellnessRecord(userId: string, record: IntervalsWellness, hrvBaseline: HrvBaseline): Promise<void> {
   const dateStr = record.id;
 
   const existing = await db.query.dailyMetrics.findFirst({
@@ -179,8 +220,12 @@ async function upsertWellnessRecord(userId: string, record: IntervalsWellness): 
     ),
   });
 
+  const hrvVal = record.hrv != null && record.hrv > 0 ? record.hrv : null;
+
   const wellnessData = {
-    hrvMs: record.hrv != null && record.hrv > 0 ? String(record.hrv) : null,
+    hrvMs: hrvVal != null ? String(hrvVal) : null,
+    hrvBaseline: hrvBaseline.mean != null ? String(Math.round(hrvBaseline.mean * 100) / 100) : null,
+    hrvStatus: classifyHrvStatus(hrvVal, hrvBaseline),
     restingHr: record.restingHeartRate ?? record.sleepingHeartRate ?? null,
     sleepDurationH: record.totalSleep != null ? String(record.totalSleep) : null,
     sleepScore: record.sleepScore ?? null,
@@ -189,6 +234,10 @@ async function upsertWellnessRecord(userId: string, record: IntervalsWellness): 
     stressLevel: record.stressLevel ?? null,
     bodyBattery: record.bodyBattery ?? null,
     weightKg: record.weight != null ? String(record.weight) : null,
+    // Lacunas Garmin via intervals.icu
+    vo2max: record.vo2max != null ? String(record.vo2max) : null,
+    respirationRate: record.respiration != null ? String(record.respiration) : null,
+    intervalsReadiness: record.readiness != null ? String(record.readiness) : null,
     source: 'intervals_icu',
     updatedAt: new Date(),
   };
