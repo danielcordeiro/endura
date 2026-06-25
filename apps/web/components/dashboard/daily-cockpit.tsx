@@ -17,6 +17,7 @@ interface RecoveryData {
   score: number | null;
   band: 'green' | 'yellow' | 'red' | 'unknown';
   label: string;
+  date: string | null;
 }
 
 interface Readiness {
@@ -42,6 +43,11 @@ function greeting(): string {
   if (h < 12) return 'Bom dia';
   if (h < 18) return 'Boa tarde';
   return 'Boa noite';
+}
+
+function fmtDay(d: string | null): string {
+  if (!d) return '';
+  return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
 /** Anel compacto com glow para o hero. */
@@ -144,9 +150,16 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
           className="row-span-2 relative overflow-hidden rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col items-center justify-center"
           style={{ boxShadow: recovery?.score != null ? `inset 0 0 40px ${ringColor}14` : undefined }}
         >
-          <div className="flex items-center gap-1.5 self-start mb-2">
-            <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', `bg-current`, BAND_TEXT[band])} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Recuperação</span>
+          <div className="self-start mb-2">
+            <div className="flex items-center gap-1.5">
+              <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', `bg-current`, BAND_TEXT[band])} />
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Recuperação</span>
+            </div>
+            {recovery?.score != null && (
+              <span className="block text-[9px] text-text-faint mt-0.5">
+                ao acordar{recovery.date ? ` · ${fmtDay(recovery.date)}` : ''}
+              </span>
+            )}
           </div>
           {recovery?.score != null ? (
             <>
