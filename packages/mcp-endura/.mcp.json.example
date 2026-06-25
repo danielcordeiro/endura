@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "endura": {
+      "command": "node",
+      "args": ["packages/mcp-endura/dist/index.js"],
+      "env": {
+        "ENDURA_API_URL": "http://localhost:8080",
+        "ENDURA_API_KEY": "endura_sk_xxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}

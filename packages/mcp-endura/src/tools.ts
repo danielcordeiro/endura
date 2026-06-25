@@ -1,0 +1,343 @@
+// Catálogo de tools do MCP do Endura. Cada tool = 1 chamada REST na API pública.
+// As descrições e schemas espelham apps/api/src/modules/public-api/openapi.spec.ts
+// (buildAnthropicTools) + as tools novas de coaching/plano.
+
+import type { EnduraClient } from './client.js';
+
+type Args = Record<string, unknown>;
+
+export interface ToolDef {
+  name: string;
+  description: string;
+  scope: string; // informativo (a API valida de fato via API Key)
+  inputSchema: { type: 'object'; properties: Record<string, unknown>; required?: string[] };
+  call: (args: Args, client: EnduraClient) => Promise<unknown>;
+}
+
+const BASE = '/api/v1/public';
+const uid = (v: unknown) => encodeURIComponent(String(v));
+
+function omit(args: Args, keys: string[]): Args {
+  const out: Args = {};
+  for (const [k, v] of Object.entries(args)) {
+    if (!keys.includes(k) && v !== undefined) out[k] = v;
+  }
+  return out;
+}
+
+// ── Schemas reutilizáveis ──────────────────────────────────────────
+const dateRange = {
+  from: { type: 'string', description: 'YYYY-MM-DD' },
+  to: { type: 'string', description: 'YYYY-MM-DD' },
+};
+const disciplineProp = { type: 'string', enum: ['run', 'bike', 'swim', 'other', 'brick'] };
+const nutritionItemProps = {
+  phase: { type: 'string', enum: ['pre', 'during', 'post'] },
+  minuteOffset: { type: 'integer' },
+  productName: { type: 'string' },
+  brand: { type: 'string' },
+  quantity: { type: 'number' },
+  unit: { type: 'string', enum: ['g', 'ml', 'unit'] },
+  carbsG: { type: 'number' },
+  sodiumMg: { type: 'number' },
+  caffeineMg: { type: 'number' },
+  kcal: { type: 'integer' },
+};
+const plannedWorkoutProps = {
+  planId: { type: 'string', format: 'uuid' },
+  scheduledDate: { type: 'string', description: 'YYYY-MM-DD' },
+  discipline: disciplineProp,
+  title: { type: 'string' },
+  description: { type: 'string' },
+  structure: { type: 'object', description: '{ warmup, main, cooldown }' },
+  durationMin: { type: 'integer' },
+  distanceM: { type: 'integer' },
+  intensityZone: { type: 'string', description: 'Z1..Z5' },
+  tssEstimate: { type: 'number' },
+  week: { type: 'integer' },
+  phase: { type: 'string', enum: ['base', 'build', 'peak', 'taper'] },
+};
+
+export const TOOLS: ToolDef[] = [
+  // ═══════════════ LEITURA — estado do atleta ═══════════════
+  {
+    name: 'endura_get_summary',
+    description: 'Snapshot do estado atual do atleta: próximo treino planejado, atividade de hoje, wellness mais recente e prova ativa. Para sessão de coaching, prefira endura_get_coach_context.',
+    scope: 'read:profile',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/summary`),
+  },
+  {
+    name: 'endura_get_readiness',
+    description: 'Avaliação de prontidão mais recente (score + nível + recomendação + HRV status + VO2max). Use antes de recomendar intensidade.',
+    scope: 'read:wellness',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/performance/readiness`),
+  },
+  {
+    name: 'endura_list_activities',
+    description: 'Lista atividades executadas (Strava/intervals/manuais) num intervalo de datas.',
+    scope: 'read:activities',
+    inputSchema: {
+      type: 'object',
+      properties: { ...dateRange, discipline: disciplineProp, limit: { type: 'integer', minimum: 1, maximum: 200 } },
+    },
+    call: (a, c) => c.get(`${BASE}/activities`, { from: a.from, to: a.to, discipline: a.discipline, limit: a.limit }),
+  },
+  {
+    name: 'endura_get_activity',
+    description: 'Detalhe completo de uma atividade (HR, power, distância, elevação, clima, RPE, notes).',
+    scope: 'read:activities',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
+    call: (a, c) => c.get(`${BASE}/activities/${uid(a.id)}`),
+  },
+  {
+    name: 'endura_get_activity_nutrition',
+    description: 'Log de suplementação da atividade + comparison vs protocolo prescrito (green/yellow/red).',
+    scope: 'read:activities',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
+    call: (a, c) => c.get(`${BASE}/activities/${uid(a.id)}/nutrition`),
+  },
+  {
+    name: 'endura_list_planned_workouts',
+    description: 'Lista treinos planejados num intervalo.',
+    scope: 'read:planned',
+    inputSchema: { type: 'object', properties: { ...dateRange, discipline: disciplineProp } },
+    call: (a, c) => c.get(`${BASE}/planned-workouts`, { from: a.from, to: a.to, discipline: a.discipline }),
+  },
+  {
+    name: 'endura_get_pmc',
+    description: 'Série histórica CTL/ATL/TSB (Performance Management Chart). Use para avaliar forma e risco de overtraining.',
+    scope: 'read:wellness',
+    inputSchema: { type: 'object', properties: { ...dateRange } },
+    call: (a, c) => c.get(`${BASE}/performance/pmc`, { from: a.from, to: a.to }),
+  },
+  {
+    name: 'endura_get_wellness',
+    description: 'Série diária de HRV (+ status e baseline), sono, peso, FC repouso, SpO2, stress, VO2max, frequência respiratória.',
+    scope: 'read:wellness',
+    inputSchema: { type: 'object', properties: { ...dateRange } },
+    call: (a, c) => c.get(`${BASE}/wellness`, { from: a.from, to: a.to }),
+  },
+  {
+    name: 'endura_search_catalog',
+    description: 'Busca produto de suplementação pelo nome ou marca. Use para resolver nome canônico antes de logar consumo.',
+    scope: 'read:catalog',
+    inputSchema: {
+      type: 'object', required: ['q'],
+      properties: {
+        q: { type: 'string', minLength: 2 },
+        category: { type: 'string', enum: ['gel', 'isotonic', 'bar', 'salt_capsule', 'caffeine', 'other'] },
+        limit: { type: 'integer', minimum: 1, maximum: 20 },
+      },
+    },
+    call: (a, c) => c.get(`${BASE}/nutrition/catalog/search`, { q: a.q, category: a.category, limit: a.limit }),
+  },
+
+  // ═══════════════ ESCRITA — nutrição / feedback / check-in ═══════════════
+  {
+    name: 'endura_log_nutrition_item',
+    description: 'Registra UM item de suplementação consumido durante a atividade.',
+    scope: 'write:nutrition',
+    inputSchema: {
+      type: 'object', required: ['activityId', 'item'],
+      properties: { activityId: { type: 'string', format: 'uuid' }, item: { type: 'object', required: ['phase', 'productName'], properties: { ...nutritionItemProps, source: { type: 'string', enum: ['manual', 'protocol', 'ocr', 'agent'], default: 'agent' } } } },
+    },
+    call: (a, c) => c.post(`${BASE}/activities/${uid(a.activityId)}/nutrition-items`, { source: 'agent', ...(a.item as Args) }),
+  },
+  {
+    name: 'endura_log_nutrition_bulk',
+    description: 'Registra VÁRIOS itens de suplementação em transação. PREFIRA sempre que o usuário descrever múltiplos produtos numa frase.',
+    scope: 'write:nutrition',
+    inputSchema: {
+      type: 'object', required: ['activityId', 'items'],
+      properties: {
+        activityId: { type: 'string', format: 'uuid' },
+        items: { type: 'array', minItems: 1, maxItems: 30, items: { type: 'object', required: ['phase', 'productName'], properties: { ...nutritionItemProps, source: { type: 'string', enum: ['manual', 'protocol', 'ocr', 'agent'], default: 'agent' } } } },
+      },
+    },
+    call: (a, c) => {
+      const items = (a.items as Args[]).map((it) => ({ source: 'agent', ...it }));
+      return c.post(`${BASE}/activities/${uid(a.activityId)}/nutrition-items/bulk`, { items });
+    },
+  },
+  {
+    name: 'endura_follow_protocol',
+    description: 'Copia o protocolo prescrito para o log da atividade ("segui o que estava prescrito").',
+    scope: 'write:nutrition',
+    inputSchema: { type: 'object', required: ['activityId', 'protocolId'], properties: { activityId: { type: 'string', format: 'uuid' }, protocolId: { type: 'string', format: 'uuid' } } },
+    call: (a, c) => c.post(`${BASE}/activities/${uid(a.activityId)}/follow-protocol`, { protocolId: a.protocolId }),
+  },
+  {
+    name: 'endura_log_feedback',
+    description: 'Grava feedback pós-treino: RPE (1-10), notas livres, lista de eventos adversos.',
+    scope: 'write:checkin',
+    inputSchema: {
+      type: 'object', required: ['activityId'],
+      properties: { activityId: { type: 'string', format: 'uuid' }, perceivedEffort: { type: 'integer', minimum: 1, maximum: 10 }, notes: { type: 'string', maxLength: 2000 }, adverseEvents: { type: 'array', items: { type: 'string' }, maxItems: 20 } },
+    },
+    call: (a, c) => c.post(`${BASE}/activities/${uid(a.activityId)}/feedback`, omit(a, ['activityId'])),
+  },
+  {
+    name: 'endura_log_daily_checkin',
+    description: 'Registra check-in subjetivo do dia: feeling (1-5), soreness (1-5), nota de lesão opcional.',
+    scope: 'write:checkin',
+    inputSchema: {
+      type: 'object', required: ['feeling', 'muscleSoreness'],
+      properties: { date: { type: 'string', description: 'YYYY-MM-DD, default hoje' }, feeling: { type: 'integer', minimum: 1, maximum: 5 }, muscleSoreness: { type: 'integer', minimum: 1, maximum: 5 }, injuryNote: { type: 'string', maxLength: 500 } },
+    },
+    call: (a, c) => c.post(`${BASE}/daily-checkin`, omit(a, [])),
+  },
+  {
+    name: 'endura_post_comment',
+    description: 'Posta comentário do coach IA na atividade (fica visível no histórico do atleta).',
+    scope: 'write:comments',
+    inputSchema: { type: 'object', required: ['activityId', 'text'], properties: { activityId: { type: 'string', format: 'uuid' }, text: { type: 'string', minLength: 1, maxLength: 2000 } } },
+    call: (a, c) => c.post(`${BASE}/activities/${uid(a.activityId)}/comments`, { text: a.text }),
+  },
+
+  // ═══════════════ MEMÓRIA DO COACH (contexto persistente) ═══════════════
+  {
+    name: 'endura_get_coach_context',
+    description: 'ÂNCORA DA SESSÃO — chame SEMPRE primeiro. Retorna a base persistida: perfil do coach (filosofia, restrições, foco, meta), diretrizes ativas, últimas 10 análises e snapshot do atleta.',
+    scope: 'read:coach',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/coach/context`),
+  },
+  {
+    name: 'endura_list_assessments',
+    description: 'Lista o histórico de análises salvas (coach_assessments).',
+    scope: 'read:coach',
+    inputSchema: {
+      type: 'object',
+      properties: { ...dateRange, type: { type: 'string', enum: ['weekly_review', 'readiness', 'race_projection', 'plan_rationale', 'ad_hoc'] }, limit: { type: 'integer', minimum: 1, maximum: 100 } },
+    },
+    call: (a, c) => c.get(`${BASE}/coach/assessments`, { from: a.from, to: a.to, type: a.type, limit: a.limit }),
+  },
+  {
+    name: 'endura_save_assessment',
+    description: 'Salva uma análise no histórico permanente do atleta. É assim que o contexto fica no Endura para sempre. Use ao terminar uma análise.',
+    scope: 'write:coach',
+    inputSchema: {
+      type: 'object', required: ['type', 'summary'],
+      properties: {
+        type: { type: 'string', enum: ['weekly_review', 'readiness', 'race_projection', 'plan_rationale', 'ad_hoc'] },
+        title: { type: 'string', maxLength: 255 },
+        summary: { type: 'string', description: 'Análise legível por humano (markdown ok)' },
+        data: { type: 'object', description: 'Achados estruturados: tendências, números, flags' },
+        periodFrom: { type: 'string', description: 'YYYY-MM-DD' },
+        periodTo: { type: 'string', description: 'YYYY-MM-DD' },
+        raceGoalId: { type: 'string', format: 'uuid' },
+      },
+    },
+    call: (a, c) => c.post(`${BASE}/coach/assessments`, omit(a, [])),
+  },
+  {
+    name: 'endura_list_directives',
+    description: 'Lista diretrizes do coach (plano de ação corrente). Default: status=active.',
+    scope: 'read:coach',
+    inputSchema: { type: 'object', properties: { status: { type: 'string', enum: ['active', 'superseded', 'done'] } } },
+    call: (a, c) => c.get(`${BASE}/coach/directives`, { status: a.status }),
+  },
+  {
+    name: 'endura_save_directive',
+    description: 'Cria uma diretriz ativa (instrução permanente que a próxima sessão herda). Passe supersedesId para aposentar uma anterior.',
+    scope: 'write:coach',
+    inputSchema: {
+      type: 'object', required: ['kind', 'text'],
+      properties: {
+        kind: { type: 'string', enum: ['training', 'nutrition', 'recovery', 'supplementation'] },
+        text: { type: 'string' },
+        rationale: { type: 'string' },
+        supersedesId: { type: 'string', format: 'uuid' },
+        expiresAt: { type: 'string', format: 'date-time' },
+      },
+    },
+    call: (a, c) => c.post(`${BASE}/coach/directives`, omit(a, [])),
+  },
+  {
+    name: 'endura_update_directive',
+    description: 'Atualiza o status de uma diretriz (active | superseded | done).',
+    scope: 'write:coach',
+    inputSchema: { type: 'object', required: ['id', 'status'], properties: { id: { type: 'string', format: 'uuid' }, status: { type: 'string', enum: ['active', 'superseded', 'done'] } } },
+    call: (a, c) => c.patch(`${BASE}/coach/directives/${uid(a.id)}`, { status: a.status }),
+  },
+  {
+    name: 'endura_upsert_coach_profile',
+    description: 'Cria/atualiza o perfil de coaching do atleta (contexto vivo de longo prazo): filosofia, restrições, foco atual e meta da temporada.',
+    scope: 'write:coach',
+    inputSchema: {
+      type: 'object',
+      properties: { philosophy: { type: 'string' }, constraints: { type: 'object' }, currentFocus: { type: 'string' }, seasonGoal: { type: 'string' } },
+    },
+    call: (a, c) => c.put(`${BASE}/coach/profile`, omit(a, [])),
+  },
+
+  // ═══════════════ PREVISÃO DE PROVA + ESCRITA DE PLANO ═══════════════
+  {
+    name: 'endura_get_race_projection',
+    description: 'Previsão físico-fisiológica do Endura para a prova ativa (tempos por disciplina, confiança, fase/progresso do plano). Refine e salve com endura_save_assessment (type=race_projection).',
+    scope: 'read:profile',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/race-projection`),
+  },
+  {
+    name: 'endura_create_training_plan',
+    description: 'Cria o container de um plano de treino (datas, fase, total de semanas, prova alvo). Depois adicione treinos com endura_upsert_planned_workouts.',
+    scope: 'write:planned',
+    inputSchema: {
+      type: 'object', required: ['startDate', 'endDate'],
+      properties: {
+        raceGoalId: { type: 'string', format: 'uuid' },
+        currentPhase: { type: 'string', enum: ['base', 'build', 'peak', 'taper'] },
+        startDate: { type: 'string', description: 'YYYY-MM-DD' },
+        endDate: { type: 'string', description: 'YYYY-MM-DD' },
+        totalWeeks: { type: 'integer', minimum: 1, maximum: 104 },
+        status: { type: 'string', enum: ['active', 'draft', 'archived'] },
+      },
+    },
+    call: (a, c) => c.post(`${BASE}/training-plans`, omit(a, [])),
+  },
+  {
+    name: 'endura_upsert_planned_workouts',
+    description: 'Grava VÁRIOS treinos planejados em lote (max 80). Cada treino: data, disciplina, título, descrição, estrutura, duração, distância, zona, TSS, semana, fase. Vincule a um plano via planId.',
+    scope: 'write:planned',
+    inputSchema: {
+      type: 'object', required: ['workouts'],
+      properties: { workouts: { type: 'array', minItems: 1, maxItems: 80, items: { type: 'object', required: ['scheduledDate', 'discipline'], properties: plannedWorkoutProps } } },
+    },
+    call: (a, c) => c.post(`${BASE}/planned-workouts/bulk`, { workouts: a.workouts }),
+  },
+  {
+    name: 'endura_update_planned_workout',
+    description: 'Atualiza um treino planejado (adaptação). Envie só os campos que mudam.',
+    scope: 'write:planned',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' }, ...plannedWorkoutProps } },
+    call: (a, c) => c.put(`${BASE}/planned-workouts/${uid(a.id)}`, omit(a, ['id'])),
+  },
+  {
+    name: 'endura_delete_planned_workout',
+    description: 'Remove um treino planejado.',
+    scope: 'write:planned',
+    inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
+    call: (a, c) => c.del(`${BASE}/planned-workouts/${uid(a.id)}`),
+  },
+  {
+    name: 'endura_set_workout_nutrition',
+    description: 'DIFERENCIAL ENDURA: prescreve a suplementação embutida num treino planejado (itens por fase + totais). Substitui o protocolo existente.',
+    scope: 'write:planned',
+    inputSchema: {
+      type: 'object', required: ['plannedWorkoutId', 'items'],
+      properties: {
+        plannedWorkoutId: { type: 'string', format: 'uuid' },
+        items: { type: 'array', minItems: 1, maxItems: 40, items: { type: 'object', required: ['phase', 'productName'], properties: nutritionItemProps } },
+        totalCarbsG: { type: 'number' },
+        totalSodiumMg: { type: 'number' },
+        totalCaffeineMg: { type: 'number' },
+        totalKcal: { type: 'integer' },
+        weatherContext: { type: 'object' },
+      },
+    },
+    call: (a, c) => c.post(`${BASE}/planned-workouts/${uid(a.plannedWorkoutId)}/nutrition-protocol`, omit(a, ['plannedWorkoutId'])),
+  },
+];
