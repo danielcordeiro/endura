@@ -14,6 +14,7 @@ import { PMCChart } from '@/components/dashboard/pmc-chart';
 import { ReadinessCard } from '@/components/dashboard/readiness-card';
 import { RacePredictorCard } from '@/components/dashboard/race-predictor-card';
 import { TargetRaceCard } from '@/components/dashboard/target-race-card';
+import { UpcomingRacesCard } from '@/components/dashboard/upcoming-races-card';
 import { CreateRaceForm } from '@/components/dashboard/create-race-form';
 import { DisciplineBenchmarks } from '@/components/dashboard/discipline-benchmarks';
 import { FitnessTestsCard } from '@/components/dashboard/fitness-tests-card';
@@ -546,6 +547,11 @@ export default function DashboardPage() {
                 </span>
               </button>
             )}
+          </div>
+
+          {/* ── Próximas provas (calendário B/C) ── */}
+          <div className="animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
+            <UpcomingRacesCard />
           </div>
 
           {/* ── Race Form Modal ── */}
