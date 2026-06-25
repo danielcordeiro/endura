@@ -275,6 +275,15 @@ export function buildOpenApiSpec(baseUrl: string): OpenApiSpec {
           responses: { '200': { description: 'Serie PMC' } },
         },
       },
+      [`${BASE}/performance/pmc-forecast`]: {
+        get: {
+          tags: ['wellness'],
+          summary: 'Projecao de forma: CTL/ATL/TSB ate o dia da prova + avaliacao de pico',
+          'x-scope': 'read:wellness',
+          parameters: [queryParam('horizonDays', 'string')],
+          responses: { '200': { description: 'Forecast PMC + raceDay + peak' } },
+        },
+      },
       [`${BASE}/performance/readiness`]: {
         get: {
           tags: ['wellness'],
@@ -587,6 +596,16 @@ export function buildAnthropicTools(): AnthropicTool[] {
         properties: {
           from: { type: 'string', description: 'YYYY-MM-DD' },
           to: { type: 'string', description: 'YYYY-MM-DD' },
+        },
+      },
+    },
+    {
+      name: 'endura_get_pmc_forecast',
+      description: 'Projecao de forma (forward-looking PMC): projeta CTL/ATL/TSB ADIANTE a partir dos treinos planejados ate o dia da prova-alvo, e avalia se o atleta vai chegar com o TSB na faixa ideal de pico (status: ideal/too_fresh/too_fatigued/building/no_plan/no_race). Use pra responder "vou chegar na forma certa pra prova?" e decidir ajustes no plano (adicionar carga se too_fresh, antecipar taper se too_fatigued). horizonDays opcional (1-240); default = ate a prova.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          horizonDays: { type: 'number', description: 'Dias a projetar (1-240). Default: ate a prova-alvo.' },
         },
       },
     },

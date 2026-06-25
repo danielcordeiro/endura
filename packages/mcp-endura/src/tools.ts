@@ -125,6 +125,14 @@ export const TOOLS: ToolDef[] = [
     call: (a, c) => c.get(`${BASE}/performance/pmc`, { from: a.from, to: a.to }),
   },
   {
+    name: 'endura_get_pmc_forecast',
+    description:
+      'Projeção de forma (PMC forward-looking): projeta CTL/ATL/TSB ADIANTE a partir dos treinos planejados até o dia da prova-alvo e avalia se o atleta vai chegar com TSB na faixa ideal de pico (status: ideal/too_fresh/too_fatigued/building/no_plan/no_race). Responde "vou chegar na forma certa pra prova?" e orienta ajustes (adicionar carga se too_fresh, antecipar taper se too_fatigued). horizonDays opcional (1-240); default = até a prova.',
+    scope: 'read:wellness',
+    inputSchema: { type: 'object', properties: { horizonDays: { type: 'number', description: 'Dias a projetar (1-240). Default: até a prova.' } } },
+    call: (a, c) => c.get(`${BASE}/performance/pmc-forecast`, { horizonDays: a.horizonDays }),
+  },
+  {
     name: 'endura_get_wellness',
     description: 'Série diária de HRV (+ status e baseline), sono, peso, FC repouso, SpO2, stress, VO2max, frequência respiratória.',
     scope: 'read:wellness',

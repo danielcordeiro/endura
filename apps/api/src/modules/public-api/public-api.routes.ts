@@ -427,6 +427,23 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     },
   );
 
+  // ── GET /api/v1/public/performance/pmc-forecast ────────────
+  // Projeção de forma: CTL/ATL/TSB ADIANTE até o dia da prova, a partir
+  // dos treinos planejados, com avaliação de pico (TSB ideal). É o que
+  // o Claude usa para responder "vou chegar na forma certa pro Nice?" e
+  // ajustar o plano. horizonDays opcional (1..240); default = até a prova.
+  app.get<{ Querystring: { horizonDays?: string } }>(
+    '/api/v1/public/performance/pmc-forecast',
+    { onRequest: requireScope('read:wellness') },
+    async (request, reply) => {
+      const raw = request.query.horizonDays ? Number(request.query.horizonDays) : undefined;
+      const horizonDays =
+        raw !== undefined && Number.isFinite(raw) ? Math.min(Math.max(Math.trunc(raw), 1), 240) : undefined;
+      const result = await performanceService.projectPMC(request.userId, { horizonDays });
+      return reply.send({ data: result });
+    },
+  );
+
   // ── GET /api/v1/public/performance/readiness ───────────────
   app.get('/api/v1/public/performance/readiness', { onRequest: requireScope('read:wellness') }, async (request, reply) => {
     const userId = request.userId;

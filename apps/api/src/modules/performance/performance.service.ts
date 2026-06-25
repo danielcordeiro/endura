@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc } from 'drizzle-orm';
+import { eq, and, gt, gte, lte, desc, asc } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
@@ -176,6 +176,222 @@ export async function calculatePMC(userId: string, days: number = 90): Promise<P
     currentCTL: current?.ctl ?? 0,
     currentATL: current?.atl ?? 0,
     currentTSB: current?.tsb ?? 0,
+  };
+}
+
+// ── PMC Forecast (projeção de forma até a prova) ─────────────────
+// O diferencial sobre o PMC clássico (que só olha pra trás): projeta
+// CTL/ATL/TSB ADIANTE aplicando os planned_workouts futuros, prevendo
+// com qual "forma" (TSB) o atleta vai chegar no dia da prova — e se
+// isso bate com a faixa ideal de pico. É o Performance Manager do
+// TrainingPeaks, mas que o Claude lê via MCP e ajusta o plano.
+
+// TSS/hora aproximado por zona de intensidade (fallback quando o treino
+// planejado não traz tssEstimate). Aceita rótulos numéricos (z1..z5) e
+// nomes (endurance/threshold/...).
+const ZONE_TSS_PER_HOUR: Record<string, number> = {
+  recovery: 40, z1: 45, easy: 50, endurance: 55, z2: 55, aerobic: 55,
+  tempo: 70, z3: 72, sweetspot: 80, threshold: 90, z4: 92,
+  vo2max: 105, z5: 108, anaerobic: 110, sprint: 100, race: 95,
+};
+
+function estimatePlannedTSS(w: {
+  tssEstimate: string | number | null;
+  durationMin: number | null;
+  intensityZone: string | null;
+}): number {
+  const explicit = w.tssEstimate != null ? Number(w.tssEstimate) : 0;
+  if (explicit > 0) return explicit;
+  const mins = Number(w.durationMin ?? 0);
+  if (mins <= 0) return 0;
+  const key = (w.intensityZone ?? '').toLowerCase().trim();
+  const perHour = ZONE_TSS_PER_HOUR[key] ?? 60;
+  return Math.round((mins / 60) * perHour);
+}
+
+export interface PMCForecastPoint {
+  date: string;
+  plannedTss: number;
+  ctl: number;
+  atl: number;
+  tsb: number;
+}
+
+export type PeakStatus =
+  | 'ideal'
+  | 'too_fresh'
+  | 'too_fatigued'
+  | 'building'
+  | 'no_race'
+  | 'no_plan';
+
+export interface PMCForecast {
+  startedFrom: { date: string; ctl: number; atl: number; tsb: number };
+  forecast: PMCForecastPoint[];
+  plannedWorkouts: number;
+  /** última data coberta por treino planejado (após ela a projeção assume destreino) */
+  planCoverageUntil: string | null;
+  race: {
+    id: string;
+    name: string | null;
+    distance: string;
+    priority: string;
+    date: string;
+    daysOut: number;
+  } | null;
+  raceDay: { ctl: number; atl: number; tsb: number } | null;
+  idealTsbRange: [number, number];
+  peak: {
+    status: PeakStatus;
+    message: string;
+    recommendedTaperStart: string | null;
+  };
+}
+
+// Faixa ideal de TSB no dia da prova por prioridade (Friel: A entre +15 e +25).
+function idealTsbForPriority(priority: string): [number, number] {
+  switch (priority) {
+    case 'A': return [15, 25];
+    case 'B': return [5, 15];
+    default: return [-10, 10]; // C / prova-treino: sem taper completo
+  }
+}
+
+// Duração típica de taper por distância (dias antes da prova).
+function taperDaysForDistance(distance: string, priority: string): number {
+  if (priority === 'C') return 4;
+  switch (distance) {
+    case 'full': return 21;
+    case '70.3': return 14;
+    case 'olympic': return 10;
+    case 'sprint': case 'run_5k': case 'run_10k': return 7;
+    case 'run_21k': return 8;
+    case 'run_42k': return 18;
+    default: return 12;
+  }
+}
+
+export async function projectPMC(
+  userId: string,
+  opts?: { horizonDays?: number },
+): Promise<PMCForecast> {
+  const today = getTodayStr();
+
+  // Semente: PMC ao vivo (mesma fonte de verdade do gráfico histórico).
+  const pmc = await calculatePMC(userId, 90);
+  let ctl = pmc.currentCTL;
+  let atl = pmc.currentATL;
+
+  // Horizonte: até a prova-alvo (se houver e for futura), senão N dias.
+  const race = await findTargetRaceGoal(userId);
+  const raceDateStr = race?.raceDate ?? null;
+  let horizonDays = opts?.horizonDays ?? 56;
+  let daysOut: number | null = null;
+  if (raceDateStr) {
+    daysOut = daysBetween(raceDateStr);
+    if (daysOut > 0) horizonDays = Math.min(Math.max(daysOut, 1), 240);
+  }
+  const horizonDate = dateAddDays(today, horizonDays);
+
+  // Treinos planejados de amanhã até o horizonte → TSS diário futuro.
+  const planned = await db.query.plannedWorkouts.findMany({
+    where: and(
+      eq(schema.plannedWorkouts.userId, userId),
+      gt(schema.plannedWorkouts.scheduledDate, today),
+      lte(schema.plannedWorkouts.scheduledDate, horizonDate),
+    ),
+    columns: {
+      scheduledDate: true,
+      durationMin: true,
+      intensityZone: true,
+      tssEstimate: true,
+    },
+  });
+
+  const plannedTSS = new Map<string, number>();
+  let coverageUntil: string | null = null;
+  for (const w of planned) {
+    const ts = estimatePlannedTSS(w);
+    plannedTSS.set(w.scheduledDate, (plannedTSS.get(w.scheduledDate) ?? 0) + ts);
+    if (!coverageUntil || w.scheduledDate > coverageUntil) coverageUntil = w.scheduledDate;
+  }
+
+  // Caminhada forward (mesmas constantes EMA 42d/7d).
+  const forecast: PMCForecastPoint[] = [];
+  let raceDay: { ctl: number; atl: number; tsb: number } | null = null;
+  for (let i = 1; i <= horizonDays; i++) {
+    const dateStr = dateAddDays(today, i);
+    const tss = plannedTSS.get(dateStr) ?? 0;
+    ctl = ctl + (tss - ctl) / 42;
+    atl = atl + (tss - atl) / 7;
+    const tsb = ctl - atl;
+    const point: PMCForecastPoint = {
+      date: dateStr,
+      plannedTss: Math.round(tss * 10) / 10,
+      ctl: Math.round(ctl * 10) / 10,
+      atl: Math.round(atl * 10) / 10,
+      tsb: Math.round(tsb * 10) / 10,
+    };
+    forecast.push(point);
+    if (raceDateStr && dateStr === raceDateStr) {
+      raceDay = { ctl: point.ctl, atl: point.atl, tsb: point.tsb };
+    }
+  }
+
+  // Avaliação de pico.
+  const priority = race?.priority ?? 'A';
+  const idealTsbRange = idealTsbForPriority(priority);
+  let status: PeakStatus = 'no_race';
+  let message: string;
+  let recommendedTaperStart: string | null = null;
+
+  if (!race || !raceDateStr || daysOut === null || daysOut <= 0) {
+    status = 'no_race';
+    message = 'Sem prova-alvo futura cadastrada — defina a prova A para projetar a forma de pico.';
+  } else if (planned.length === 0) {
+    status = 'no_plan';
+    message = `Nenhum treino planejado nos próximos ${horizonDays} dias. Sem plano, a projeção mostra destreino: o CTL cai e o TSB sobe artificialmente. Cadastre os treinos para projetar a forma real.`;
+  } else {
+    const taperDays = taperDaysForDistance(race.distance, priority);
+    recommendedTaperStart = dateAddDays(raceDateStr, -taperDays);
+    const rd = raceDay?.tsb ?? null;
+    const [lo, hi] = idealTsbRange;
+    const planReachesRace = !!coverageUntil && coverageUntil >= dateAddDays(raceDateStr, -2);
+
+    if (rd === null) {
+      status = 'building';
+      message = `Projeção até ${horizonDate}, mas a prova é em ${raceDateStr}. Estenda o horizonte para ver o dia da prova.`;
+    } else if (!planReachesRace) {
+      status = 'building';
+      message = `O plano vai até ${coverageUntil}, antes da prova (${raceDateStr}). A partir daí a projeção assume destreino, então o TSB de chegada (${rd >= 0 ? '+' : ''}${rd.toFixed(0)}) ainda não reflete um taper real. Planeje a fase final para projetar o pico.`;
+    } else if (rd >= lo && rd <= hi) {
+      status = 'ideal';
+      message = `No ritmo atual você chega na prova com TSB ${rd >= 0 ? '+' : ''}${rd.toFixed(0)} — dentro da faixa ideal de pico (${lo} a ${hi}). Plano alinhado para performar.`;
+    } else if (rd > hi) {
+      status = 'too_fresh';
+      message = `TSB projetado de chegada: +${rd.toFixed(0)} — acima da faixa ideal (${lo} a ${hi}). Você está "deixando forma na mesa": dá pra adicionar carga/volume na fase final sem comprometer o frescor.`;
+    } else {
+      status = 'too_fatigued';
+      message = `TSB projetado de chegada: ${rd >= 0 ? '+' : ''}${rd.toFixed(0)} — abaixo da faixa ideal (${lo} a ${hi}). Risco de chegar fatigado: antecipe/aprofunde o taper (sugerido a partir de ${recommendedTaperStart}).`;
+    }
+  }
+
+  return {
+    startedFrom: { date: today, ctl: pmc.currentCTL, atl: pmc.currentATL, tsb: pmc.currentTSB },
+    forecast,
+    plannedWorkouts: planned.length,
+    planCoverageUntil: coverageUntil,
+    race: race && raceDateStr ? {
+      id: race.id,
+      name: race.raceName ?? null,
+      distance: race.distance,
+      priority,
+      date: raceDateStr,
+      daysOut: daysOut ?? 0,
+    } : null,
+    raceDay,
+    idealTsbRange,
+    peak: { status, message, recommendedTaperStart },
   };
 }
 

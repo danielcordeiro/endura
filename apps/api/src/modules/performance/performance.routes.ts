@@ -63,6 +63,24 @@ export default async function performanceRoutes(app: FastifyInstance): Promise<v
     },
   );
 
+  // ── GET /api/performance/pmc-forecast ──────────────────────────
+  // Projeção de forma: CTL/ATL/TSB adiante até o dia da prova + pico
+  app.get<{ Querystring: { horizonDays?: string } }>(
+    '/api/performance/pmc-forecast',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const raw = request.query.horizonDays ? Number(request.query.horizonDays) : undefined;
+        const horizonDays =
+          raw !== undefined && Number.isFinite(raw) ? Math.min(Math.max(Math.trunc(raw), 1), 240) : undefined;
+        const data = await performanceService.projectPMC(request.userId, { horizonDays });
+        return reply.send({ data });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
   // ── GET /api/performance/readiness ─────────────────────────────
   // Retorna avaliacao de prontidao. Se ja fez check-in hoje, usa os dados salvos.
   app.get('/api/performance/readiness', { onRequest: authenticate }, async (request, reply) => {

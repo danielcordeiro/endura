@@ -10,7 +10,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { SectionLabel } from '@/components/ui/section-label';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { DailyNutritionCard } from '@/components/nutrition/daily-nutrition-card';
-import { PMCChart } from '@/components/dashboard/pmc-chart';
+import { PMCChart, type PMCForecastData } from '@/components/dashboard/pmc-chart';
 import { ReadinessCard } from '@/components/dashboard/readiness-card';
 import { RacePredictorCard } from '@/components/dashboard/race-predictor-card';
 import { TargetRaceCard } from '@/components/dashboard/target-race-card';
@@ -402,6 +402,18 @@ export default function DashboardPage() {
     enabled: !!token,
   });
 
+  const { data: forecastData } = useQuery<PMCForecastData>({
+    queryKey: ['pmc-forecast'],
+    queryFn: async () => {
+      const res = await apiFetch<{ data: PMCForecastData }>('/api/performance/pmc-forecast', {
+        token: token ?? undefined,
+      });
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: !!token,
+  });
+
   /* ── Loading ── */
   if (isLoading) return <DashboardSkeleton />;
 
@@ -758,6 +770,7 @@ export default function DashboardPage() {
                   currentCTL={perfData.pmc.currentCTL}
                   currentATL={perfData.pmc.currentATL}
                   currentTSB={perfData.pmc.currentTSB}
+                  forecast={forecastData}
                 />
               </div>
 
