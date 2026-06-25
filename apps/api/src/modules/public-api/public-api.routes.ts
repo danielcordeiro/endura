@@ -409,11 +409,14 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
 
       // PMC é calculado AO VIVO a partir das atividades (fonte de verdade).
       // As colunas ctl/atl/tsb em daily_metrics nunca são populadas — não ler delas.
+      // A janela de histórico precisa ser longa o suficiente p/ o ramp-up do CTL
+      // (constante de 42d) estabilizar — senão um range curto subestima o CTL.
+      // Usamos >= 90d (igual a race-projection/coach-context) e filtramos o range.
       const todayStr = new Date().toISOString().split('T')[0]!;
       const spanDays = Math.ceil(
         (new Date(todayStr + 'T00:00:00').getTime() - new Date(range.from + 'T00:00:00').getTime()) / 86400000,
       ) + 1;
-      const pmc = await performanceService.calculatePMC(request.userId, Math.max(spanDays, 7));
+      const pmc = await performanceService.calculatePMC(request.userId, Math.max(spanDays, 90));
       const items = pmc.metrics
         .filter((m) => m.date >= range.from && m.date <= range.to)
         .map((m) => ({ date: m.date, tss: m.tss, ctl: m.ctl, atl: m.atl, tsb: m.tsb }));
