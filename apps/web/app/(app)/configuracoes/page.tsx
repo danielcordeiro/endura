@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
+import { APP_VERSION } from '@/lib/version';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { ApiKeysSection } from '@/components/settings/api-keys-section';
 import { RaceCalendarSection } from '@/components/settings/race-calendar-section';
@@ -524,7 +525,7 @@ export default function ConfiguracoesPage() {
 
       {/* ── Version ── */}
       <p className="text-center text-xs text-slate-600 pb-4">
-        Endura v1.0.0
+        Endura v{APP_VERSION}
       </p>
 
       {/* ── intervals.icu API Key Modal ── */}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth-store';
+import { APP_VERSION } from '@/lib/version';
 
 export default function Home() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function Home() {
 
       {/* Version */}
       <p className="absolute bottom-8 text-xs text-text-faint font-[var(--font-mono)]">
-        v1.0.0
+        v{APP_VERSION}
       </p>
     </main>
   );
