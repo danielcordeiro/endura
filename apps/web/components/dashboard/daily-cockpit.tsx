@@ -121,9 +121,9 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
     : peak?.status === 'too_fresh' ? 'bg-sky-400' : 'bg-amber-400';
 
   return (
-    <section aria-label="Resumo do dia" className="space-y-3">
+    <section aria-label="Resumo do dia" className="space-y-4">
       {/* ── Briefing strip ── */}
-      <div className="relative overflow-hidden rounded-card bg-gradient-to-br from-primary/15 via-bg-surface to-bg-surface ring-1 ring-primary/20 p-4">
+      <div className="relative overflow-hidden rounded-card bg-gradient-to-br from-primary/15 via-bg-surface to-bg-surface ring-1 ring-primary/20 p-5">
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-primary text-xl shrink-0 mt-0.5">neurology</span>
           <div className="min-w-0">
@@ -138,7 +138,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
       </div>
 
       {/* ── Bento grid: recovery (alto) + forma + alvo ── */}
-      <div className="grid grid-cols-2 grid-rows-2 gap-3">
+      <div className="grid grid-cols-2 grid-rows-2 gap-4">
         {/* Recovery hero — ocupa as 2 linhas */}
         <div
           className="row-span-2 relative overflow-hidden rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col items-center justify-center"
@@ -167,7 +167,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
         </div>
 
         {/* Forma (TSB) */}
-        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-4 flex flex-col justify-between">
+        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Forma</span>
             <span className="material-symbols-outlined text-base text-text-faint">{trendIcon}</span>
@@ -182,7 +182,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
         </div>
 
         {/* Alvo de hoje (strain target) */}
-        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-4 flex flex-col justify-between">
+        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Alvo de hoje</span>
           {lt ? (
             <>
@@ -200,7 +200,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
 
       {/* ── Race strip ── */}
       {targetRace && (
-        <div className="rounded-card bg-bg-surface ring-1 ring-hairline px-4 py-3 flex items-center gap-3">
+        <div className="rounded-card bg-bg-surface ring-1 ring-hairline px-5 py-4 flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-lg shrink-0">flag</span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-text-primary truncate leading-tight">{targetRace.raceName || 'Prova-alvo'}</p>

@@ -12,7 +12,7 @@
   --color-border: #1e293b80;
   --color-border-strong: #334155;
   --color-border-focus: #1d8fed;
-  --color-hairline: #ffffff14;
+  --color-hairline: #ffffff1f;
 
   /* ── Texto ── */
   --color-text-primary: #f1f5f9;
@@ -70,8 +70,8 @@
   --radius-full: 9999px;
 
   /* ── Radius semânticos (cards) ── */
-  --radius-card: 28px;
-  --radius-card-inner: 22px;
+  --radius-card: 20px;
+  --radius-card-inner: 16px;
 
   /* ── Sombras / Elevação ── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
