@@ -407,37 +407,37 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
         return reply.code(400).send({ code: 'ERR_INVALID_RANGE', message: 'from > to', status: 400 });
       }
 
-      const rows = await db.query.dailyMetrics.findMany({
-        where: and(
-          eq(schema.dailyMetrics.userId, request.userId),
-          gte(schema.dailyMetrics.date, range.from),
-          lte(schema.dailyMetrics.date, range.to),
-        ),
-        orderBy: [asc(schema.dailyMetrics.date)],
-      });
+      // PMC é calculado AO VIVO a partir das atividades (fonte de verdade).
+      // As colunas ctl/atl/tsb em daily_metrics nunca são populadas — não ler delas.
+      const todayStr = new Date().toISOString().split('T')[0]!;
+      const spanDays = Math.ceil(
+        (new Date(todayStr + 'T00:00:00').getTime() - new Date(range.from + 'T00:00:00').getTime()) / 86400000,
+      ) + 1;
+      const pmc = await performanceService.calculatePMC(request.userId, Math.max(spanDays, 7));
+      const items = pmc.metrics
+        .filter((m) => m.date >= range.from && m.date <= range.to)
+        .map((m) => ({ date: m.date, tss: m.tss, ctl: m.ctl, atl: m.atl, tsb: m.tsb }));
 
-      return reply.send({
-        data: {
-          range,
-          items: rows.map((m) => ({
-            date: m.date,
-            tss: m.tss != null ? Number(m.tss) : 0,
-            ctl: m.ctl != null ? Number(m.ctl) : 0,
-            atl: m.atl != null ? Number(m.atl) : 0,
-            tsb: m.tsb != null ? Number(m.tsb) : 0,
-          })),
-        },
-      });
+      return reply.send({ data: { range, items } });
     },
   );
 
   // ── GET /api/v1/public/performance/readiness ───────────────
   app.get('/api/v1/public/performance/readiness', { onRequest: requireScope('read:wellness') }, async (request, reply) => {
-    const rows = await db.query.dailyMetrics.findMany({
-      where: eq(schema.dailyMetrics.userId, request.userId),
-      orderBy: [desc(schema.dailyMetrics.date)],
-      limit: 1,
-    });
+    const userId = request.userId;
+    const todayStr = new Date().toISOString().split('T')[0]!;
+    // ctl/atl/tsb ao vivo (calculatePMC); readiness do check-in de hoje (fonte real).
+    const [rows, pmc, todayCheckin] = await Promise.all([
+      db.query.dailyMetrics.findMany({
+        where: eq(schema.dailyMetrics.userId, userId),
+        orderBy: [desc(schema.dailyMetrics.date)],
+        limit: 1,
+      }),
+      performanceService.calculatePMC(userId),
+      db.query.dailyCheckins.findFirst({
+        where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),
+      }),
+    ]);
 
     const latest = rows[0];
     if (!latest) {
@@ -447,13 +447,13 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     return reply.send({
       data: {
         date: latest.date,
-        readinessScore: latest.readinessScore != null ? Number(latest.readinessScore) : null,
-        readinessLevel: latest.readinessLevel,
+        readinessScore: todayCheckin?.readinessScore ?? null,
+        readinessLevel: todayCheckin?.readinessLevel ?? null,
         fatigueScore: latest.fatigueScore != null ? Number(latest.fatigueScore) : null,
-        mentorRecommendation: latest.mentorRecommendation,
-        ctl: latest.ctl != null ? Number(latest.ctl) : null,
-        atl: latest.atl != null ? Number(latest.atl) : null,
-        tsb: latest.tsb != null ? Number(latest.tsb) : null,
+        mentorRecommendation: todayCheckin?.recommendation ?? latest.mentorRecommendation,
+        ctl: pmc.currentCTL,
+        atl: pmc.currentATL,
+        tsb: pmc.currentTSB,
         hrvMs: latest.hrvMs != null ? Number(latest.hrvMs) : null,
         hrvStatus: latest.hrvStatus,
         restingHr: latest.restingHr,
@@ -491,7 +491,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     const todayStart = new Date(todayStr + 'T00:00:00');
     const todayEnd = new Date(todayStr + 'T23:59:59');
 
-    const [nextWorkout, todayActivity, latestWellness, activeRace] = await Promise.all([
+    const [nextWorkout, todayActivity, latestWellness, activeRace, pmc, todayCheckin] = await Promise.all([
       db.query.plannedWorkouts.findFirst({
         where: and(
           eq(schema.plannedWorkouts.userId, userId),
@@ -516,6 +516,10 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
           eq(schema.raceGoals.userId, userId),
           eq(schema.raceGoals.active, true),
         ),
+      }),
+      performanceService.calculatePMC(userId),
+      db.query.dailyCheckins.findFirst({
+        where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),
       }),
     ]);
 
@@ -551,11 +555,11 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
               hrvMs: latestWellness.hrvMs != null ? Number(latestWellness.hrvMs) : null,
               restingHr: latestWellness.restingHr,
               sleepScore: latestWellness.sleepScore,
-              readinessScore: latestWellness.readinessScore != null ? Number(latestWellness.readinessScore) : null,
-              readinessLevel: latestWellness.readinessLevel,
-              ctl: latestWellness.ctl != null ? Number(latestWellness.ctl) : null,
-              atl: latestWellness.atl != null ? Number(latestWellness.atl) : null,
-              tsb: latestWellness.tsb != null ? Number(latestWellness.tsb) : null,
+              readinessScore: todayCheckin?.readinessScore ?? null,
+              readinessLevel: todayCheckin?.readinessLevel ?? null,
+              ctl: pmc.currentCTL,
+              atl: pmc.currentATL,
+              tsb: pmc.currentTSB,
             }
           : null,
         activeRace: activeRace
@@ -954,7 +958,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     const todayStart = new Date(todayStr + 'T00:00:00');
     const todayEnd = new Date(todayStr + 'T23:59:59');
 
-    const [profile, directives, assessments, athlete, nextWorkout, todayActivity, latestWellness, activeRace] = await Promise.all([
+    const [profile, directives, assessments, athlete, nextWorkout, todayActivity, latestWellness, activeRace, pmc, todayCheckin] = await Promise.all([
       db.query.coachProfile.findFirst({ where: eq(schema.coachProfile.userId, userId) }),
       db.query.coachDirectives.findMany({
         where: and(eq(schema.coachDirectives.userId, userId), eq(schema.coachDirectives.status, 'active')),
@@ -985,6 +989,10 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       db.query.raceGoals.findFirst({
         where: and(eq(schema.raceGoals.userId, userId), eq(schema.raceGoals.active, true)),
       }),
+      performanceService.calculatePMC(userId),
+      db.query.dailyCheckins.findFirst({
+        where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),
+      }),
     ]);
 
     return reply.send({
@@ -1004,11 +1012,11 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
           latestWellness: latestWellness
             ? {
                 date: latestWellness.date,
-                readinessScore: latestWellness.readinessScore != null ? Number(latestWellness.readinessScore) : null,
-                readinessLevel: latestWellness.readinessLevel,
-                ctl: latestWellness.ctl != null ? Number(latestWellness.ctl) : null,
-                atl: latestWellness.atl != null ? Number(latestWellness.atl) : null,
-                tsb: latestWellness.tsb != null ? Number(latestWellness.tsb) : null,
+                readinessScore: todayCheckin?.readinessScore ?? null,
+                readinessLevel: todayCheckin?.readinessLevel ?? null,
+                ctl: pmc.currentCTL,
+                atl: pmc.currentATL,
+                tsb: pmc.currentTSB,
                 hrvMs: latestWellness.hrvMs != null ? Number(latestWellness.hrvMs) : null,
                 hrvStatus: latestWellness.hrvStatus,
                 vo2max: latestWellness.vo2max != null ? Number(latestWellness.vo2max) : null,
