@@ -444,6 +444,14 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     },
   );
 
+  // ── GET /api/v1/public/performance/recovery ────────────────
+  // Recovery score estilo WHOOP: recuperação fisiológica (HRV/FC repouso/
+  // sono/FR) vs baseline pessoal, com banda verde/amarelo/vermelho.
+  app.get('/api/v1/public/performance/recovery', { onRequest: requireScope('read:wellness') }, async (request, reply) => {
+    const data = await performanceService.computeRecoveryScore(request.userId);
+    return reply.send({ data });
+  });
+
   // ── GET /api/v1/public/performance/readiness ───────────────
   app.get('/api/v1/public/performance/readiness', { onRequest: requireScope('read:wellness') }, async (request, reply) => {
     const userId = request.userId;

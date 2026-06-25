@@ -649,6 +649,122 @@ export function computeLoadTarget(
   }
 }
 
+// ── Recovery Score (estilo WHOOP) ────────────────────────────────
+// Mede a recuperação FISIOLÓGICA do dia (HRV, FC repouso, sono, freq.
+// respiratória) comparada ao BASELINE PESSOAL do atleta — independente
+// da carga de treino (TSB). É a métrica-assinatura do WHOOP, que nem o
+// TrainingPeaks nem a prontidão atual do Endura entregam isolada.
+
+export interface RecoveryMetric {
+  key: 'hrv' | 'rhr' | 'sleep' | 'resp';
+  label: string;
+  today: number | null;
+  baseline: number | null;
+  score: number | null; // sub-score 0-100 (null = indisponível)
+  direction: 'higher_better' | 'lower_better';
+}
+
+export interface RecoveryScore {
+  date: string | null;
+  score: number | null; // 0-100 (null = dados insuficientes)
+  band: 'green' | 'yellow' | 'red' | 'unknown';
+  label: string;
+  recommendation: string;
+  metrics: RecoveryMetric[];
+  baselineDays: number;
+}
+
+function mean(xs: number[]): number {
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+function stdDev(xs: number[], mu: number): number {
+  return Math.sqrt(xs.reduce((s, v) => s + (v - mu) ** 2, 0) / xs.length);
+}
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
+}
+// Mapeia um desvio (z-score) para 0-100. z=0 → 50 (na baseline); +2.5σ → 100.
+function scoreFromZ(z: number): number {
+  return Math.round(clamp(50 + clamp(z, -2.5, 2.5) * 20, 0, 100));
+}
+
+export async function computeRecoveryScore(userId: string): Promise<RecoveryScore> {
+  // Série de wellness (intervals.icu) dos últimos ~30 dias, mais recente primeiro.
+  const rows = await db.query.dailyMetrics.findMany({
+    where: and(
+      eq(schema.dailyMetrics.userId, userId),
+      eq(schema.dailyMetrics.source, 'intervals_icu'),
+    ),
+    orderBy: (dm, { desc: d }) => [d(dm.date)],
+    limit: 31,
+  });
+
+  const empty: RecoveryScore = {
+    date: null, score: null, band: 'unknown',
+    label: 'Sem dados', recommendation: 'Sincronize o wellness (Garmin via intervals.icu) para calcular a recuperação.',
+    metrics: [], baselineDays: 0,
+  };
+  if (rows.length === 0) return empty;
+
+  const today = rows[0]!;
+  const baseline = rows.slice(1); // exclui o dia de hoje
+  const num = (v: unknown): number | null => (v != null && isFinite(Number(v)) ? Number(v) : null);
+
+  // Define cada métrica: valor de hoje, série da baseline, direção e peso.
+  type Def = { key: RecoveryMetric['key']; label: string; today: number | null; series: number[]; dir: RecoveryMetric['direction']; weight: number };
+  const defs: Def[] = [
+    { key: 'hrv', label: 'HRV', today: num(today.hrvMs), series: baseline.map((r) => num(r.hrvMs)).filter((v): v is number => v != null), dir: 'higher_better', weight: 0.50 },
+    { key: 'rhr', label: 'FC repouso', today: num(today.restingHr), series: baseline.map((r) => num(r.restingHr)).filter((v): v is number => v != null), dir: 'lower_better', weight: 0.25 },
+    { key: 'sleep', label: 'Sono', today: num(today.sleepScore), series: baseline.map((r) => num(r.sleepScore)).filter((v): v is number => v != null), dir: 'higher_better', weight: 0.15 },
+    { key: 'resp', label: 'Freq. resp.', today: num(today.respirationRate), series: baseline.map((r) => num(r.respirationRate)).filter((v): v is number => v != null), dir: 'lower_better', weight: 0.10 },
+  ];
+
+  const metrics: RecoveryMetric[] = [];
+  let weighted = 0;
+  let weightSum = 0;
+  for (const d of defs) {
+    let subScore: number | null = null;
+    let base: number | null = null;
+    if (d.today != null && d.series.length >= 4) {
+      const mu = mean(d.series);
+      base = Math.round(mu * 10) / 10;
+      if (d.key === 'sleep') {
+        // Sono já é qualidade absoluta (0-100): usa o score do dia direto.
+        subScore = Math.round(clamp(d.today, 0, 100));
+      } else {
+        const sd = stdDev(d.series, mu);
+        const rawZ = sd > 0 ? (d.today - mu) / sd : 0;
+        const z = d.dir === 'higher_better' ? rawZ : -rawZ;
+        subScore = scoreFromZ(z);
+      }
+      weighted += subScore * d.weight;
+      weightSum += d.weight;
+    }
+    metrics.push({ key: d.key, label: d.label, today: d.today, baseline: base, score: subScore, direction: d.dir });
+  }
+
+  if (weightSum === 0) {
+    return { ...empty, date: today.date, metrics, recommendation: 'Sem histórico suficiente de wellness para uma baseline confiável (precisa de ~4+ dias).' };
+  }
+
+  const score = Math.round(weighted / weightSum);
+  let band: RecoveryScore['band'];
+  let label: string;
+  let recommendation: string;
+  if (score >= 67) {
+    band = 'green'; label = 'Recuperado';
+    recommendation = 'Corpo recuperado — pode absorver um dia forte. Aproveite para a sessão-chave.';
+  } else if (score >= 34) {
+    band = 'yellow'; label = 'Recuperação moderada';
+    recommendation = 'Recuperação parcial — mantenha o planejado, mas evite estourar a intensidade.';
+  } else {
+    band = 'red'; label = 'Pouco recuperado';
+    recommendation = 'Sinais de baixa recuperação — priorize Z2/recuperação ou descanso e capriche no sono.';
+  }
+
+  return { date: today.date, score, band, label, recommendation, metrics, baselineDays: baseline.length };
+}
+
 function getDefaultMentorMessage(level: string, tsb: number, ctl: number): string {
   if (level === 'intense') {
     return `Seu corpo esta descansado e pronto para desafios. Com TSB de ${tsb.toFixed(0)} e fitness de ${ctl.toFixed(0)}, hoje e dia de forcar o limite. Aproveite!`;

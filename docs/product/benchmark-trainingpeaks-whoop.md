@@ -59,7 +59,7 @@ Legenda de esforço: S (≤1 dia), M (2–4 dias), L (semana+, depende de stream
 
 ### P0 — Maior valor, buildável já
 1. ✅ **Projeção de forma (PMC forward-looking)** — *entregue nesta release.* CTL/ATL/TSB até a prova + avaliação de pico + taper sugerido, exposto na web e via MCP (`endura_get_pmc_forecast`).
-2. **Recovery Score estilo WHOOP (M)** — score 0–100 a partir de HRV/RHR/sono/resp. **vs baseline pessoal**, separado do readiness (que mistura PMC). Estender baseline p/ RHR/sono/resp. Surfacar bandas no `wellness-card`.
+2. ✅ **Recovery Score estilo WHOOP** — *entregue nesta release.* Score 0–100 de HRV/FC repouso/sono/FR **vs baseline pessoal** (z-score por métrica, pesos HRV 50% / RHR 25% / sono 15% / FR 10%, renormalizados), banda verde/amarelo/vermelho, separado do readiness (que mistura PMC+subjetivo). `computeRecoveryScore()` + `RecoveryCard` na web + MCP (`endura_get_recovery`).
 3. ✅ **Strain Target diário** — *entregue nesta release.* A readiness agora sugere uma **faixa de TSS-alvo para hoje** (`loadTarget`, ancorada no CTL e escalada pela prontidão), exposta no `readiness-card` e via MCP (`endura_get_readiness`). Fecha o loop com a projeção (quanto treinar p/ chegar no pico).
 4. **Season/ATP view na web (M)** — calendário multi-semana com CTL planejado vs realizado e marcos das provas A/B/C. Reusa `projectPMC`.
 

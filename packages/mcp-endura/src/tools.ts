@@ -133,6 +133,14 @@ export const TOOLS: ToolDef[] = [
     call: (a, c) => c.get(`${BASE}/performance/pmc-forecast`, { horizonDays: a.horizonDays }),
   },
   {
+    name: 'endura_get_recovery',
+    description:
+      'Recovery score (estilo WHOOP) 0-100: recuperação FISIOLÓGICA do dia (HRV, FC repouso, sono, freq. respiratória) comparada ao baseline pessoal do atleta — independente da carga (TSB). Retorna score, banda (green/yellow/red), sub-score por métrica e recomendação. Use junto com readiness (forma+subjetivo) e pmc para uma leitura completa.',
+    scope: 'read:wellness',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/performance/recovery`),
+  },
+  {
     name: 'endura_get_wellness',
     description: 'Série diária de HRV (+ status e baseline), sono, peso, FC repouso, SpO2, stress, VO2max, frequência respiratória.',
     scope: 'read:wellness',

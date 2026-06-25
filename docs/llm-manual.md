@@ -145,7 +145,7 @@ Este é o fluxo que faz o Endura virar um **treinador completo com memória perm
 Leia isso antes de qualquer coisa. É a memória do atleta — não recomece do zero.
 
 **Passo 2 — Colete dados objetivos:**
-`endura_get_pmc`, `endura_get_pmc_forecast` (**projeção de forma**: CTL/ATL/TSB adiante até a prova, com avaliação se o atleta chega no TSB de pico — use para decidir ajustes no plano), `endura_get_wellness` (agora inclui VO2max, FR, HRV status), `endura_list_activities`, `endura_get_race_projection` (previsão físico-fisiológica do Endura), `endura_list_planned_workouts`.
+`endura_get_pmc`, `endura_get_pmc_forecast` (**projeção de forma**: CTL/ATL/TSB adiante até a prova, com avaliação se o atleta chega no TSB de pico — use para decidir ajustes no plano), `endura_get_recovery` (**recovery score estilo WHOOP**: recuperação fisiológica vs baseline, complementa a prontidão), `endura_get_wellness` (agora inclui VO2max, FR, HRV status), `endura_list_activities`, `endura_get_race_projection` (previsão físico-fisiológica do Endura), `endura_list_planned_workouts`.
 
 **Passo 3 — Analise** (seu raciocínio): forma (TSB), tendência de carga, prontidão, gaps de fueling, aderência, risco de overtraining, viabilidade da meta de prova.
 

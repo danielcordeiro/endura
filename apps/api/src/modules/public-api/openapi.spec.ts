@@ -284,6 +284,14 @@ export function buildOpenApiSpec(baseUrl: string): OpenApiSpec {
           responses: { '200': { description: 'Forecast PMC + raceDay + peak' } },
         },
       },
+      [`${BASE}/performance/recovery`]: {
+        get: {
+          tags: ['wellness'],
+          summary: 'Recovery score estilo WHOOP (HRV/FC repouso/sono/FR vs baseline pessoal)',
+          'x-scope': 'read:wellness',
+          responses: { '200': { description: 'Recovery score + banda + metricas' } },
+        },
+      },
       [`${BASE}/performance/readiness`]: {
         get: {
           tags: ['wellness'],
@@ -598,6 +606,11 @@ export function buildAnthropicTools(): AnthropicTool[] {
           to: { type: 'string', description: 'YYYY-MM-DD' },
         },
       },
+    },
+    {
+      name: 'endura_get_recovery',
+      description: 'Recovery score estilo WHOOP (0-100): recuperacao FISIOLOGICA do dia (HRV, FC repouso, sono, freq. respiratoria) comparada ao baseline pessoal do atleta, independente da carga (TSB). Retorna score, banda (green/yellow/red), sub-score por metrica e recomendacao. Complementa o readiness (forma+subjetivo).',
+      input_schema: { type: 'object', properties: {} },
     },
     {
       name: 'endura_get_pmc_forecast',

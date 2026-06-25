@@ -19,6 +19,7 @@ import { CreateRaceForm } from '@/components/dashboard/create-race-form';
 import { DisciplineBenchmarks } from '@/components/dashboard/discipline-benchmarks';
 import { FitnessTestsCard } from '@/components/dashboard/fitness-tests-card';
 import { WellnessCard } from '@/components/dashboard/wellness-card';
+import { RecoveryCard } from '@/components/dashboard/recovery-card';
 import { WeightCard } from '@/components/dashboard/weight-card';
 import { FatigueStrainCard } from '@/components/dashboard/fatigue-strain-card';
 import { WeeklyLoadChart } from '@/components/dashboard/weekly-load-chart';
@@ -517,6 +518,11 @@ export default function DashboardPage() {
           {/* ── Wellness Data (Garmin) ── */}
           <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
             <WellnessCard />
+          </div>
+
+          {/* ── Recovery Score (estilo WHOOP) ── */}
+          <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
+            <RecoveryCard />
           </div>
 
           {/* ── AI Readiness Mentor ── */}

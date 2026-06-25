@@ -81,6 +81,17 @@ export default async function performanceRoutes(app: FastifyInstance): Promise<v
     },
   );
 
+  // ── GET /api/performance/recovery ──────────────────────────────
+  // Recovery score (estilo WHOOP): recuperação fisiológica vs baseline pessoal
+  app.get('/api/performance/recovery', { onRequest: authenticate }, async (request, reply) => {
+    try {
+      const data = await performanceService.computeRecoveryScore(request.userId);
+      return reply.send({ data });
+    } catch (err) {
+      await handleError(err, request, reply);
+    }
+  });
+
   // ── GET /api/performance/readiness ─────────────────────────────
   // Retorna avaliacao de prontidao. Se ja fez check-in hoje, usa os dados salvos.
   app.get('/api/performance/readiness', { onRequest: authenticate }, async (request, reply) => {
