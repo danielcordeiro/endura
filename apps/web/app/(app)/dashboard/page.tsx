@@ -19,7 +19,7 @@ import { CreateRaceForm } from '@/components/dashboard/create-race-form';
 import { DisciplineBenchmarks } from '@/components/dashboard/discipline-benchmarks';
 import { FitnessTestsCard } from '@/components/dashboard/fitness-tests-card';
 import { WellnessCard } from '@/components/dashboard/wellness-card';
-import { RecoveryCard } from '@/components/dashboard/recovery-card';
+import { DailyCockpit } from '@/components/dashboard/daily-cockpit';
 import { WeightCard } from '@/components/dashboard/weight-card';
 import { FatigueStrainCard } from '@/components/dashboard/fatigue-strain-card';
 import { WeeklyLoadChart } from '@/components/dashboard/weekly-load-chart';
@@ -104,6 +104,7 @@ interface ReadinessAssessment {
   };
   recommendation: string;
   mentorMessage: string;
+  loadTarget?: { tssLow: number; tssHigh: number; label: string };
 }
 
 interface RacePrediction {
@@ -515,14 +516,22 @@ export default function DashboardPage() {
       {/* ══════════════════════════════════════════════════════════ */}
       {activeTab === 'today' && (
         <>
+          {/* ── Daily Cockpit (hero bento: recovery + forma + alvo + prova) ── */}
+          {perfData && (
+            <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
+              <DailyCockpit
+                userName={user?.name ?? null}
+                pmc={perfData.pmc}
+                readiness={perfData.readiness}
+                forecast={forecastData}
+                targetRace={perfData.targetRace}
+              />
+            </div>
+          )}
+
           {/* ── Wellness Data (Garmin) ── */}
           <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
             <WellnessCard />
-          </div>
-
-          {/* ── Recovery Score (estilo WHOOP) ── */}
-          <div className="animate-fade-in-up stagger-2" style={{ opacity: 0 }}>
-            <RecoveryCard />
           </div>
 
           {/* ── AI Readiness Mentor ── */}
