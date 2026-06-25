@@ -286,9 +286,31 @@ export function buildOpenApiSpec(baseUrl: string): OpenApiSpec {
       [`${BASE}/race-goals`]: {
         get: {
           tags: ['profile'],
-          summary: 'Provas cadastradas',
+          summary: 'Calendário de provas (alvo A + provas B/C)',
           'x-scope': 'read:profile',
           responses: { '200': { description: 'Lista' } },
+        },
+        post: {
+          tags: ['profile'],
+          summary: 'Adiciona prova ao calendário (priority A/B/C)',
+          'x-scope': 'write:planned',
+          responses: { '201': { description: 'Criada' } },
+        },
+      },
+      [`${BASE}/race-goals/{id}`]: {
+        put: {
+          tags: ['profile'],
+          summary: 'Atualiza prova do calendário (active=false arquiva)',
+          'x-scope': 'write:planned',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: { '200': { description: 'Atualizada' } },
+        },
+        delete: {
+          tags: ['profile'],
+          summary: 'Remove prova do calendário',
+          'x-scope': 'write:planned',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+          responses: { '200': { description: 'Removida' } },
         },
       },
       [`${BASE}/fitness-tests`]: {
@@ -765,6 +787,49 @@ export function buildAnthropicTools(): AnthropicTool[] {
       name: 'endura_get_race_projection',
       description: 'Previsao físico-fisiológica do Endura para a prova ativa (tempos por disciplina, confianca, fase/progresso do plano). Use como ponto de partida e refine; salve a versao refinada com endura_save_assessment (type=race_projection).',
       input_schema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'endura_list_races',
+      description: 'Lista o calendario de provas do atleta (alvo A + provas B/C de preparacao), ordenado por data.',
+      input_schema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'endura_create_race',
+      description: 'Adiciona uma prova ao calendario. priority A=prova alvo principal (rebaixa a A anterior para B), B=importante, C=treino/preparacao.',
+      input_schema: {
+        type: 'object', required: ['distance', 'raceDate', 'goal'],
+        properties: {
+          distance: { type: 'string', enum: ['sprint', 'olympic', '70.3', 'full', 'run_5k', 'run_10k', 'run_21k', 'run_42k', 'bike_event', 'swim_event', 'other'] },
+          raceDate: { type: 'string', description: 'YYYY-MM-DD' },
+          goal: { type: 'string', enum: ['finish', 'time'] },
+          targetTime: { type: 'integer', description: 'tempo alvo em segundos' },
+          raceName: { type: 'string' },
+          priority: { type: 'string', enum: ['A', 'B', 'C'] },
+          location: { type: 'string' },
+          notes: { type: 'string' },
+          bikeElevationGainM: { type: 'number' },
+          runElevationGainM: { type: 'number' },
+        },
+      },
+    },
+    {
+      name: 'endura_update_race',
+      description: 'Atualiza uma prova do calendario (envie so os campos que mudam). active=false arquiva.',
+      input_schema: {
+        type: 'object', required: ['id'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          distance: { type: 'string' }, raceDate: { type: 'string' }, goal: { type: 'string' },
+          targetTime: { type: 'integer' }, raceName: { type: 'string' },
+          priority: { type: 'string', enum: ['A', 'B', 'C'] },
+          location: { type: 'string' }, notes: { type: 'string' }, active: { type: 'boolean' },
+        },
+      },
+    },
+    {
+      name: 'endura_delete_race',
+      description: 'Remove uma prova do calendario.',
+      input_schema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
     },
     {
       name: 'endura_create_training_plan',

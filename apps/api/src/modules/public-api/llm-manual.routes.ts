@@ -45,7 +45,7 @@ function buildLlmsTxt(baseUrl: string): string {
 
 - [Manual para LLM](${baseUrl}/api/v1/public/llm-manual.md): glossario de dominio (TSS, CTL, ATL, TSB, RPE, fueling), conceitos do modelo de dados, fluxos canonicos para registrar suplementacao em linguagem natural, regras invariantes e boas praticas.
 - [OpenAPI 3.1 spec](${baseUrl}/api/v1/public/openapi.json): especificacao completa de todos os endpoints publicos.
-- [Tools para function calling](${baseUrl}/api/v1/public/openapi/tools.json): tools no formato Anthropic, prontas para colar em \`system.tools\`. Cobre summary, atividades, planned workouts, wellness, PMC, readiness, busca de catalogo, log de nutricao (single + bulk), follow-protocol, feedback, daily check-in e comentarios, **alem da memoria do coach (context/assessments/directives/profile), previsao de prova e escrita autoritativa de planos/treinos com suplementacao**.
+- [Tools para function calling](${baseUrl}/api/v1/public/openapi/tools.json): tools no formato Anthropic, prontas para colar em \`system.tools\`. Cobre summary, atividades, planned workouts, wellness, PMC, readiness, busca de catalogo, log de nutricao (single + bulk), follow-protocol, feedback, daily check-in e comentarios, **alem da memoria do coach (context/assessments/directives/profile), previsao de prova, calendario de provas (A/B/C) e escrita autoritativa de planos/treinos com suplementacao**.
 - Servidor MCP (stdio): pacote \`@endura/mcp\` expoe todas as tools acima ao Claude Code/Desktop. Veja \`packages/mcp-endura/README.md\`.
 
 ## Documentacao humana
