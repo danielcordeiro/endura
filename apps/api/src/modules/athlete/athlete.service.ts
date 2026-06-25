@@ -164,12 +164,13 @@ export async function listRaceGoals(userId: string, opts: { includeArchived?: bo
   });
 }
 
-// Prova alvo principal: a prova A ativa mais próxima no futuro. Fallback: qualquer
-// prova A ativa; depois, a prova ativa mais próxima no futuro (compat. retroativa).
-export async function getActiveRaceGoal(userId: string) {
+// Seleção determinística da prova-alvo: prova A ativa mais próxima no futuro →
+// qualquer A ativa → prova ativa mais próxima no futuro → qualquer ativa.
+// É a FONTE ÚNICA usada por performance/dashboard/plan/public-api para evitar
+// que, com várias provas ativas, cada lugar mire uma prova diferente.
+export async function findTargetRaceGoal(userId: string) {
   const today = new Date().toISOString().split('T')[0]!;
-
-  const goal =
+  return (
     (await db.query.raceGoals.findFirst({
       where: and(
         eq(schema.raceGoals.userId, userId),
@@ -194,8 +195,22 @@ export async function getActiveRaceGoal(userId: string) {
         gte(schema.raceGoals.raceDate, today),
       ),
       orderBy: [asc(schema.raceGoals.raceDate)],
-    }));
+    })) ??
+    (await db.query.raceGoals.findFirst({
+      where: and(eq(schema.raceGoals.userId, userId), eq(schema.raceGoals.active, true)),
+      orderBy: [asc(schema.raceGoals.raceDate)],
+    }))
+  );
+}
 
+// Versão que retorna null (para snapshots que não devem lançar).
+export async function getActiveRaceGoalOrNull(userId: string) {
+  return findTargetRaceGoal(userId);
+}
+
+// Prova alvo principal — lança 404 se não houver nenhuma.
+export async function getActiveRaceGoal(userId: string) {
+  const goal = await findTargetRaceGoal(userId);
   if (!goal) {
     throw {
       code: 'ERR_RACE_GOAL_NOT_FOUND',
@@ -203,7 +218,6 @@ export async function getActiveRaceGoal(userId: string) {
       status: 404,
     };
   }
-
   return goal;
 }
 

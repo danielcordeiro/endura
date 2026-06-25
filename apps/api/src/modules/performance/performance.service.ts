@@ -3,6 +3,7 @@ import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
 import { getLatestWellness } from '../integration/wellness-sync.service.js';
+import { findTargetRaceGoal } from '../athlete/athlete.service.js';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -691,12 +692,7 @@ export async function predictRaceTime(
 // ── Target Race ──────────────────────────────────────────────────
 
 export async function getTargetRace(userId: string, pmc: PMCData): Promise<TargetRace | null> {
-  const raceGoal = await db.query.raceGoals.findFirst({
-    where: and(
-      eq(schema.raceGoals.userId, userId),
-      eq(schema.raceGoals.active, true),
-    ),
-  });
+  const raceGoal = await findTargetRaceGoal(userId);
 
   if (!raceGoal) return null;
 

@@ -1,6 +1,7 @@
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
+import { findTargetRaceGoal } from '../athlete/athlete.service.js';
 
 // ── Tipos ─────────────────────────────────────────────────────────
 
@@ -118,13 +119,8 @@ export async function getDashboardSummary(userId: string): Promise<DashboardSumm
   const today = getTodayStr();
   const { weekStartStr, weekEndStr } = getWeekBounds();
 
-  // 1. Prova alvo ativa
-  const raceGoal = await db.query.raceGoals.findFirst({
-    where: and(
-      eq(schema.raceGoals.userId, userId),
-      eq(schema.raceGoals.active, true),
-    ),
-  });
+  // 1. Prova alvo (prioridade A, mais próxima)
+  const raceGoal = await findTargetRaceGoal(userId);
 
   let raceGoalSummary: RaceGoalSummary | null = null;
   if (raceGoal) {

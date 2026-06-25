@@ -561,12 +561,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
         where: eq(schema.dailyMetrics.userId, userId),
         orderBy: [desc(schema.dailyMetrics.date)],
       }),
-      db.query.raceGoals.findFirst({
-        where: and(
-          eq(schema.raceGoals.userId, userId),
-          eq(schema.raceGoals.active, true),
-        ),
-      }),
+      athleteService.getActiveRaceGoalOrNull(userId),
       performanceService.calculatePMC(userId),
       db.query.dailyCheckins.findFirst({
         where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),
@@ -1036,9 +1031,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
         where: eq(schema.dailyMetrics.userId, userId),
         orderBy: [desc(schema.dailyMetrics.date)],
       }),
-      db.query.raceGoals.findFirst({
-        where: and(eq(schema.raceGoals.userId, userId), eq(schema.raceGoals.active, true)),
-      }),
+      athleteService.getActiveRaceGoalOrNull(userId),
       performanceService.calculatePMC(userId),
       db.query.dailyCheckins.findFirst({
         where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),

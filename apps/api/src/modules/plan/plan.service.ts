@@ -4,6 +4,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
 import { buildGeneratePlanPrompt } from './prompts/generate-plan.prompt.js';
 import { buildNutritionProtocolPrompt } from './prompts/nutrition-protocol.prompt.js';
+import { findTargetRaceGoal } from '../athlete/athlete.service.js';
 
 // ── Tipos para resposta do Claude ───────────────────────────────
 
@@ -90,13 +91,8 @@ export async function generatePlan(userId: string) {
     };
   }
 
-  // 2. Busca prova alvo ativa
-  const raceGoal = await db.query.raceGoals.findFirst({
-    where: and(
-      eq(schema.raceGoals.userId, userId),
-      eq(schema.raceGoals.active, true),
-    ),
-  });
+  // 2. Busca prova alvo (prioridade A, mais próxima)
+  const raceGoal = await findTargetRaceGoal(userId);
 
   if (!raceGoal) {
     throw {
