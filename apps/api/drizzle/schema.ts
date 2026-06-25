@@ -445,6 +445,15 @@ export const dailyMetrics = pgTable('daily_metrics', {
   stressLevel: integer('stress_level'),
   bodyBattery: integer('body_battery'),
   weightKg: numeric('weight_kg', { precision: 5, scale: 2 }),
+  // Lacunas Garmin via intervals.icu (sync estendido)
+  vo2max: numeric('vo2max', { precision: 5, scale: 2 }),
+  respirationRate: numeric('respiration_rate', { precision: 5, scale: 2 }), // resp/min
+  hrvStatus: varchar('hrv_status', { length: 20 }),                          // low | balanced | high | unknown (derivado de hrvMs vs hrvBaseline)
+  intervalsReadiness: numeric('intervals_readiness', { precision: 5, scale: 2 }), // readiness proprio do intervals.icu (distinto do readinessScore do Endura)
+  recoveryTimeH: numeric('recovery_time_h', { precision: 5, scale: 1 }),     // horas ate recuperado (Garmin)
+  sleepDeepH: numeric('sleep_deep_h', { precision: 4, scale: 2 }),
+  sleepLightH: numeric('sleep_light_h', { precision: 4, scale: 2 }),
+  sleepRemH: numeric('sleep_rem_h', { precision: 4, scale: 2 }),
   fatigueScore: numeric('fatigue_score', { precision: 5, scale: 2 }),
   readinessScore: numeric('readiness_score', { precision: 5, scale: 2 }),
   readinessLevel: varchar('readiness_level', { length: 20 }),
@@ -604,3 +613,69 @@ export const apiAuditLogs = pgTable('api_audit_logs', {
   index('idx_api_audit_logs_user_created').on(table.userId, table.createdAt),
   index('idx_api_audit_logs_key_created').on(table.apiKeyId, table.createdAt),
 ]);
+
+// ── MEMÓRIA DO COACH (contexto persistente p/ sessões de IA via MCP) ──
+// "Base" que toda nova sessao do Claude le primeiro. A inteligencia vive no
+// Claude; o Endura apenas persiste o que ele produz (analises, diretrizes,
+// filosofia). Ver docs/llm-manual.md (fluxo canonico de coaching).
+
+// Contexto vivo de longo prazo — 1 linha por atleta.
+export const coachProfile = pgTable('coach_profile', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  philosophy: text('philosophy'),            // abordagem/preferencias de treino
+  constraints: jsonb('constraints'),         // lesoes, tempo, equipamento, restricoes declaradas
+  currentFocus: text('current_focus'),       // foco atual (ex: "subir FTP, proteger aquiles esq")
+  seasonGoal: text('season_goal'),           // meta da temporada
+  updatedByKeyId: uuid('updated_by_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const coachProfileRelations = relations(coachProfile, ({ one }) => ({
+  user: one(users, { fields: [coachProfile.userId], references: [users.id] }),
+}));
+
+// Historico permanente de analises — append-only. Cada analise do Claude = 1 linha.
+export const coachAssessments = pgTable('coach_assessments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  raceGoalId: uuid('race_goal_id').references(() => raceGoals.id, { onDelete: 'set null' }),
+  type: varchar('type', { length: 30 }).notNull(), // weekly_review | readiness | race_projection | plan_rationale | ad_hoc
+  title: varchar('title', { length: 255 }),
+  summary: text('summary').notNull(),               // analise legivel por humano
+  data: jsonb('data'),                              // achados estruturados (tendencias, numeros, flags)
+  periodFrom: date('period_from'),
+  periodTo: date('period_to'),
+  createdByKeyId: uuid('created_by_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  assessedAt: timestamp('assessed_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  index('idx_coach_assessments_user_assessed').on(table.userId, table.assessedAt),
+]);
+
+export const coachAssessmentsRelations = relations(coachAssessments, ({ one }) => ({
+  user: one(users, { fields: [coachAssessments.userId], references: [users.id] }),
+  raceGoal: one(raceGoals, { fields: [coachAssessments.raceGoalId], references: [raceGoals.id] }),
+}));
+
+// Diretrizes ativas — "plano de acao corrente" que a proxima sessao herda.
+export const coachDirectives = pgTable('coach_directives', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  kind: varchar('kind', { length: 20 }).notNull(),     // training | nutrition | recovery | supplementation
+  text: text('text').notNull(),
+  rationale: text('rationale'),
+  status: varchar('status', { length: 20 }).notNull().default('active'), // active | superseded | done
+  supersedesId: uuid('supersedes_id'),                 // self-ref (sem FK p/ evitar ciclo de tipos)
+  expiresAt: timestamp('expires_at'),
+  createdByKeyId: uuid('created_by_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_coach_directives_user_status').on(table.userId, table.status),
+]);
+
+export const coachDirectivesRelations = relations(coachDirectives, ({ one }) => ({
+  user: one(users, { fields: [coachDirectives.userId], references: [users.id] }),
+}));

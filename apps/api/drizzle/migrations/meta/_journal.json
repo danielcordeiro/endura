@@ -43,6 +43,13 @@
       "when": 1778544000000,
       "tag": "0005_api_keys_expires_and_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782391766677,
+      "tag": "0006_coach_memory_garmin_fields",
+      "breakpoints": true
     }
   ]
 }
