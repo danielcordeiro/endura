@@ -249,9 +249,9 @@ function HeaderSkeleton() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-7 pb-6">
+    <div className="space-y-8 pb-6">
       <HeaderSkeleton />
-      <div className="rounded-card bg-bg-surface p-6 shadow-xl ring-1 ring-hairline space-y-4">
+      <div className="rounded-card bg-bg-surface p-6 shadow-card ring-1 ring-hairline space-y-4">
         <div className="skeleton h-7 w-40 rounded-full" />
         <div className="flex items-end justify-between">
           <div className="skeleton h-14 w-32 rounded" />
@@ -439,7 +439,7 @@ export default function DashboardPage() {
   const hasOnboarding = !!alerts?.find((a) => a.type === 'onboarding');
 
   return (
-    <div className="space-y-7 pb-6">
+    <div className="space-y-8 pb-6">
       {/* ── Header ── */}
       <div className="sticky top-0 z-10 -mx-4 px-4 bg-bg-base/70 backdrop-blur-xl pt-4 pb-3 animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="flex items-center gap-4">
@@ -550,7 +550,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setShowRaceForm(true)}
-                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
+                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
                   <span className="material-symbols-outlined text-3xl text-primary">flag</span>
@@ -588,7 +588,7 @@ export default function DashboardPage() {
             </SectionLabel>
 
             {todayWorkout ? (
-              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-xl">
+              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
                 <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-card-inner p-5">
                   <div className="flex items-start gap-4">
                     <div className={cn(
@@ -655,7 +655,7 @@ export default function DashboardPage() {
               </div>
             ) : todayActivity ? (
               <Link href="/atividades">
-                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-xl">
+                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
                   <div className="bg-gradient-to-br from-success/10 to-[#1c242c] rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(
@@ -695,7 +695,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center">
+              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-card flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                   <span className="material-symbols-outlined text-3xl text-text-muted">bedtime</span>
                 </div>
@@ -858,7 +858,7 @@ export default function DashboardPage() {
 
             </>
           ) : (
-            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-xl flex flex-col items-center text-center">
+            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-card flex flex-col items-center text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                 <span className="material-symbols-outlined text-3xl text-text-muted">monitoring</span>
               </div>

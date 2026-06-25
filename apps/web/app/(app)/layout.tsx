@@ -10,8 +10,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main
           className="pt-[max(env(safe-area-inset-top),1rem)] max-w-lg mx-auto"
           style={{
-            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingLeft: 'max(1.25rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1.25rem, env(safe-area-inset-right))',
             paddingBottom: 'calc(120px + env(safe-area-inset-bottom))',
           }}
         >

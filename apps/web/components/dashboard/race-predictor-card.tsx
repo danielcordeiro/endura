@@ -87,7 +87,7 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
   const diff = targetTimeSec ? prediction.totalTimeSec - targetTimeSec : null;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

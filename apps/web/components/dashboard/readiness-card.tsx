@@ -131,7 +131,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
   return (
     <div className={cn(
-      'rounded-[2rem] p-6 ring-1 shadow-xl bg-gradient-to-br overflow-hidden',
+      'rounded-card p-6 ring-1 shadow-card bg-gradient-to-br overflow-hidden',
       config.gradient,
       config.ring,
     )}>

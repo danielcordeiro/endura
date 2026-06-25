@@ -80,7 +80,7 @@ export function RecoveryCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
         <div className="skeleton h-4 w-32 rounded mb-4" />
         <div className="flex justify-center mb-4"><div className="skeleton h-32 w-32 rounded-full" /></div>
         <div className="grid grid-cols-2 gap-2">
@@ -96,7 +96,7 @@ export function RecoveryCard() {
   const band = BAND[data.band] ?? BAND.unknown;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">

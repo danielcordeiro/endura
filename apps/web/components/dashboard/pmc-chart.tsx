@@ -104,7 +104,7 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
   const [lo, hi] = forecast?.idealTsbRange ?? [15, 25];
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-heading text-base font-bold text-slate-100">Performance</h3>

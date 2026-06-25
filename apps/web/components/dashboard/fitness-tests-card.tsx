@@ -328,7 +328,7 @@ export function FitnessTestsCard() {
 
   return (
     <>
-      <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <span className="material-symbols-outlined text-lg text-slate-400">science</span>
           <div>

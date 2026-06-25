@@ -47,7 +47,7 @@ export function TargetRaceCard({ race }: TargetRaceCardProps) {
 
   return (
     <div className={cn(
-      'rounded-[2rem] p-6 shadow-xl ring-1 ring-white/5 overflow-hidden',
+      'rounded-card p-6 shadow-card ring-1 ring-hairline overflow-hidden',
       urgency === 'critical'
         ? 'bg-gradient-to-br from-rose-500/15 to-bg-surface'
         : urgency === 'soon'

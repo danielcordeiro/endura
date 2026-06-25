@@ -141,7 +141,7 @@ export function WellnessCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
         <div className="skeleton h-4 w-32 rounded mb-4" />
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -158,7 +158,7 @@ export function WellnessCard() {
   if (!hasAnyData) return null;
 
   return (
-    <div className="rounded-[2rem] bg-bg-surface p-6 ring-1 ring-white/5 shadow-xl">
+    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">

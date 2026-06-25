@@ -12,7 +12,7 @@
   --color-border: #1e293b80;
   --color-border-strong: #334155;
   --color-border-focus: #1d8fed;
-  --color-hairline: #ffffff0d;
+  --color-hairline: #ffffff14;
 
   /* ── Texto ── */
   --color-text-primary: #f1f5f9;
@@ -134,6 +134,13 @@ h1, h2, h3 {
 }
 
 /* ── Superfícies / Card elevation system ── */
+
+/* Sombra canônica de card: definida (alpha do token, não o black/10 esmaecido
+   do shadow-xl do Tailwind que some no fundo escuro e faz os cards "grudarem").
+   Um único ponto de ajuste para a elevação de todos os cards de topo. */
+.shadow-card {
+  box-shadow: var(--shadow-lg);
+}
 
 .surface {
   background: var(--color-bg-surface);

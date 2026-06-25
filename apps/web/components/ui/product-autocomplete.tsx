@@ -136,7 +136,7 @@ export function ProductAutocomplete({
       </div>
 
       {isOpen && products.length > 0 && (
-        <div className="absolute z-[60] w-full mt-2 bg-[#1c262f] border border-slate-700/50 rounded-2xl shadow-xl overflow-hidden max-h-[240px] overflow-y-auto">
+        <div className="absolute z-[60] w-full mt-2 bg-[#1c262f] border border-slate-700/50 rounded-2xl shadow-card overflow-hidden max-h-[240px] overflow-y-auto">
           {products.map((product, index) => (
             <button
               key={product.id}

@@ -102,7 +102,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
   /* ── No protocol state ── */
   if (!protocol) {
     return (
-      <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
             <span className="material-symbols-outlined text-xl text-primary">nutrition</span>
@@ -158,7 +158,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
 
   return (
     <>
-      <div className="rounded-[2rem] bg-bg-surface p-5 ring-1 ring-white/5 shadow-xl">
+      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
