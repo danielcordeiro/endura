@@ -149,9 +149,9 @@ export default function PMCChartInner({ data, raceDate }: PMCChartInnerProps) {
         {/* Projeção (linha tracejada, mais clara) */}
         {hasForecast && (
           <>
-            <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke="#3b82f6" strokeWidth={2} strokeOpacity={0.65} strokeDasharray="1 3" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="atlF" name="ATL proj." stroke="#f43f5e" strokeWidth={2} strokeOpacity={0.65} strokeDasharray="1 3" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke="#22c55e" strokeWidth={2} strokeOpacity={0.65} strokeDasharray="1 3" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke="#3b82f6" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="atlF" name="ATL proj." stroke="#f43f5e" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke="#22c55e" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
           </>
         )}
       </ComposedChart>
