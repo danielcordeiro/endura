@@ -227,7 +227,7 @@ export const TOOLS: ToolDef[] = [
   // ═══════════════ MEMÓRIA DO COACH (contexto persistente) ═══════════════
   {
     name: 'endura_get_coach_context',
-    description: 'ÂNCORA DA SESSÃO — chame SEMPRE primeiro. Retorna a base persistida: perfil do coach (filosofia, restrições, foco, meta), diretrizes ativas, últimas 10 análises e snapshot do atleta.',
+    description: 'ÂNCORA DA SESSÃO — chame SEMPRE primeiro. Retorna a base persistida: perfil do coach (filosofia, restrições, foco, meta), diretrizes ativas, últimas 10 análises, contexto de saúde (médico, plano, exames recentes + guidance de onboarding quando vazio) e snapshot do atleta.',
     scope: 'read:coach',
     inputSchema: { type: 'object', properties: {} },
     call: (_a, c) => c.get(`${BASE}/coach/context`),
@@ -299,6 +299,92 @@ export const TOOLS: ToolDef[] = [
       properties: { philosophy: { type: 'string' }, constraints: { type: 'object' }, currentFocus: { type: 'string' }, seasonGoal: { type: 'string' } },
     },
     call: (a, c) => c.put(`${BASE}/coach/profile`, omit(a, [])),
+  },
+
+  // ═══════════════ CONTEXTO PESSOAL / SAÚDE (médico, plano, exames) ═══════════════
+  {
+    name: 'endura_get_health_profile',
+    description: 'Lê o contexto de saúde do atleta: profissionais (médico etc.), plano de saúde, alergias, medicações, condições e notas clínicas. (Também vem resumido em endura_get_coach_context.)',
+    scope: 'read:health',
+    inputSchema: { type: 'object', properties: {} },
+    call: (_a, c) => c.get(`${BASE}/health/profile`),
+  },
+  {
+    name: 'endura_save_health_profile',
+    description: 'Cria/atualiza (upsert) o contexto de saúde do atleta. Envie só os campos que mudam. Salve APENAS o que o atleta compartilhar (PHI). providers=profissionais; healthPlan=plano de saúde.',
+    scope: 'write:health',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        providers: { type: 'array', description: 'Profissionais de saúde', items: { type: 'object', required: ['name'], properties: {
+          role: { type: 'string', enum: ['sports_doctor', 'physio', 'nutritionist', 'cardiologist', 'physician', 'other'] },
+          name: { type: 'string' }, registro: { type: 'string', description: 'CRM/registro profissional' }, specialty: { type: 'string' }, contact: { type: 'string' },
+        } } },
+        healthPlan: { type: 'object', description: '{ name, beneficiaryName, beneficiaryId, phone, email, portalUrl }' },
+        allergies: { type: 'array', items: { type: 'string' } },
+        medications: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, dose: { type: 'string' }, schedule: { type: 'string' }, reason: { type: 'string' } } } },
+        conditions: { type: 'array', items: { type: 'string' } },
+        notes: { type: 'string' },
+      },
+    },
+    call: (a, c) => c.put(`${BASE}/health/profile`, omit(a, [])),
+  },
+  {
+    name: 'endura_list_exams',
+    description: 'Lista exames/documentos médicos do atleta (pedidos e resultados), com filtros opcionais por status, tipo e data.',
+    scope: 'read:health',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+        type: { type: 'string', enum: ['lab_panel', 'ergospirometry', 'echocardiogram', 'imaging', 'other'] },
+        ...dateRange,
+        limit: { type: 'integer', minimum: 1, maximum: 100 },
+      },
+    },
+    call: (a, c) => c.get(`${BASE}/health/exams`, { status: a.status, type: a.type, from: a.from, to: a.to, limit: a.limit }),
+  },
+  {
+    name: 'endura_add_exam',
+    description: 'Registra um exame/documento médico. Use status=requested quando o médico pede; depois atualize com endura_update_exam quando sair o resultado. items=lista {name, tuss}; attachmentRef=link/caminho do PDF (por referência).',
+    scope: 'write:health',
+    inputSchema: {
+      type: 'object', required: ['examType'],
+      properties: {
+        examType: { type: 'string', enum: ['lab_panel', 'ergospirometry', 'echocardiogram', 'imaging', 'other'] },
+        title: { type: 'string' },
+        status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+        provider: { type: 'string', description: 'quem pediu / onde foi feito' },
+        examDate: { type: 'string', description: 'YYYY-MM-DD' },
+        resultDate: { type: 'string', description: 'YYYY-MM-DD' },
+        items: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, tuss: { type: 'string' } } } },
+        summary: { type: 'string', description: 'achados legíveis (quando houver resultado)' },
+        data: { type: 'object', description: 'resultados estruturados (opcional)' },
+        attachmentRef: { type: 'string', description: 'link/caminho do PDF' },
+      },
+    },
+    call: (a, c) => c.post(`${BASE}/health/exams`, omit(a, [])),
+  },
+  {
+    name: 'endura_update_exam',
+    description: 'Atualiza um exame (ex.: status para resulted + summary/data quando sair o resultado). Envie só os campos que mudam.',
+    scope: 'write:health',
+    inputSchema: {
+      type: 'object', required: ['id'],
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+        title: { type: 'string' },
+        provider: { type: 'string' },
+        examDate: { type: 'string', description: 'YYYY-MM-DD' },
+        resultDate: { type: 'string', description: 'YYYY-MM-DD' },
+        items: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, tuss: { type: 'string' } } } },
+        summary: { type: 'string' },
+        data: { type: 'object' },
+        attachmentRef: { type: 'string' },
+      },
+    },
+    call: (a, c) => c.patch(`${BASE}/health/exams/${uid(a.id)}`, omit(a, ['id'])),
   },
 
   // ═══════════════ PREVISÃO DE PROVA + ESCRITA DE PLANO ═══════════════

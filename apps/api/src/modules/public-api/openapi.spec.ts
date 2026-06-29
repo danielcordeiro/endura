@@ -736,7 +736,7 @@ export function buildAnthropicTools(): AnthropicTool[] {
     // ── Memória do coach (contexto persistente entre sessões) ──────────
     {
       name: 'endura_get_coach_context',
-      description: 'ÂNCORA DA SESSÃO — chame SEMPRE primeiro. Retorna a "base" persistida no Endura: perfil do coach (filosofia, restricoes, foco atual, meta da temporada), diretrizes ativas, ultimas 10 analises (coach_assessments), e snapshot (perfil do atleta, proximo treino, atividade de hoje, wellness recente, prova ativa).',
+      description: 'ÂNCORA DA SESSÃO — chame SEMPRE primeiro. Retorna a "base" persistida no Endura: perfil do coach (filosofia, restricoes, foco atual, meta da temporada), diretrizes ativas, ultimas 10 analises (coach_assessments), contexto de saude (medico, plano, exames recentes + guidance de onboarding quando vazio) e snapshot (perfil do atleta, proximo treino, atividade de hoje, wellness recente, prova ativa).',
       input_schema: { type: 'object', properties: {} },
     },
     {
@@ -811,6 +811,82 @@ export function buildAnthropicTools(): AnthropicTool[] {
           constraints: { type: 'object', description: 'lesoes, tempo, equipamento, restricoes' },
           currentFocus: { type: 'string' },
           seasonGoal: { type: 'string' },
+        },
+      },
+    },
+    // ── Contexto pessoal / saúde (médico, plano, exames) — PHI ─────────
+    {
+      name: 'endura_get_health_profile',
+      description: 'Le o contexto de saude do atleta: profissionais (medico etc.), plano de saude, alergias, medicacoes, condicoes e notas clinicas. Tambem vem resumido em endura_get_coach_context.',
+      input_schema: { type: 'object', properties: {} },
+    },
+    {
+      name: 'endura_save_health_profile',
+      description: 'Cria/atualiza (upsert) o contexto de saude do atleta. Envie so os campos que mudam. Salve APENAS o que o atleta compartilhar (PHI). providers=profissionais de saude; healthPlan=plano de saude.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          providers: { type: 'array', description: 'Profissionais de saude', items: { type: 'object', required: ['name'], properties: {
+            role: { type: 'string', enum: ['sports_doctor', 'physio', 'nutritionist', 'cardiologist', 'physician', 'other'] },
+            name: { type: 'string' }, registro: { type: 'string', description: 'CRM/registro' }, specialty: { type: 'string' }, contact: { type: 'string' },
+          } } },
+          healthPlan: { type: 'object', description: '{ name, beneficiaryName, beneficiaryId, phone, email, portalUrl }' },
+          allergies: { type: 'array', items: { type: 'string' } },
+          medications: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, dose: { type: 'string' }, schedule: { type: 'string' }, reason: { type: 'string' } } } },
+          conditions: { type: 'array', items: { type: 'string' } },
+          notes: { type: 'string' },
+        },
+      },
+    },
+    {
+      name: 'endura_list_exams',
+      description: 'Lista exames/documentos medicos do atleta (pedidos e resultados), com filtros opcionais por status, tipo e data.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+          type: { type: 'string', enum: ['lab_panel', 'ergospirometry', 'echocardiogram', 'imaging', 'other'] },
+          from: { type: 'string', description: 'YYYY-MM-DD' },
+          to: { type: 'string', description: 'YYYY-MM-DD' },
+          limit: { type: 'integer', minimum: 1, maximum: 100 },
+        },
+      },
+    },
+    {
+      name: 'endura_add_exam',
+      description: 'Registra um exame/documento medico. status=requested quando o medico pede; depois atualize com endura_update_exam quando sair o resultado. items=lista {name, tuss}; attachmentRef=link/caminho do PDF.',
+      input_schema: {
+        type: 'object', required: ['examType'],
+        properties: {
+          examType: { type: 'string', enum: ['lab_panel', 'ergospirometry', 'echocardiogram', 'imaging', 'other'] },
+          title: { type: 'string' },
+          status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+          provider: { type: 'string', description: 'quem pediu / onde' },
+          examDate: { type: 'string', description: 'YYYY-MM-DD' },
+          resultDate: { type: 'string', description: 'YYYY-MM-DD' },
+          items: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, tuss: { type: 'string' } } } },
+          summary: { type: 'string' },
+          data: { type: 'object' },
+          attachmentRef: { type: 'string' },
+        },
+      },
+    },
+    {
+      name: 'endura_update_exam',
+      description: 'Atualiza um exame (ex.: status para resulted + summary/data quando sair o resultado). Envie so os campos que mudam.',
+      input_schema: {
+        type: 'object', required: ['id'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          status: { type: 'string', enum: ['requested', 'scheduled', 'collected', 'resulted', 'reviewed'] },
+          title: { type: 'string' },
+          provider: { type: 'string' },
+          examDate: { type: 'string', description: 'YYYY-MM-DD' },
+          resultDate: { type: 'string', description: 'YYYY-MM-DD' },
+          items: { type: 'array', items: { type: 'object', required: ['name'], properties: { name: { type: 'string' }, tuss: { type: 'string' } } } },
+          summary: { type: 'string' },
+          data: { type: 'object' },
+          attachmentRef: { type: 'string' },
         },
       },
     },

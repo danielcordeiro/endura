@@ -94,6 +94,73 @@ const coachDirectivePatchBody = z.object({
   status: z.enum(['active', 'superseded', 'done']),
 }).strict();
 
+// ── Schemas: contexto pessoal / saude (PHI) ─────────────────────────
+const providerSchema = z.object({
+  role: z.enum(['sports_doctor', 'physio', 'nutritionist', 'cardiologist', 'physician', 'other']).optional(),
+  name: z.string().min(1).max(255),
+  registro: z.string().max(60).optional(),
+  specialty: z.string().max(120).optional(),
+  contact: z.string().max(255).optional(),
+}).strict();
+
+const healthPlanSchema = z.object({
+  name: z.string().min(1).max(120),
+  beneficiaryName: z.string().max(255).optional(),
+  beneficiaryId: z.string().max(60).optional(),
+  phone: z.string().max(40).optional(),
+  email: z.string().max(255).optional(),
+  portalUrl: z.string().max(500).optional(),
+}).strict();
+
+const medicationSchema = z.object({
+  name: z.string().min(1).max(255),
+  dose: z.string().max(120).optional(),
+  schedule: z.string().max(120).optional(),
+  reason: z.string().max(255).optional(),
+}).strict();
+
+const healthProfileBody = z.object({
+  providers: z.array(providerSchema).max(20).nullable().optional(),
+  healthPlan: healthPlanSchema.nullable().optional(),
+  allergies: z.array(z.string().max(120)).max(50).nullable().optional(),
+  medications: z.array(medicationSchema).max(50).nullable().optional(),
+  conditions: z.array(z.string().max(200)).max(50).nullable().optional(),
+  notes: z.string().max(8000).nullable().optional(),
+}).strict().refine((v) => Object.keys(v).length > 0, { message: 'Informe ao menos um campo' });
+
+const examItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  tuss: z.string().max(20).optional(),
+}).strict();
+
+const healthExamStatusEnum = z.enum(['requested', 'scheduled', 'collected', 'resulted', 'reviewed']);
+const healthExamTypeEnum = z.enum(['lab_panel', 'ergospirometry', 'echocardiogram', 'imaging', 'other']);
+
+const healthExamBody = z.object({
+  examType: healthExamTypeEnum,
+  title: z.string().max(255).optional(),
+  status: healthExamStatusEnum.optional(),
+  provider: z.string().max(255).optional(),
+  examDate: dateStr.optional(),
+  resultDate: dateStr.optional(),
+  items: z.array(examItemSchema).max(100).optional(),
+  summary: z.string().max(20000).optional(),
+  data: z.record(z.any()).optional(),
+  attachmentRef: z.string().max(500).optional(),
+}).strict();
+
+const healthExamPatchBody = z.object({
+  status: healthExamStatusEnum.optional(),
+  title: z.string().max(255).nullable().optional(),
+  provider: z.string().max(255).nullable().optional(),
+  examDate: dateStr.nullable().optional(),
+  resultDate: dateStr.nullable().optional(),
+  items: z.array(examItemSchema).max(100).nullable().optional(),
+  summary: z.string().max(20000).nullable().optional(),
+  data: z.record(z.any()).nullable().optional(),
+  attachmentRef: z.string().max(500).nullable().optional(),
+}).strict().refine((v) => Object.keys(v).length > 0, { message: 'Informe ao menos um campo' });
+
 const trainingPlanBody = z.object({
   raceGoalId: z.string().uuid().optional(),
   currentPhase: z.enum(['base', 'build', 'peak', 'taper']).optional(),
@@ -1037,7 +1104,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     const todayStart = new Date(todayStr + 'T00:00:00');
     const todayEnd = new Date(todayStr + 'T23:59:59');
 
-    const [profile, directives, assessments, athlete, nextWorkout, todayActivity, latestWellness, activeRace, pmc, todayCheckin] = await Promise.all([
+    const [profile, directives, assessments, athlete, nextWorkout, todayActivity, latestWellness, activeRace, pmc, todayCheckin, healthProf, recentExams] = await Promise.all([
       db.query.coachProfile.findFirst({ where: eq(schema.coachProfile.userId, userId) }),
       db.query.coachDirectives.findMany({
         where: and(eq(schema.coachDirectives.userId, userId), eq(schema.coachDirectives.status, 'active')),
@@ -1070,6 +1137,12 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       db.query.dailyCheckins.findFirst({
         where: and(eq(schema.dailyCheckins.userId, userId), eq(schema.dailyCheckins.date, todayStr)),
       }),
+      db.query.healthProfile.findFirst({ where: eq(schema.healthProfile.userId, userId) }),
+      db.query.healthExams.findMany({
+        where: eq(schema.healthExams.userId, userId),
+        orderBy: [desc(schema.healthExams.examDate), desc(schema.healthExams.createdAt)],
+        limit: 5,
+      }),
     ]);
 
     return reply.send({
@@ -1077,6 +1150,14 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
         profile: profile ?? null,
         activeDirectives: directives,
         recentAssessments: assessments,
+        health: {
+          profile: healthProf ?? null,
+          recentExams,
+          // "Ensino": quando vazio, instrui o Claude a coletar e salvar o contexto de saude.
+          guidance: healthProf
+            ? null
+            : 'Nenhum contexto de saude salvo. Pergunte ao atleta sobre medico responsavel, plano de saude, alergias/medicacoes/condicoes e exames recentes (pedidos ou resultados) e persista com endura_save_health_profile e endura_add_exam.',
+        },
         snapshot: {
           today: todayStr,
           athleteProfile: athlete ?? null,
@@ -1242,6 +1323,107 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
     }
     return reply.send({ data: row });
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CONTEXTO PESSOAL / SAÚDE — médico, plano, exames (PHI, scope dedicado)
+  // ═══════════════════════════════════════════════════════════════════
+
+  // ── GET /api/v1/public/health/profile ──────────────────────────────
+  app.get('/api/v1/public/health/profile', { onRequest: requireScope('read:health') }, async (request, reply) => {
+    const profile = await db.query.healthProfile.findFirst({ where: eq(schema.healthProfile.userId, request.userId) });
+    return reply.send({ data: profile ?? null });
+  });
+
+  // ── PUT /api/v1/public/health/profile ──────────────────────────────
+  app.put('/api/v1/public/health/profile', { onRequest: requireScope('write:health') }, async (request, reply) => {
+    const body = healthProfileBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    const fields: Record<string, unknown> = { updatedByKeyId: request.apiKeyId ?? null, updatedAt: new Date() };
+    if (body.data.providers !== undefined) fields.providers = body.data.providers;
+    if (body.data.healthPlan !== undefined) fields.healthPlan = body.data.healthPlan;
+    if (body.data.allergies !== undefined) fields.allergies = body.data.allergies;
+    if (body.data.medications !== undefined) fields.medications = body.data.medications;
+    if (body.data.conditions !== undefined) fields.conditions = body.data.conditions;
+    if (body.data.notes !== undefined) fields.notes = body.data.notes;
+
+    const existing = await db.query.healthProfile.findFirst({ where: eq(schema.healthProfile.userId, request.userId), columns: { id: true } });
+    let row;
+    if (existing) {
+      [row] = await db.update(schema.healthProfile).set(fields).where(eq(schema.healthProfile.userId, request.userId)).returning();
+    } else {
+      [row] = await db.insert(schema.healthProfile).values({ userId: request.userId, ...fields }).returning();
+    }
+    return reply.send({ data: row });
+  });
+
+  // ── GET /api/v1/public/health/exams ────────────────────────────────
+  app.get<{ Querystring: { status?: string; type?: string; from?: string; to?: string; limit?: string } }>(
+    '/api/v1/public/health/exams',
+    { onRequest: requireScope('read:health') },
+    async (request, reply) => {
+      const conditions = [eq(schema.healthExams.userId, request.userId)];
+      if (request.query.status) conditions.push(eq(schema.healthExams.status, request.query.status));
+      if (request.query.type) conditions.push(eq(schema.healthExams.examType, request.query.type));
+      if (request.query.from && dateRe.test(request.query.from)) conditions.push(gte(schema.healthExams.examDate, request.query.from));
+      if (request.query.to && dateRe.test(request.query.to)) conditions.push(lte(schema.healthExams.examDate, request.query.to));
+      const limit = Math.min(100, Math.max(1, Number(request.query.limit) || 50));
+      const rows = await db.query.healthExams.findMany({
+        where: and(...conditions),
+        orderBy: [desc(schema.healthExams.examDate), desc(schema.healthExams.createdAt)],
+        limit,
+      });
+      return reply.send({ data: rows });
+    },
+  );
+
+  // ── POST /api/v1/public/health/exams ───────────────────────────────
+  app.post('/api/v1/public/health/exams', { onRequest: requireScope('write:health') }, async (request, reply) => {
+    const body = healthExamBody.safeParse(request.body);
+    if (!body.success) {
+      return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+    }
+    const [row] = await db.insert(schema.healthExams).values({
+      userId: request.userId,
+      examType: body.data.examType,
+      title: body.data.title ?? null,
+      status: body.data.status ?? 'requested',
+      provider: body.data.provider ?? null,
+      examDate: body.data.examDate ?? null,
+      resultDate: body.data.resultDate ?? null,
+      items: body.data.items ?? null,
+      summary: body.data.summary ?? null,
+      data: body.data.data ?? null,
+      attachmentRef: body.data.attachmentRef ?? null,
+      createdByKeyId: request.apiKeyId ?? null,
+    }).returning();
+    return reply.code(201).send({ data: row });
+  });
+
+  // ── PATCH /api/v1/public/health/exams/:id ──────────────────────────
+  app.patch<{ Params: { id: string } }>(
+    '/api/v1/public/health/exams/:id',
+    { onRequest: requireScope('write:health') },
+    async (request, reply) => {
+      const params = uuidParams.safeParse(request.params);
+      if (!params.success) return reply.code(400).send({ code: 'ERR_VALIDATION', message: 'ID invalido', status: 400 });
+      const body = healthExamPatchBody.safeParse(request.body);
+      if (!body.success) {
+        return reply.code(400).send({ code: 'ERR_VALIDATION', message: body.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+      }
+      const fields: Record<string, unknown> = { updatedAt: new Date() };
+      for (const k of ['status', 'title', 'provider', 'examDate', 'resultDate', 'items', 'summary', 'data', 'attachmentRef'] as const) {
+        if (body.data[k] !== undefined) fields[k] = body.data[k];
+      }
+      const [updated] = await db.update(schema.healthExams)
+        .set(fields)
+        .where(and(eq(schema.healthExams.id, params.data.id), eq(schema.healthExams.userId, request.userId)))
+        .returning();
+      if (!updated) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Exame nao encontrado', status: 404 });
+      return reply.send({ data: updated });
+    },
+  );
 
   // ── GET /api/v1/public/race-projection ─────────────────────────────
   // Expõe a previsão físico-fisiológica do Endura (performance.service) para

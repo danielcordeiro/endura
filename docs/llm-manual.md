@@ -140,6 +140,7 @@ Este é o fluxo que faz o Endura virar um **treinador completo com memória perm
 - `profile` — filosofia de treino, restrições (lesões/tempo/equipamento), foco atual, meta da temporada
 - `activeDirectives` — diretrizes vigentes que você (ou uma sessão anterior) deixou
 - `recentAssessments` — suas últimas 10 análises salvas
+- `health` — contexto de saúde: `profile` (médico, plano, alergias, medicações, condições), `recentExams` (últimos 5 exames) e `guidance` (quando o perfil está vazio, traz a instrução de onboarding — veja 5.7)
 - `snapshot` — perfil do atleta, próximo treino, atividade de hoje, wellness recente, prova ativa
 
 Leia isso antes de qualquer coisa. É a memória do atleta — não recomece do zero.
@@ -165,6 +166,18 @@ Leia isso antes de qualquer coisa. É a memória do atleta — não recomece do 
 **Passo 7 — Próxima sessão:** volte ao Passo 1. Como tudo foi salvo no Endura, você recupera a base inteira — análises, diretrizes, foco e plano — sem o atleta repetir nada.
 
 > **Periodização:** respeite as fases `base → build → peak → taper`. Construa carga progressiva (regra ~10%/semana), insira semanas de recuperação a cada 3–4 semanas, e afunile (taper) ~2 semanas antes da prova alvo (`snapshot.activeRace.raceDate`).
+
+### 5.7. Contexto de saúde (médico, plano, exames)
+
+O Endura persiste o **contexto pessoal/clínico** do atleta para você usar como coach — médico responsável, plano de saúde, alergias/medicações/condições e exames (pedidos e resultados). É PHI: **salve apenas o que o atleta compartilhar**, nunca invente.
+
+**Onboarding (ensino):** o `health.guidance` em `endura_get_coach_context` vem preenchido **quando o perfil de saúde está vazio**. Ao ver isso, pergunte ao atleta (de forma leve, sem interrogatório) sobre médico, plano de saúde e exames recentes, e persista:
+- `endura_save_health_profile(providers, healthPlan, allergies, medications, conditions, notes)` — upsert; envie só o que tiver.
+- `endura_add_exam(examType, title, status, provider, examDate, items, attachmentRef)` — registre cada exame. Use `status=requested` quando o médico acabou de pedir.
+
+**Ciclo de vida do exame:** `requested → scheduled → collected → resulted → reviewed`. Quando o resultado sair, `endura_update_exam(id, status='resulted', summary, data, resultDate)`.
+
+**Ponte com o treino:** quando vier o resultado de uma **ergoespirometria**, atualize o perfil do atleta com a FC máx real, limiares e VO2máx (calibra zonas); um **ecocardiograma** normal é liberação cardiovascular. Conecte o dado clínico à prescrição.
 
 ## 6. Regras invariantes
 
@@ -216,10 +229,10 @@ A key é gerenciada pelo **usuário** na UI do Endura (Configurações → API K
 ### Scopes (você precisa dos certos)
 
 Para o fluxo coach completo, a key precisa do bundle **"Coach"**:
-- `read:profile`, `read:activities`, `read:planned`, `read:wellness`, `read:catalog`, `read:coach`
-- `write:nutrition`, `write:checkin`, `write:comments`, `write:coach`, `write:planned`
+- `read:profile`, `read:activities`, `read:planned`, `read:wellness`, `read:catalog`, `read:coach`, `read:health`
+- `write:nutrition`, `write:checkin`, `write:comments`, `write:coach`, `write:planned`, `write:health`
 
-`read:coach`/`write:coach` cobrem a memória do coach (context, assessments, directives, profile). `write:planned` cobre a escrita autoritativa de planos e treinos. Se faltar algum, você receberá `403 ERR_INSUFFICIENT_SCOPE` — peça ao usuário recriar a key com bundle Coach.
+`read:coach`/`write:coach` cobrem a memória do coach (context, assessments, directives, profile). `read:health`/`write:health` cobrem o contexto de saúde (perfil clínico + exames) — scope dedicado por ser PHI; já incluídos no bundle Coach. `write:planned` cobre a escrita autoritativa de planos e treinos. Se faltar algum, você receberá `403 ERR_INSUFFICIENT_SCOPE` — peça ao usuário recriar a key com bundle Coach.
 
 ## 10. Rate limits
 
@@ -246,7 +259,7 @@ claude mcp add endura -- node /caminho/para/packages/mcp-endura/dist/index.js
 ```
 com as variáveis de ambiente `ENDURA_API_URL` (default = produção) e `ENDURA_API_KEY` (key com bundle Coach). Veja `packages/mcp-endura/README.md`.
 
-As tools expostas são as mesmas deste manual — incluindo a **memória do coach** (`endura_get_coach_context`, `endura_save_assessment`, `endura_save_directive`, `endura_upsert_coach_profile`), a **previsão de prova** (`endura_get_race_projection`) e a **escrita de plano** (`endura_create_training_plan`, `endura_upsert_planned_workouts`, `endura_set_workout_nutrition`).
+As tools expostas são as mesmas deste manual — incluindo a **memória do coach** (`endura_get_coach_context`, `endura_save_assessment`, `endura_save_directive`, `endura_upsert_coach_profile`), o **contexto de saúde** (`endura_get_health_profile`, `endura_save_health_profile`, `endura_list_exams`, `endura_add_exam`, `endura_update_exam`), a **previsão de prova** (`endura_get_race_projection`) e a **escrita de plano** (`endura_create_training_plan`, `endura_upsert_planned_workouts`, `endura_set_workout_nutrition`).
 
 > Continua válido usar a API direto via REST + `tools.json` para agentes customizados (ex: openclaw). O MCP é só um transporte adicional para clientes MCP-nativos.
 

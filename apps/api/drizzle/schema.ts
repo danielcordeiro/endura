@@ -683,3 +683,52 @@ export const coachDirectives = pgTable('coach_directives', {
 export const coachDirectivesRelations = relations(coachDirectives, ({ one }) => ({
   user: one(users, { fields: [coachDirectives.userId], references: [users.id] }),
 }));
+
+// ── CONTEXTO PESSOAL / SAÚDE (médico, plano, exames) ──
+// Modulo paralelo a memoria do coach. Persiste contexto clinico relevante p/
+// coaching, lido/escrito via MCP com scope dedicado (read:health / write:health).
+// PHI: gate por scope; salvar apenas o que o atleta compartilhar. Ver llm-manual.
+
+// Perfil de saude — 1 linha por atleta (upsert).
+export const healthProfile = pgTable('health_profile', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  providers: jsonb('providers'),        // [{role, name, registro, specialty, contact}]
+  healthPlan: jsonb('health_plan'),     // {name, beneficiaryName, beneficiaryId, phone, email, portalUrl}
+  allergies: text('allergies').array(),
+  medications: jsonb('medications'),    // [{name, dose, schedule, reason}]
+  conditions: text('conditions').array(),
+  notes: text('notes'),                 // contexto clinico livre relevante p/ coaching
+  updatedByKeyId: uuid('updated_by_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const healthProfileRelations = relations(healthProfile, ({ one }) => ({
+  user: one(users, { fields: [healthProfile.userId], references: [users.id] }),
+}));
+
+// Exames/documentos — N por atleta, com ciclo de vida (requested -> resulted).
+export const healthExams = pgTable('health_exams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  examType: varchar('exam_type', { length: 40 }).notNull(),                  // lab_panel | ergospirometry | echocardiogram | imaging | other
+  title: varchar('title', { length: 255 }),
+  status: varchar('status', { length: 20 }).notNull().default('requested'),  // requested | scheduled | collected | resulted | reviewed
+  provider: varchar('provider', { length: 255 }),                            // quem pediu / onde
+  examDate: date('exam_date'),
+  resultDate: date('result_date'),
+  items: jsonb('items'),                                                     // exames pedidos: [{name, tuss}]
+  summary: text('summary'),                                                  // achados legiveis quando sair resultado
+  data: jsonb('data'),                                                       // resultados estruturados (opcional)
+  attachmentRef: varchar('attachment_ref', { length: 500 }),                 // link/caminho do PDF (por referencia)
+  createdByKeyId: uuid('created_by_key_id').references(() => apiKeys.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_health_exams_user_date').on(table.userId, table.examDate),
+]);
+
+export const healthExamsRelations = relations(healthExams, ({ one }) => ({
+  user: one(users, { fields: [healthExams.userId], references: [users.id] }),
+}));
