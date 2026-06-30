@@ -1,4 +1,4 @@
-import { eq, and, asc, gte, lte, inArray } from 'drizzle-orm';
+import { eq, and, asc, desc, gte, lte, inArray } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
@@ -218,6 +218,8 @@ export async function getActivePlan(userId: string) {
       eq(schema.trainingPlans.userId, userId),
       eq(schema.trainingPlans.status, 'active'),
     ),
+    // Determinismo: se houver mais de um ativo, o mais recente vence.
+    orderBy: [desc(schema.trainingPlans.generatedAt)],
   });
 
   if (!plan) {
@@ -269,6 +271,49 @@ function getCurrentWeekBounds(): { startDate: string; endDate: string } {
   };
 }
 
+// Limites (seg-dom) de uma semana especifica do plano, a partir do inicio do plano.
+function weekBoundsFromPlanStart(
+  planStartDate: string,
+  weekNumber: number,
+): { startDate: string; endDate: string } {
+  const start = new Date(planStartDate + 'T00:00:00');
+  start.setDate(start.getDate() + (weekNumber - 1) * 7);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return {
+    startDate: start.toISOString().split('T')[0]!,
+    endDate: end.toISOString().split('T')[0]!,
+  };
+}
+
+// Mapeia treinos planejados p/ o shape leve da tela de treino, derivando
+// `completed` via atividades vinculadas. Compartilhado por current + por semana.
+async function mapWorkoutsWithCompleted(
+  workouts: (typeof schema.plannedWorkouts.$inferSelect)[],
+) {
+  const workoutIds = workouts.map((w) => w.id);
+  const completedSet = new Set<string>();
+  if (workoutIds.length > 0) {
+    const linked = await db.query.activities.findMany({
+      where: inArray(schema.activities.plannedWorkoutId, workoutIds),
+      columns: { plannedWorkoutId: true },
+    });
+    for (const a of linked) {
+      if (a.plannedWorkoutId) completedSet.add(a.plannedWorkoutId);
+    }
+  }
+  return workouts.map((w) => ({
+    id: w.id,
+    discipline: w.discipline,
+    title: w.title ?? `Treino ${w.discipline}`,
+    scheduledDate: w.scheduledDate,
+    durationMin: w.durationMin ?? 0,
+    distanceM: w.distanceM,
+    completed: completedSet.has(w.id),
+    sentToWatch: w.sentToWatch ?? false,
+  }));
+}
+
 export async function getCurrentWeekAllWorkouts(userId: string) {
   const { startDate, endDate } = getCurrentWeekBounds();
 
@@ -281,25 +326,14 @@ export async function getCurrentWeekAllWorkouts(userId: string) {
     orderBy: [asc(schema.plannedWorkouts.scheduledDate)],
   });
 
-  // Deriva completed via atividades vinculadas
-  const workoutIds = workouts.map((w) => w.id);
-  const completedSet = new Set<string>();
-  if (workoutIds.length > 0) {
-    const linked = await db.query.activities.findMany({
-      where: inArray(schema.activities.plannedWorkoutId, workoutIds),
-      columns: { plannedWorkoutId: true },
-    });
-    for (const a of linked) {
-      if (a.plannedWorkoutId) completedSet.add(a.plannedWorkoutId);
-    }
-  }
-
-  // Plano ativo (opcional) para expor weekNumber/phase ao cliente
+  // Plano ativo (opcional) para expor weekNumber/phase/totalWeeks ao cliente
   const plan = await db.query.trainingPlans.findFirst({
     where: and(
       eq(schema.trainingPlans.userId, userId),
       eq(schema.trainingPlans.status, 'active'),
     ),
+    // Determinismo: se houver mais de um ativo, o mais recente vence.
+    orderBy: [desc(schema.trainingPlans.generatedAt)],
   });
 
   const weekNumber = plan ? calculateCurrentWeek(plan.startDate) : 0;
@@ -310,16 +344,8 @@ export async function getCurrentWeekAllWorkouts(userId: string) {
     phase,
     startDate,
     endDate,
-    workouts: workouts.map((w) => ({
-      id: w.id,
-      discipline: w.discipline,
-      title: w.title ?? `Treino ${w.discipline}`,
-      scheduledDate: w.scheduledDate,
-      durationMin: w.durationMin ?? 0,
-      distanceM: w.distanceM,
-      completed: completedSet.has(w.id),
-      sentToWatch: w.sentToWatch ?? false,
-    })),
+    totalWeeks: plan?.totalWeeks ?? null,
+    workouts: await mapWorkoutsWithCompleted(workouts),
   };
 }
 
@@ -331,6 +357,8 @@ export async function getPlanWeek(userId: string, weekNumber: number) {
       eq(schema.trainingPlans.userId, userId),
       eq(schema.trainingPlans.status, 'active'),
     ),
+    // Determinismo: se houver mais de um ativo, o mais recente vence.
+    orderBy: [desc(schema.trainingPlans.generatedAt)],
   });
 
   if (!plan) {
@@ -357,10 +385,16 @@ export async function getPlanWeek(userId: string, weekNumber: number) {
     orderBy: [asc(schema.plannedWorkouts.scheduledDate)],
   });
 
+  const { startDate, endDate } = weekBoundsFromPlanStart(plan.startDate, weekNumber);
+
+  // Mesmo shape de getCurrentWeekAllWorkouts (a tela de treino usa os dois).
   return {
     weekNumber,
-    phase: workouts[0]?.phase ?? null,
-    workouts,
+    phase: workouts[0]?.phase ?? plan.currentPhase ?? '',
+    startDate,
+    endDate,
+    totalWeeks: plan.totalWeeks ?? null,
+    workouts: await mapWorkoutsWithCompleted(workouts),
   };
 }
 
@@ -397,6 +431,8 @@ export async function chatAdaptPlan(userId: string, message: string) {
       eq(schema.trainingPlans.userId, userId),
       eq(schema.trainingPlans.status, 'active'),
     ),
+    // Determinismo: se houver mais de um ativo, o mais recente vence.
+    orderBy: [desc(schema.trainingPlans.generatedAt)],
   });
 
   if (!plan) {

@@ -87,7 +87,8 @@ export default async function planRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const result = await planService.getPlanWeek(request.userId, parsed.data.weekNumber);
-      return reply.send({ data: result });
+      // Mesmo envelope do /week/current (sem `data`) — a tela de treino usa os dois.
+      return reply.send(result);
     } catch (err) {
       await handleError(err, request, reply);
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
@@ -25,6 +26,7 @@ interface WeeklyPlan {
   phase: string;
   startDate: string;
   endDate: string;
+  totalWeeks: number | null;
   workouts: WeeklyWorkout[];
 }
 
@@ -111,14 +113,22 @@ export default function TreinoPage() {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
 
+  // null = semana atual; numero = semana especifica do plano.
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+
   const { data, isLoading, isError } = useQuery<WeeklyPlan>({
-    queryKey: ['weekly-workouts'],
+    queryKey: ['weekly-workouts', selectedWeek],
     queryFn: () =>
-      apiFetch<WeeklyPlan>('/api/plan/week/current', {
-        token: token ?? undefined,
-      }),
+      apiFetch<WeeklyPlan>(
+        selectedWeek == null
+          ? '/api/plan/week/current'
+          : `/api/plan/week/${selectedWeek}`,
+        { token: token ?? undefined },
+      ),
     staleTime: 5 * 60 * 1000,
     enabled: !!token,
+    // Mantem a semana anterior na tela enquanto carrega a nova (sem flash de skeleton).
+    placeholderData: (prev) => prev,
   });
 
   /* ── Loading ── */
@@ -140,7 +150,11 @@ export default function TreinoPage() {
     );
   }
 
-  const { weekNumber, phase, startDate, endDate, workouts } = data;
+  const { weekNumber, phase, startDate, endDate, totalWeeks, workouts } = data;
+
+  // Navegacao so faz sentido quando ha plano ativo (totalWeeks definido).
+  const canPrev = totalWeeks != null && weekNumber > 1;
+  const canNext = totalWeeks != null && weekNumber < totalWeeks;
 
   // Sort workouts by scheduledDate
   const sorted = [...workouts].sort(
@@ -162,13 +176,56 @@ export default function TreinoPage() {
           >
             {phase}
           </span>
+          {selectedWeek != null && (
+            <button
+              onClick={() => setSelectedWeek(null)}
+              className="ml-auto text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-primary transition-colors"
+            >
+              Hoje
+            </button>
+          )}
         </div>
-        <h1 className="font-[var(--font-heading)] text-3xl font-bold text-slate-100 leading-tight">
-          Semana {weekNumber}
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          {formatDayMonth(startDate)} a {formatDayMonth(endDate)}
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={() => canPrev && setSelectedWeek(weekNumber - 1)}
+            disabled={!canPrev}
+            aria-label="Semana anterior"
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              canPrev
+                ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
+                : 'text-slate-600 opacity-40 cursor-not-allowed',
+            )}
+          >
+            <span className="material-symbols-outlined text-xl">chevron_left</span>
+          </button>
+
+          <div className="text-center">
+            <h1 className="font-[var(--font-heading)] text-3xl font-bold text-slate-100 leading-tight">
+              Semana {weekNumber}
+              {totalWeeks != null && (
+                <span className="text-xl font-semibold text-slate-500"> / {totalWeeks}</span>
+              )}
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">
+              {formatDayMonth(startDate)} a {formatDayMonth(endDate)}
+            </p>
+          </div>
+
+          <button
+            onClick={() => canNext && setSelectedWeek(weekNumber + 1)}
+            disabled={!canNext}
+            aria-label="Proxima semana"
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              canNext
+                ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
+                : 'text-slate-600 opacity-40 cursor-not-allowed',
+            )}
+          >
+            <span className="material-symbols-outlined text-xl">chevron_right</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Section label ── */}

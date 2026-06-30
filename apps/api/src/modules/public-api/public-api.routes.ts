@@ -1459,6 +1459,18 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       });
       if (!owns) return reply.code(404).send({ code: 'ERR_NOT_FOUND', message: 'Prova nao encontrada', status: 404 });
     }
+    // Garante um único plano ativo por atleta: arquiva os anteriores
+    // (espelha o comportamento da geração de plano por IA em plan.service).
+    const newStatus = body.data.status ?? 'active';
+    if (newStatus === 'active') {
+      await db.update(schema.trainingPlans)
+        .set({ status: 'archived' })
+        .where(and(
+          eq(schema.trainingPlans.userId, request.userId),
+          eq(schema.trainingPlans.status, 'active'),
+        ));
+    }
+
     const [row] = await db.insert(schema.trainingPlans).values({
       userId: request.userId,
       raceGoalId: body.data.raceGoalId ?? null,
@@ -1466,7 +1478,7 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
       startDate: body.data.startDate,
       endDate: body.data.endDate,
       totalWeeks: body.data.totalWeeks ?? null,
-      status: body.data.status ?? 'active',
+      status: newStatus,
     }).returning();
     return reply.code(201).send({ data: row });
   });
