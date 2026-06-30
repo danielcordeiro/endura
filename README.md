@@ -70,7 +70,7 @@ pnpm --filter @endura/api db:studio
 | Frontend | Next.js 15, Tailwind CSS 4, Zustand 5, TanStack Query 5 |
 | Backend | Fastify 5, Drizzle ORM, Zod, node-cron |
 | Banco | Supabase (PostgreSQL) |
-| IA | Claude API (Anthropic) |
+| IA | Claude API (Anthropic) + **servidor MCP** (`@endura/mcp`, stdio) |
 | Monorepo | pnpm workspaces |
 
 ## Performance Dashboard
@@ -103,9 +103,36 @@ GET  /api/fitness-tests                — Testes de fitness
 POST /api/fitness-tests                — Registrar teste
 ```
 
+## Coach via MCP (Claude + API pública)
+
+O Endura expõe uma **API pública** (`/api/v1/public/*`, autenticada por **API Key com scopes**) e um **servidor MCP** em stdio (`packages/mcp-endura`) que a envelopa como _tools_. Conectando o pacote no Claude Code / Claude Desktop, o Claude vira um **treinador completo com memória permanente**: lê a base persistida do atleta, analisa (PMC, wellness, previsão de prova), e **grava de volta** análises, diretrizes, planos e contexto de saúde — de modo que **toda nova sessão recupera tudo do Endura**, de qualquer máquina.
+
+```bash
+# Build do pacote MCP e registro no Claude Code
+pnpm --filter @endura/mcp build
+claude mcp add endura -- node packages/mcp-endura/dist/index.js
+#   env: ENDURA_API_URL (default = produção) e ENDURA_API_KEY (key com bundle Coach)
+```
+
+**Âncora da sessão:** `endura_get_coach_context` (chamar sempre primeiro) retorna em 1 round-trip o perfil do coach, diretrizes ativas, últimas análises, **contexto de saúde** e o snapshot do atleta.
+
+| Módulo | Tabelas | Tools MCP (exemplos) | Scopes |
+|---|---|---|---|
+| **Memória do coach** | `coach_profile`, `coach_assessments`, `coach_directives` | `endura_get_coach_context`, `endura_save_assessment`, `endura_save_directive`, `endura_upsert_coach_profile` | `read:coach` / `write:coach` |
+| **Escrita de plano** | `training_plans`, `planned_workouts`, `nutrition_protocols` | `endura_create_training_plan`, `endura_upsert_planned_workouts`, `endura_set_workout_nutrition` | `write:planned` |
+| **Contexto de saúde** (PHI) | `health_profile`, `health_exams` | `endura_get_health_profile`, `endura_save_health_profile`, `endura_list_exams`, `endura_add_exam`, `endura_update_exam` | `read:health` / `write:health` |
+| Leitura de estado | — | `endura_get_pmc`, `endura_get_recovery`, `endura_get_readiness`, `endura_list_activities`, `endura_get_race_projection` | `read:*` |
+
+O **contexto de saúde** persiste médico, plano de saúde e exames (pedidos→resultados, anexo por referência) — é PHI, com scope dedicado já incluído no bundle Coach. Quando vazio, a âncora retorna um `guidance` que orienta o Claude a coletar e salvar (onboarding). Salve **apenas o que o atleta compartilhar**.
+
+> Manual completo para o agente (glossário, fluxos canônicos, regras): [`docs/llm-manual.md`](docs/llm-manual.md) · também servido em `GET /api/v1/public/llm-manual.md`.
+> Setup e exemplos do pacote: [`packages/mcp-endura/README.md`](packages/mcp-endura/README.md).
+
 ## Documentacao
 
 - [Documento Mestre de Produto (MVP v2.0)](docs/Endura_MVP.md) — visão, roadmap e especificações completas
+- [Manual para Agentes IA (MCP)](docs/llm-manual.md) — conceitos, fluxos canônicos de coaching e regras invariantes
+- [Design — Módulo de contexto de saúde](docs/plans/2026-06-29-personal-health-context-design.md) — schema, endpoints e privacidade do módulo PHI
 
 ### Detalhes por fase
 
