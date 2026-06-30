@@ -125,8 +125,13 @@ claude mcp add endura -- node packages/mcp-endura/dist/index.js
 
 O **contexto de saúde** persiste médico, plano de saúde e exames (pedidos→resultados, anexo por referência) — é PHI, com scope dedicado já incluído no bundle Coach. Quando vazio, a âncora retorna um `guidance` que orienta o Claude a coletar e salvar (onboarding). Salve **apenas o que o atleta compartilhar**.
 
-> Manual completo para o agente (glossário, fluxos canônicos, regras): [`docs/llm-manual.md`](docs/llm-manual.md) · também servido em `GET /api/v1/public/llm-manual.md`.
-> Setup e exemplos do pacote: [`packages/mcp-endura/README.md`](packages/mcp-endura/README.md).
+**Quer conectar o SEU Claude?** Você passa ao Claude só **2 coisas**: `ENDURA_API_URL=https://endura-api.onrender.com` e sua `ENDURA_API_KEY` (gerada em _Configurações → API Keys_, bundle Coach). Passo a passo completo em [`packages/mcp-endura/README.md`](packages/mcp-endura/README.md#-conecte-o-seu-claude-ao-endura-guia-para-um-novo-usuário).
+
+> **Docs para configurar tudo (hospedadas):**
+> - Manual do agente: `https://endura-api.onrender.com/api/v1/public/llm-manual.md` (ou no repo: [`docs/llm-manual.md`](docs/llm-manual.md))
+> - Discovery `llms.txt`: `https://endura-api.onrender.com/llms.txt`
+> - OpenAPI + tools.json: `https://endura-api.onrender.com/api/v1/public/openapi.json` · `…/openapi/tools.json`
+> - Setup do MCP: [`packages/mcp-endura/README.md`](packages/mcp-endura/README.md)
 
 ## Documentacao
 
