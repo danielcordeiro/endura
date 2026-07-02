@@ -114,8 +114,8 @@ mesmo Postgres/Supabase (sem nova superfície externa); MCP é pass-through com 
    sessão e confirmar contexto voltando do Endura.
 
 ## Backfill (caso real do Daniel)
-Ao final, popular `health_profile` do Daniel ([MEDICO_REDIGIDO] CRM [REDIGIDO]; IPASGO matrícula
-[IPASGO_ID_REDIGIDO], tel [TELEFONE_REDIGIDO]) + `health_exams` do painel 07/2026 (`status: requested`,
+Ao final, popular `health_profile` do Daniel (dados reais de médico/plano de saúde — ver
+registro privado, não versionado) + `health_exams` do painel 07/2026 (`status: requested`,
 `items` com os 48 exames/TUSS, `attachmentRef` pros PDFs). Migra o que hoje está só na memória
 local do Claude para o Endura.
 

@@ -54,8 +54,8 @@ Ordem pensada para que cada passo seja verificável isoladamente (typecheck/migr
 - `claude mcp` reconectar; `endura_get_coach_context` mostra guidance; `endura_save_health_profile`; nova sessão recupera do Endura.
 
 ## Passo 8 — Backfill do Daniel (dado real)
-- Via MCP (preferível) `endura_save_health_profile`: providers=[[MEDICO_REDIGIDO], sports_doctor, CRM [REDIGIDO]], healthPlan={IPASGO, beneficiaryId [IPASGO_ID_REDIGIDO], phone [TELEFONE_REDIGIDO], email [EMAIL_REDIGIDO]}.
-- `endura_add_exam`: painel 07/2026, `examType: lab_panel` (+ um para ergospirometry e echocardiogram, ou um único com items), `status: requested`, `provider: [MEDICO_REDIGIDO]`, `examDate: 2026-06-27`, `items` com os exames/TUSS, `attachmentRef` p/ os PDFs.
+- Via MCP (preferível) `endura_save_health_profile`: dados reais de médico/plano de saúde do Daniel (ver registro privado, não versionado — não commitar valores reais aqui).
+- `endura_add_exam`: painel 07/2026, `examType: lab_panel` (+ um para ergospirometry e echocardiogram, ou um único com items), `status: requested`, `provider`: dado real (ver registro privado), `examDate: 2026-06-27`, `items` com os exames/TUSS, `attachmentRef` p/ os PDFs.
 - Atualizar memória local ([[exames-07-2026]], [[daniel-saude-contexto]]) para apontar que a fonte de verdade agora é o Endura.
 
 ## Passo 9 — PR
