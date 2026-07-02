@@ -1,7 +1,13 @@
 import { test as base, type Page } from '@playwright/test';
 
-const TEST_EMAIL = process.env.TEST_EMAIL ?? 'test@endura.app';
-const TEST_PASSWORD = process.env.TEST_PASSWORD ?? 'Test@123456';
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} env var e obrigatoria para rodar os testes e2e`);
+  return value;
+}
+
+export const TEST_EMAIL = requireEnv('TEST_EMAIL');
+export const TEST_PASSWORD = requireEnv('TEST_PASSWORD');
 
 interface AuthFixtures {
   authenticatedPage: Page;

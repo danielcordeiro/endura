@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './pages/login.page';
+import { TEST_EMAIL, TEST_PASSWORD } from './fixtures/auth.fixture';
 
 test.describe('Autenticacao', () => {
   test('deve redirecionar para login quando nao autenticado', async ({ page }) => {
@@ -9,10 +10,7 @@ test.describe('Autenticacao', () => {
 
   test('deve fazer login com credenciais validas', async ({ page }) => {
     const loginPage = new LoginPage(page);
-    await loginPage.login(
-      process.env.TEST_EMAIL ?? 'test@endura.app',
-      process.env.TEST_PASSWORD ?? 'Test@123456',
-    );
+    await loginPage.login(TEST_EMAIL, TEST_PASSWORD);
     await expect(page).toHaveURL(/\/dashboard/);
   });
 
