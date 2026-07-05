@@ -46,7 +46,7 @@ interface ShoppingListResponse {
 
 function PresetSkeleton() {
   return (
-    <div className="p-4 rounded-2xl border border-slate-800/50 bg-[#1c262f] animate-pulse space-y-2">
+    <div className="p-4 rounded-2xl border border-slate-800/50 bg-bg-surface animate-pulse space-y-2">
       <div className="h-4 w-2/3 rounded bg-slate-800/60" />
       <div className="h-3 w-1/3 rounded bg-slate-800/60" />
     </div>
@@ -55,7 +55,7 @@ function PresetSkeleton() {
 
 function ShoppingItemSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f] animate-pulse">
+    <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface animate-pulse">
       <div className="w-4 h-4 rounded-full bg-slate-800/60" />
       <div className="flex-1">
         <div className="h-3.5 w-3/5 rounded bg-slate-800/60" />
@@ -271,7 +271,7 @@ export default function NutricaoPage() {
         {/* Empty */}
         {!presetsQuery.isLoading && presets.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 space-y-3">
-            <div className="w-16 h-16 rounded-full bg-[#1c262f] border border-slate-800/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-bg-surface border border-slate-800/50 flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl text-slate-500">inventory_2</span>
             </div>
             <p className="text-sm text-slate-400 text-center">
@@ -286,7 +286,7 @@ export default function NutricaoPage() {
             {presets.map((preset) => (
               <div
                 key={preset.id}
-                className="flex items-center justify-between p-4 rounded-2xl border border-slate-800/50 bg-[#1c262f] hover:bg-[#283139] transition-colors"
+                className="flex items-center justify-between p-4 rounded-2xl border border-slate-800/50 bg-bg-surface hover:bg-bg-elevated transition-colors"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-[15px] text-slate-100 truncate">
@@ -329,7 +329,7 @@ export default function NutricaoPage() {
         {/* Empty */}
         {!shoppingListQuery.isLoading && shoppingList.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 space-y-3">
-            <div className="w-16 h-16 rounded-full bg-[#1c262f] border border-slate-800/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-bg-surface border border-slate-800/50 flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl text-slate-500">inbox</span>
             </div>
             <p className="text-sm text-slate-400 text-center">
@@ -344,7 +344,7 @@ export default function NutricaoPage() {
             {shoppingList.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f]"
+                className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
                 <p className="text-sm text-slate-100 flex-1 truncate">
@@ -395,7 +395,7 @@ export default function NutricaoPage() {
             {presetItems.map((item, index) => (
               <div
                 key={index}
-                className="space-y-3 p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f]"
+                className="space-y-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">

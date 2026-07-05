@@ -90,28 +90,28 @@ function DetailSkeleton() {
     <div className="py-6 space-y-8 animate-pulse">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[#1c262f]" />
-        <div className="h-5 w-40 rounded-lg bg-[#1c262f]" />
-        <div className="ml-auto w-10 h-10 rounded-full bg-[#1c262f]" />
+        <div className="w-10 h-10 rounded-full bg-bg-surface" />
+        <div className="h-5 w-40 rounded-lg bg-bg-surface" />
+        <div className="ml-auto w-10 h-10 rounded-full bg-bg-surface" />
       </div>
       {/* Badge + date */}
       <div className="flex items-center gap-3">
-        <div className="h-7 w-20 rounded-full bg-[#1c262f]" />
-        <div className="h-4 w-36 rounded-lg bg-[#1c262f]" />
+        <div className="h-7 w-20 rounded-full bg-bg-surface" />
+        <div className="h-4 w-36 rounded-lg bg-bg-surface" />
       </div>
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-28 rounded-2xl bg-[#1c262f] border border-slate-800/50" />
+          <div key={i} className="h-28 rounded-2xl bg-bg-surface border border-slate-800/50" />
         ))}
       </div>
       {/* Map placeholder */}
-      <div className="h-44 rounded-2xl bg-[#1c262f] border border-slate-800/50" />
+      <div className="h-44 rounded-2xl bg-bg-surface border border-slate-800/50" />
       {/* Nutrition */}
       <div className="space-y-3">
-        <div className="h-5 w-24 rounded-lg bg-[#1c262f]" />
+        <div className="h-5 w-24 rounded-lg bg-bg-surface" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 rounded-2xl bg-[#1c262f] border border-slate-800/50" />
+          <div key={i} className="h-16 rounded-2xl bg-bg-surface border border-slate-800/50" />
         ))}
       </div>
     </div>
@@ -221,7 +221,7 @@ export default function ActivityDetailPage() {
           <span className="font-body text-sm">Voltar</span>
         </button>
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#1c262f] border border-slate-800/50 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-bg-surface border border-slate-800/50 flex items-center justify-center">
             <span className="material-symbols-outlined text-[28px] text-slate-500">error_outline</span>
           </div>
           <p className="font-body text-[15px] text-slate-400">
@@ -246,7 +246,7 @@ export default function ActivityDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
@@ -256,7 +256,7 @@ export default function ActivityDetailPage() {
           <button
             onClick={() => setShowDeleteSheet(true)}
             aria-label="Excluir atividade"
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-[#283139] transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-bg-elevated transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>
@@ -296,7 +296,7 @@ export default function ActivityDetailPage() {
         </div>
 
         {/* Map placeholder */}
-        <div className="relative h-44 rounded-2xl bg-[#1c262f] border border-slate-800/50 overflow-hidden">
+        <div className="relative h-44 rounded-2xl bg-bg-surface border border-slate-800/50 overflow-hidden">
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-transparent to-transparent z-10" />
           {/* Placeholder pattern */}
@@ -304,8 +304,8 @@ export default function ActivityDetailPage() {
             <span className="material-symbols-outlined text-[48px] text-slate-700">map</span>
           </div>
           {/* Location badge */}
-          <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#283139]/90 border border-slate-700/50 backdrop-blur-sm">
-            <span className="material-symbols-outlined text-[14px] text-[#1d8fed]">location_on</span>
+          <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated/90 border border-slate-700/50 backdrop-blur-sm">
+            <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
             <span className="text-[11px] font-medium text-slate-300">Mapa em breve</span>
           </div>
         </div>
@@ -351,7 +351,7 @@ export default function ActivityDetailPage() {
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#1c262f] border border-slate-800/50"
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-bg-surface border border-slate-800/50"
                     >
                       {/* Colored icon */}
                       <div className={cn(
@@ -396,7 +396,7 @@ export default function ActivityDetailPage() {
               'w-full flex items-center justify-center gap-2 py-4 rounded-2xl',
               'border-2 border-dashed border-slate-700/50',
               'text-slate-400 text-sm font-medium',
-              'hover:border-[#1d8fed]/30 hover:text-[#1d8fed] hover:bg-[#1d8fed]/5',
+              'hover:border-primary/30 hover:text-primary hover:bg-primary/5',
               'transition-all duration-200',
             )}
           >
@@ -467,15 +467,15 @@ export default function ActivityDetailPage() {
                     'flex items-center gap-3 p-3.5 rounded-2xl cursor-pointer transition-all duration-150',
                     'border',
                     selectedEvents.includes(event)
-                      ? 'bg-[#1d8fed]/10 border-[#1d8fed]/30'
-                      : 'bg-[#1c262f] border-slate-800/50 hover:bg-[#283139]',
+                      ? 'bg-primary/10 border-primary/30'
+                      : 'bg-bg-surface border-slate-800/50 hover:bg-bg-elevated',
                   )}
                 >
                   <input
                     type="checkbox"
                     checked={selectedEvents.includes(event)}
                     onChange={() => toggleEvent(event)}
-                    className="w-5 h-5 rounded border-slate-600 accent-[#1d8fed]"
+                    className="w-5 h-5 rounded border-slate-600 accent-primary"
                   />
                   <span className="font-body text-sm text-slate-100">
                     {event}

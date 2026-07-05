@@ -98,7 +98,7 @@ export function CustomizeProtocolSheet({
         {items.map((item, index) => (
           <div
             key={index}
-            className="p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f] space-y-2"
+            className="p-3 rounded-2xl border border-slate-800/50 bg-bg-surface space-y-2"
           >
             <div className="flex items-center justify-between">
               <div className="flex gap-1">

@@ -245,7 +245,7 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={back}
-            className="flex items-center justify-center w-14 h-14 rounded-full border border-slate-700/50 text-slate-400 hover:bg-[#1c262f] transition-colors"
+            className="flex items-center justify-center w-14 h-14 rounded-full border border-slate-700/50 text-slate-400 hover:bg-bg-surface transition-colors"
             aria-label="Voltar"
           >
             <span className="material-symbols-outlined">arrow_back</span>
@@ -322,7 +322,7 @@ function Step1({ data, update }: StepProps) {
               onClick={() => update({ level: lvl.value })}
               className={cn(
                 'w-full text-left p-4 rounded-2xl border transition-all flex items-center gap-4',
-                'bg-[#1c262f]',
+                'bg-bg-surface',
                 data.level === lvl.value
                   ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
                   : 'border-slate-700/50 hover:border-slate-600',
@@ -347,7 +347,7 @@ function Step1({ data, update }: StepProps) {
         <label className="text-slate-400 text-sm font-medium">
           Disciplina mais fraca
         </label>
-        <div className="flex gap-2 bg-[#1c262f] border border-slate-700/50 p-1.5 rounded-full">
+        <div className="flex gap-2 bg-bg-surface border border-slate-700/50 p-1.5 rounded-full">
           {DISCIPLINES.map((d) => (
             <button
               key={d.value}
@@ -382,7 +382,7 @@ function Step1({ data, update }: StepProps) {
                 'w-11 h-11 rounded-full text-sm font-semibold transition-all',
                 data.availableDays.includes(i)
                   ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                  : 'bg-[#1c262f] border border-slate-700/50 text-slate-500 hover:border-slate-600',
+                  : 'bg-bg-surface border border-slate-700/50 text-slate-500 hover:border-slate-600',
               )}
             >
               {label}
@@ -441,7 +441,7 @@ function Step2({ data, update }: StepProps) {
               type="button"
               onClick={() => update({ raceDistance: rd.value })}
               className={cn(
-                'p-4 rounded-2xl border text-left transition-all bg-[#1c262f]',
+                'p-4 rounded-2xl border text-left transition-all bg-bg-surface',
                 data.raceDistance === rd.value
                   ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
                   : 'border-slate-700/50 hover:border-slate-600',
@@ -472,7 +472,7 @@ function Step2({ data, update }: StepProps) {
       {/* Goal type — segmented pill */}
       <div className="space-y-2">
         <label className="text-slate-400 text-sm font-medium">Objetivo</label>
-        <div className="flex gap-1 bg-[#1c262f] border border-slate-700/50 p-1.5 rounded-full">
+        <div className="flex gap-1 bg-bg-surface border border-slate-700/50 p-1.5 rounded-full">
           <button
             type="button"
             onClick={() => update({ raceGoalType: 'FINISH' })}
@@ -669,7 +669,7 @@ function Step4({ data, update }: StepProps) {
                 'px-5 h-10 rounded-full text-[13px] font-medium transition-all border',
                 data.ownedProducts.includes(product)
                   ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20'
-                  : 'bg-[#1c262f] border-slate-700/50 text-slate-400 hover:border-slate-600',
+                  : 'bg-bg-surface border-slate-700/50 text-slate-400 hover:border-slate-600',
               )}
             >
               {product}
@@ -729,13 +729,13 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
       {/* Strava */}
       <div
         className={cn(
-          'p-5 rounded-2xl border transition-all bg-[#1c262f]',
+          'p-5 rounded-2xl border transition-all bg-bg-surface',
           data.stravaConnected ? 'border-green-500/50' : 'border-slate-700/50',
         )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-[#FC4C02] flex items-center justify-center">
+            <div className="w-11 h-11 rounded-xl bg-strava flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
               </svg>
@@ -761,7 +761,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
       {/* intervals.icu */}
       <div
         className={cn(
-          'p-5 rounded-2xl border transition-all bg-[#1c262f]',
+          'p-5 rounded-2xl border transition-all bg-bg-surface',
           data.intervalsConnected ? 'border-green-500/50' : 'border-slate-700/50',
         )}
       >
@@ -825,7 +825,7 @@ function ToggleCheckbox({
         'flex items-center gap-3 w-full text-left p-3.5 rounded-2xl border transition-all',
         checked
           ? 'bg-primary/10 border-primary/30'
-          : 'bg-[#1c262f] border-slate-700/50 hover:border-slate-600',
+          : 'bg-bg-surface border-slate-700/50 hover:border-slate-600',
       )}
     >
       <div
@@ -833,7 +833,7 @@ function ToggleCheckbox({
           'w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0',
           checked
             ? 'bg-primary border-primary'
-            : 'bg-[#283139] border-slate-600',
+            : 'bg-bg-elevated border-slate-600',
         )}
       >
         {checked && (

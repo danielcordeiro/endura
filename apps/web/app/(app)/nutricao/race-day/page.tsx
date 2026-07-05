@@ -51,7 +51,7 @@ export default function RaceDayPage() {
     <div className="py-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/nutricao" className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0">
+        <Link href="/nutricao" className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
         <h1 className="font-heading font-bold text-2xl text-text-primary">Race Day Simulator</h1>
@@ -79,7 +79,7 @@ export default function RaceDayPage() {
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Meus Planos</h2>
         {plansQuery.isLoading && (
           <div className="space-y-3">
-            {[1, 2].map((i) => (<div key={i} className="h-28 rounded-2xl bg-[#1c262f] animate-pulse" />))}
+            {[1, 2].map((i) => (<div key={i} className="h-28 rounded-2xl bg-bg-surface animate-pulse" />))}
           </div>
         )}
         {!plansQuery.isLoading && plans.length === 0 && (

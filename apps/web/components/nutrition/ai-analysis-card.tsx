@@ -141,10 +141,10 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
     return (
       <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5 animate-pulse space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#1c262f]" />
-          <div className="h-5 w-40 rounded bg-[#1c262f]" />
+          <div className="w-10 h-10 rounded-full bg-bg-surface" />
+          <div className="h-5 w-40 rounded bg-bg-surface" />
         </div>
-        <div className="h-24 rounded-xl bg-[#1c262f]" />
+        <div className="h-24 rounded-xl bg-bg-surface" />
       </div>
     );
   }

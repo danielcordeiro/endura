@@ -261,7 +261,7 @@ function NutritionDetailPanel({ items }: { items: NutritionItem[] }) {
                 {group.items.map((item, i) => (
                   <div
                     key={i}
-                    className="bg-[#283139] rounded-xl p-3 flex items-start justify-between"
+                    className="bg-bg-elevated rounded-xl p-3 flex items-start justify-between"
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-100">
@@ -372,7 +372,7 @@ export default function TreinoDetailPage() {
       >
         <button
           onClick={() => router.back()}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-xl">arrow_back</span>
         </button>
@@ -390,7 +390,7 @@ export default function TreinoDetailPage() {
             }
           }}
           aria-label="Compartilhar treino"
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-xl">share</span>
         </button>

@@ -80,7 +80,7 @@ function IntegrationCard({
 }) {
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 animate-pulse">
+      <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 animate-pulse">
         <div className="h-5 w-24 rounded bg-slate-800/60 mb-3" />
         <div className="h-4 w-32 rounded bg-slate-800/60" />
       </div>
@@ -165,17 +165,17 @@ function MenuItem({
       disabled={soon}
       className={cn(
         'flex items-center gap-3 w-full px-4 py-3.5 transition-colors group',
-        soon ? 'cursor-not-allowed' : 'hover:bg-[#283139]',
+        soon ? 'cursor-not-allowed' : 'hover:bg-bg-elevated',
       )}
     >
-      <div className="w-9 h-9 rounded-xl bg-[#283139] flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors shrink-0">
+      <div className="w-9 h-9 rounded-xl bg-bg-elevated flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors shrink-0">
         <span className="material-symbols-outlined text-lg">{icon}</span>
       </div>
       <span className={cn('text-[15px] flex-1 text-left', soon ? 'text-slate-500' : 'text-slate-100')}>
         {label}
       </span>
       {soon ? (
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-[#283139] px-2 py-1 rounded-md shrink-0">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-bg-elevated px-2 py-1 rounded-md shrink-0">
           Em breve
         </span>
       ) : (
@@ -369,7 +369,7 @@ export default function ConfiguracoesPage() {
       {/* ── Avatar + User Info ── */}
       <div className="flex flex-col items-center animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-[#1c262f] border-2 border-slate-700/50 flex items-center justify-center">
+          <div className="w-24 h-24 rounded-full bg-bg-surface border-2 border-slate-700/50 flex items-center justify-center">
             <span className="material-symbols-outlined text-4xl text-slate-400">person</span>
           </div>
           {/* Edit badge */}
@@ -453,7 +453,7 @@ export default function ConfiguracoesPage() {
           icon={
             <span className="font-bold text-sm text-white">ST</span>
           }
-          brandBg="bg-[#fc4c02]"
+          brandBg="bg-strava"
           status={stravaQuery.data?.data}
           isLoading={stravaQuery.isLoading}
           onSync={() => stravaSyncMutation.mutate()}

@@ -61,7 +61,7 @@ export default function TendenciasPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/nutricao"
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
@@ -79,7 +79,7 @@ export default function TendenciasPage() {
                 'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors',
                 days === opt.value
                   ? 'bg-primary text-white'
-                  : 'bg-[#1c262f] text-slate-400 border border-slate-800/50 hover:text-slate-100',
+                  : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:text-slate-100',
               )}
             >
               {opt.label}
@@ -95,7 +95,7 @@ export default function TendenciasPage() {
                 'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors',
                 discipline === opt.value
                   ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'bg-[#1c262f] text-slate-400 border border-slate-800/50 hover:text-slate-100',
+                  : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:text-slate-100',
               )}
             >
               {opt.label}
@@ -110,8 +110,8 @@ export default function TendenciasPage() {
       {/* Charts */}
       {trendsQuery.isLoading ? (
         <div className="space-y-4">
-          <div className="h-64 rounded-2xl bg-[#1c262f] animate-pulse" />
-          <div className="h-64 rounded-2xl bg-[#1c262f] animate-pulse" />
+          <div className="h-64 rounded-2xl bg-bg-surface animate-pulse" />
+          <div className="h-64 rounded-2xl bg-bg-surface animate-pulse" />
         </div>
       ) : (
         <>

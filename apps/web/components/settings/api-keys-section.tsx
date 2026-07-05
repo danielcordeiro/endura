@@ -146,11 +146,11 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
       </p>
 
       {listQuery.isLoading && (
-        <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 h-16 animate-pulse" />
+        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 h-16 animate-pulse" />
       )}
 
       {activeKeys.length === 0 && !listQuery.isLoading && (
-        <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 text-center">
           <span className="text-xs text-slate-500">Nenhuma API Key ativa</span>
         </div>
       )}

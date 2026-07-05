@@ -93,7 +93,7 @@ function WeeklyPlanSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-2 animate-pulse"
+            className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 space-y-2 animate-pulse"
           >
             <div className="flex items-center gap-3">
               <div className="h-6 w-16 rounded-full bg-slate-800/60" />
@@ -193,7 +193,7 @@ export default function TreinoPage() {
             className={cn(
               'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
               canPrev
-                ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
+                ? 'text-slate-200 hover:bg-bg-elevated active:scale-95'
                 : 'text-slate-600 opacity-40 cursor-not-allowed',
             )}
           >
@@ -219,7 +219,7 @@ export default function TreinoPage() {
             className={cn(
               'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
               canNext
-                ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
+                ? 'text-slate-200 hover:bg-bg-elevated active:scale-95'
                 : 'text-slate-600 opacity-40 cursor-not-allowed',
             )}
           >
@@ -236,7 +236,7 @@ export default function TreinoPage() {
       {/* ── Workout List ── */}
       <div className="space-y-3">
         {sorted.length === 0 && (
-          <div className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-8 text-center">
+          <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-8 text-center">
             <span className="material-symbols-outlined text-4xl text-slate-500 mb-2">
               event_busy
             </span>
@@ -258,11 +258,11 @@ export default function TreinoPage() {
               className={cn(
                 'flex items-center gap-3 w-full text-left p-4 rounded-2xl',
                 'border transition-all duration-200',
-                'hover:bg-[#283139] active:scale-[0.99]',
+                'hover:bg-bg-elevated active:scale-[0.99]',
                 'animate-fade-in-up',
                 today
-                  ? 'bg-[#1c262f] border-primary/40 ring-1 ring-primary/20'
-                  : 'bg-[#1c262f] border-slate-800/50',
+                  ? 'bg-bg-surface border-primary/40 ring-1 ring-primary/20'
+                  : 'bg-bg-surface border-slate-800/50',
                 workout.completed && 'opacity-60',
               )}
               style={{

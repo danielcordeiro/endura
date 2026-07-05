@@ -70,15 +70,15 @@ function groupByMonth(activities: ActivityItem[]): Record<string, ActivityItem[]
 
 function SkeletonRow() {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#1c262f] border border-slate-800/50 animate-pulse">
-      <div className="w-12 h-12 rounded-full bg-[#283139] shrink-0" />
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-bg-surface border border-slate-800/50 animate-pulse">
+      <div className="w-12 h-12 rounded-full bg-bg-elevated shrink-0" />
       <div className="flex-1 space-y-2.5">
-        <div className="h-4 w-3/5 rounded-lg bg-[#283139]" />
-        <div className="h-3 w-2/5 rounded-lg bg-[#283139]" />
+        <div className="h-4 w-3/5 rounded-lg bg-bg-elevated" />
+        <div className="h-3 w-2/5 rounded-lg bg-bg-elevated" />
       </div>
       <div className="flex flex-col items-end gap-1.5 shrink-0">
-        <div className="h-4 w-12 rounded-lg bg-[#283139]" />
-        <div className="h-3 w-10 rounded-lg bg-[#283139]" />
+        <div className="h-4 w-12 rounded-lg bg-bg-elevated" />
+        <div className="h-3 w-10 rounded-lg bg-bg-elevated" />
       </div>
     </div>
   );
@@ -158,7 +158,7 @@ export default function AtividadesPage() {
         </h1>
         <button
           onClick={() => router.push('/configuracoes')}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">settings</span>
         </button>
@@ -189,14 +189,14 @@ export default function AtividadesPage() {
             className={cn(
               'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0',
               discipline === opt.value
-                ? 'bg-[#1d8fed]/15 text-[#1d8fed] border border-[#1d8fed]/30'
-                : 'bg-[#1c262f] text-slate-400 border border-slate-800/50 hover:bg-[#283139] hover:text-slate-200',
+                ? 'bg-primary/15 text-primary border border-primary/30'
+                : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:bg-bg-elevated hover:text-slate-200',
             )}
           >
             {opt.icon && (
               <span className={cn(
                 'material-symbols-outlined text-[16px]',
-                discipline === opt.value ? 'text-[#1d8fed]' : 'text-slate-500',
+                discipline === opt.value ? 'text-primary' : 'text-slate-500',
               )}>
                 {opt.icon}
               </span>
@@ -282,7 +282,7 @@ export default function AtividadesPage() {
       {/* Empty state */}
       {!isLoading && allActivities.length === 0 && !isError && (
         <div className="flex flex-col items-center justify-center py-20 space-y-6">
-          <div className="w-20 h-20 rounded-2xl bg-[#1c262f] border border-slate-800/50 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-2xl bg-bg-surface border border-slate-800/50 flex items-center justify-center">
             <span className="material-symbols-outlined text-[36px] text-slate-500">
               directions_run
             </span>
