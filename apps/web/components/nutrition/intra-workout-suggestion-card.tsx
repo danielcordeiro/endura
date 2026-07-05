@@ -85,7 +85,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
   });
 
   if (isLoading || !data) {
-    return <div className="rounded-2xl border border-slate-800/50 bg-bg-surface h-32 animate-pulse" />;
+    return <div className="rounded-2xl border border-border bg-bg-surface h-32 animate-pulse" />;
   }
 
   const accepted = data.existingProtocol?.status === 'accepted' || data.existingProtocol?.status === 'customized';
@@ -101,14 +101,14 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
   // Caso: treino curto/leve, sem itens
   if (items.length === 0 && !editing) {
     return (
-      <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-5">
+      <div className="rounded-2xl border border-border bg-bg-surface p-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-sky-500/15 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-xl text-sky-400">water_drop</span>
+          <div className="w-10 h-10 rounded-full bg-info/15 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-xl text-info">water_drop</span>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Nutricao</p>
-            <p className="text-sm text-slate-200 mt-0.5">Sem necessidade de suplementacao — hidratacao com agua e suficiente.</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-text-secondary">Nutricao</p>
+            <p className="text-sm text-text-primary mt-0.5">Sem necessidade de suplementacao — hidratacao com agua e suficiente.</p>
           </div>
         </div>
       </div>
@@ -156,21 +156,21 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-5 space-y-4">
+    <div className="rounded-2xl border border-border bg-bg-surface p-5 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className={cn('w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-            accepted ? 'bg-emerald-500/15' : 'bg-amber-500/15')}>
+            accepted ? 'bg-success/15' : 'bg-warning/15')}>
             <span className={cn('material-symbols-outlined text-xl',
-              accepted ? 'text-emerald-400' : 'text-amber-400')}>
+              accepted ? 'text-success' : 'text-warning')}>
               {accepted ? 'check_circle' : 'restaurant'}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-bold uppercase tracking-widest text-text-secondary">
               {editing ? 'Editando nutricao' : accepted ? 'Nutricao prescrita' : 'Nutricao sugerida'}
             </p>
-            <p className="text-sm text-slate-200 mt-0.5 truncate">
+            <p className="text-sm text-text-primary mt-0.5 truncate">
               {perHour ? `${perHour.carbs}g carb/h · ${perHour.sodium}mg Na/h · ${totals.totalKcal} kcal total` : `${totals.totalKcal} kcal total`}
             </p>
           </div>
@@ -178,7 +178,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
         {accepted && !editing && (
           <button
             onClick={startEdit}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-border-strong/50 text-text-secondary hover:text-text-primary transition shrink-0"
             title="Editar"
           >
             <span className="material-symbols-outlined text-lg">edit</span>
@@ -189,7 +189,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
       {editing ? (
         <div className="space-y-3">
           {draft.map((item, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-700/50 bg-bg-elevated p-3 space-y-3">
+            <div key={idx} className="rounded-xl border border-border-strong/50 bg-bg-elevated p-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Input
                   size="sm"
@@ -200,7 +200,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
                   title="Minuto"
                   className="w-16 shrink-0 px-2 text-center font-mono"
                 />
-                <span className="text-xs text-slate-500 shrink-0">min</span>
+                <span className="text-xs text-text-muted shrink-0">min</span>
                 <Input
                   size="sm"
                   type="text"
@@ -211,7 +211,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
                 <button
                   onClick={() => removeItem(idx)}
                   aria-label="Remover item"
-                  className="w-11 h-11 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10 shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-lg text-danger hover:bg-danger/10 shrink-0"
                   title="Remover"
                 >
                   <span className="material-symbols-outlined text-base">delete</span>
@@ -275,7 +275,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
 
           <button
             onClick={addItem}
-            className="w-full h-11 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-slate-100 hover:border-slate-600 text-xs font-semibold flex items-center justify-center gap-1 transition"
+            className="w-full h-11 rounded-xl border border-dashed border-border-strong text-text-secondary hover:text-text-primary hover:border-text-faint text-xs font-semibold flex items-center justify-center gap-1 transition"
           >
             <span className="material-symbols-outlined text-base">add</span>
             Adicionar item
@@ -284,7 +284,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
           <div className="flex gap-3 pt-2">
             <button
               onClick={cancelEdit}
-              className="flex-1 h-12 rounded-full bg-bg-elevated text-slate-300 font-semibold text-sm active:scale-[0.98] transition"
+              className="flex-1 h-12 rounded-full bg-bg-elevated text-text-secondary font-semibold text-sm active:scale-[0.98] transition"
             >
               Cancelar
             </button>
@@ -302,13 +302,13 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
           <div className="space-y-2">
             {items.map((item, i) => (
               <div key={i} className="flex items-center gap-3 text-sm">
-                <span className="font-mono text-xs text-slate-500 w-12 shrink-0">{formatOffset(item.minuteOffset)}</span>
-                <span className="flex-1 text-slate-200 min-w-0 truncate">
+                <span className="font-mono text-xs text-text-muted w-12 shrink-0">{formatOffset(item.minuteOffset)}</span>
+                <span className="flex-1 text-text-primary min-w-0 truncate">
                   {item.productName}
-                  {item.brand && <span className="text-slate-500 text-xs"> · {item.brand}</span>}
+                  {item.brand && <span className="text-text-muted text-xs"> · {item.brand}</span>}
                   {' · '}{item.quantity}{item.unit}
                 </span>
-                <span className="text-xs text-slate-500 shrink-0">
+                <span className="text-xs text-text-muted shrink-0">
                   {item.carbsG > 0 && `${item.carbsG * item.quantity}g`}
                   {item.carbsG > 0 && item.sodiumMg > 0 && ' · '}
                   {item.sodiumMg > 0 && `${item.sodiumMg * item.quantity}mg Na`}

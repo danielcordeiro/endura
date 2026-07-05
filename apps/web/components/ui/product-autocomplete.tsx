@@ -124,19 +124,19 @@ export function ProductAutocomplete({
             if (products.length > 0 && value.length >= 2) setIsOpen(true);
           }}
           className={cn(
-            'w-full h-14 px-5 pr-12 bg-bg-surface border-2 border-slate-700/50 rounded-full',
+            'w-full h-14 px-5 pr-12 bg-bg-surface border-2 border-border-strong/50 rounded-full',
             'text-white placeholder:text-text-muted text-[15px] outline-none transition-colors',
             'focus:border-primary focus:ring-2 focus:ring-primary/20',
             className,
           )}
         />
-        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
+        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary text-xl">
           {isFetching ? 'hourglass_empty' : 'search'}
         </span>
       </div>
 
       {isOpen && products.length > 0 && (
-        <div className="absolute z-[60] w-full mt-2 bg-bg-surface border border-slate-700/50 rounded-2xl shadow-card overflow-hidden max-h-[240px] overflow-y-auto">
+        <div className="absolute z-[60] w-full mt-2 bg-bg-surface border border-border-strong/50 rounded-2xl shadow-card overflow-hidden max-h-[240px] overflow-y-auto">
           {products.map((product, index) => (
             <button
               key={product.id}
@@ -144,15 +144,15 @@ export function ProductAutocomplete({
               onClick={() => selectProduct(product)}
               className={cn(
                 'w-full text-left px-4 py-3 flex items-center gap-3 transition-colors',
-                index === selectedIndex ? 'bg-primary/20' : 'hover:bg-slate-800/50',
-                index > 0 && 'border-t border-slate-800/30',
+                index === selectedIndex ? 'bg-primary/20' : 'hover:bg-bg-elevated/50',
+                index > 0 && 'border-t border-border-strong/30',
               )}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-[14px] text-white font-medium truncate">
                   {product.name}
                 </p>
-                <p className="text-[12px] text-slate-400 truncate">
+                <p className="text-[12px] text-text-secondary truncate">
                   {product.brand}
                   {product.servingSize && ` · ${product.servingSize}`}
                 </p>

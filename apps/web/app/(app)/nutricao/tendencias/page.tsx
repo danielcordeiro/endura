@@ -61,7 +61,7 @@ export default function TendenciasPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/nutricao"
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary transition-colors shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
@@ -79,7 +79,7 @@ export default function TendenciasPage() {
                 'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors',
                 days === opt.value
                   ? 'bg-primary text-white'
-                  : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:text-slate-100',
+                  : 'bg-bg-surface text-text-secondary border border-border hover:text-text-primary',
               )}
             >
               {opt.label}
@@ -95,7 +95,7 @@ export default function TendenciasPage() {
                 'px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-colors',
                 discipline === opt.value
                   ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:text-slate-100',
+                  : 'bg-bg-surface text-text-secondary border border-border hover:text-text-primary',
               )}
             >
               {opt.label}
@@ -122,8 +122,8 @@ export default function TendenciasPage() {
 
       {!trendsQuery.isLoading && trends.length === 0 && (
         <div className="flex flex-col items-center py-12 space-y-3">
-          <span className="material-symbols-outlined text-3xl text-slate-500">monitoring</span>
-          <p className="text-sm text-slate-400 text-center">
+          <span className="material-symbols-outlined text-3xl text-text-muted">monitoring</span>
+          <p className="text-sm text-text-secondary text-center">
             Sem dados suficientes para exibir tendencias. Continue registrando sua nutricao.
           </p>
         </div>

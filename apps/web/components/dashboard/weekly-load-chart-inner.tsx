@@ -42,7 +42,7 @@ function CustomTooltip(props: any) {
 export default function WeeklyLoadChartInner({ data }: WeeklyLoadChartInnerProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-slate-500">
+      <div className="flex items-center justify-center h-full text-sm text-text-muted">
         Sem dados
       </div>
     );

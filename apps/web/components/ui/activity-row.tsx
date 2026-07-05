@@ -46,7 +46,7 @@ export function ActivityRow({
       onClick={onClick}
       className={cn(
         'flex items-center gap-4 w-full text-left p-4 rounded-2xl',
-        'bg-bg-surface border border-slate-800/50',
+        'bg-bg-surface border border-border',
         'hover:border-primary/30 transition-all duration-150',
         'active:scale-[0.98]',
         className,
@@ -67,15 +67,15 @@ export function ActivityRow({
                 {distance}
               </span>
             )}
-            <span className="text-xs text-slate-400">{duration}</span>
+            <span className="text-xs text-text-secondary">{duration}</span>
           </div>
         </div>
         <div className="flex items-center mt-1 gap-2">
-          <span className="text-xs text-slate-400">{date}</span>
+          <span className="text-xs text-text-secondary">{date}</span>
           {hasNutrition && (
-            <div className="flex items-center gap-1 pl-2 border-l border-slate-700">
-              <span className="material-symbols-outlined text-[14px] text-green-500">nutrition</span>
-              <span className="text-[10px] font-medium text-green-400 uppercase tracking-wide">Nutrição</span>
+            <div className="flex items-center gap-1 pl-2 border-l border-border-strong">
+              <span className="material-symbols-outlined text-[14px] text-success">nutrition</span>
+              <span className="text-[10px] font-medium text-success uppercase tracking-wide">Nutrição</span>
             </div>
           )}
         </div>

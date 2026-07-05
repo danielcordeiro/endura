@@ -164,16 +164,16 @@ export function LogSupplementSheet({
 
           {/* Time offset — pill with clock icon */}
           <Field label="Tempo (+offset)">
-            <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-slate-700/50 px-4 gap-2">
+            <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-border-strong/50 px-4 gap-2">
               <span className="material-symbols-outlined text-primary text-xl">schedule</span>
-              <span className="text-slate-500 text-[15px]">+</span>
+              <span className="text-text-muted text-[15px]">+</span>
               <input
                 type="number"
                 value={minuteOffset}
                 onChange={(e) => setMinuteOffset(e.target.value)}
                 className="w-12 h-full bg-transparent text-center text-white font-[var(--font-mono)] text-lg font-bold outline-none"
               />
-              <span className="text-slate-400 text-[14px]">min</span>
+              <span className="text-text-secondary text-[14px]">min</span>
             </div>
           </Field>
         </div>
@@ -182,16 +182,16 @@ export function LogSupplementSheet({
         <details
           open={showNutrients}
           onToggle={(e) => setShowNutrients((e.target as HTMLDetailsElement).open)}
-          className="bg-bg-surface border border-slate-700/50 rounded-2xl overflow-hidden"
+          className="bg-bg-surface border border-border-strong/50 rounded-2xl overflow-hidden"
         >
           <summary className="flex items-center w-full px-4 py-3.5 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden gap-3">
             <span className="material-symbols-outlined text-primary text-xl">science</span>
             <span className="text-white text-[14px] font-semibold">Nutrientes</span>
             <span className="ml-auto flex items-center gap-2">
               {!showNutrients && nutrientSummary && (
-                <span className="text-[12px] text-slate-400">{nutrientSummary}</span>
+                <span className="text-[12px] text-text-secondary">{nutrientSummary}</span>
               )}
-              <span className="material-symbols-outlined text-slate-500 text-lg">
+              <span className="material-symbols-outlined text-text-muted text-lg">
                 {showNutrients ? 'expand_less' : 'expand_more'}
               </span>
             </span>
@@ -243,13 +243,13 @@ export function LogSupplementSheet({
 
         {/* Validation / mutation errors */}
         {validationError && (
-          <p className="text-[13px] text-red-400 flex items-center gap-1.5">
+          <p className="text-[13px] text-danger flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">error</span>
             {validationError}
           </p>
         )}
         {mutation.isError && (
-          <p className="text-[13px] text-red-400 flex items-center gap-1.5">
+          <p className="text-[13px] text-danger flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm">error</span>
             Erro ao salvar. Tente novamente.
           </p>

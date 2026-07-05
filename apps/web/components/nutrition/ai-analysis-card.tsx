@@ -30,9 +30,9 @@ interface AiAnalysisCardProps {
 }
 
 const severityConfig = {
-  info: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: 'info', text: 'text-blue-400' },
-  warning: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', icon: 'warning', text: 'text-amber-400' },
-  critical: { bg: 'bg-red-500/10', border: 'border-red-500/20', icon: 'error', text: 'text-red-400' },
+  info: { bg: 'bg-info/10', border: 'border-info/20', icon: 'info', text: 'text-info' },
+  warning: { bg: 'bg-warning/10', border: 'border-warning/20', icon: 'warning', text: 'text-warning' },
+  critical: { bg: 'bg-danger/10', border: 'border-danger/20', icon: 'error', text: 'text-danger' },
 };
 
 const categoryLabels: Record<string, string> = {
@@ -67,7 +67,7 @@ function ScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-[var(--font-mono)] font-bold text-2xl text-white">{Math.round(score)}</span>
-        <span className="text-[8px] font-bold uppercase tracking-widest text-slate-500">ADESAO</span>
+        <span className="text-[8px] font-bold uppercase tracking-widest text-text-muted">ADESAO</span>
       </div>
     </div>
   );
@@ -108,14 +108,14 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   // No analysis yet - show generate button
   if (!analysis && !analysisQuery.isLoading) {
     return (
-      <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5">
+      <div className="rounded-card border border-border bg-bg-surface p-5">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-500/15">
             <span className="material-symbols-outlined text-xl text-purple-400">auto_awesome</span>
           </div>
           <div>
             <h3 className="font-heading font-bold text-base text-text-primary">Analise com IA</h3>
-            <p className="text-xs text-slate-500">Compare sua nutricao prescrita vs executada</p>
+            <p className="text-xs text-text-muted">Compare sua nutricao prescrita vs executada</p>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
         </Button>
 
         {analyzeMutation.isError && (
-          <p className="text-[13px] text-red-400 mt-3">Erro ao gerar analise. Tente novamente.</p>
+          <p className="text-[13px] text-danger mt-3">Erro ao gerar analise. Tente novamente.</p>
         )}
       </div>
     );
@@ -140,7 +140,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   // Loading
   if (analysisQuery.isLoading) {
     return (
-      <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5 animate-pulse space-y-4">
+      <div className="rounded-card border border-border bg-bg-surface p-5 animate-pulse space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-bg-surface" />
           <div className="h-5 w-40 rounded bg-bg-surface" />
@@ -153,7 +153,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   if (!analysis) return null;
 
   return (
-    <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5 space-y-5">
+    <div className="rounded-card border border-border bg-bg-surface p-5 space-y-5">
       {/* Header with score */}
       <div className="flex items-start gap-4">
         <ScoreRing score={analysis.adherenceScore} />
@@ -161,7 +161,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
           <h3 className="font-heading font-bold text-base text-text-primary mb-1">
             Analise Nutricional
           </h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-text-secondary leading-relaxed">
             {analysis.summary}
           </p>
         </div>
@@ -170,7 +170,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
       {/* Insights */}
       {analysis.insights.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Insights</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Insights</p>
           {analysis.insights.map((item, i) => {
             const config = severityConfig[item.severity] ?? severityConfig.info;
             return (
@@ -188,10 +188,10 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
                         {categoryLabels[item.category] ?? item.category}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-300">{item.insight}</p>
+                    <p className="text-sm text-text-secondary">{item.insight}</p>
                     {item.recommendation && (
-                      <p className="text-xs text-slate-400 mt-1.5">
-                        <span className="font-bold text-slate-300">Recomendacao:</span> {item.recommendation}
+                      <p className="text-xs text-text-secondary mt-1.5">
+                        <span className="font-bold text-text-secondary">Recomendacao:</span> {item.recommendation}
                       </p>
                     )}
                   </div>
@@ -205,14 +205,14 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
       {/* Patterns */}
       {analysis.patterns.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Padroes detectados</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Padroes detectados</p>
           {analysis.patterns.map((pat, i) => (
             <div
               key={i}
               className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10"
             >
-              <p className="text-sm text-slate-300">{pat.pattern}</p>
-              <p className="text-xs text-slate-500 mt-1">{pat.frequency}</p>
+              <p className="text-sm text-text-secondary">{pat.pattern}</p>
+              <p className="text-xs text-text-muted mt-1">{pat.frequency}</p>
             </div>
           ))}
         </div>

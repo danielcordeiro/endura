@@ -33,29 +33,29 @@ const levelConfig = {
   intense: {
     label: 'INTENSO',
     icon: 'bolt',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/15',
-    ring: 'ring-emerald-500/20',
-    gradient: 'from-emerald-500/20 to-emerald-600/5',
-    barColor: 'bg-emerald-500',
+    color: 'text-success',
+    bg: 'bg-success/15',
+    ring: 'ring-success/20',
+    gradient: 'from-success/20 to-success/5',
+    barColor: 'bg-success',
   },
   moderate: {
     label: 'MODERADO',
     icon: 'trending_up',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/15',
-    ring: 'ring-blue-500/20',
-    gradient: 'from-blue-500/20 to-blue-600/5',
-    barColor: 'bg-blue-500',
+    color: 'text-info',
+    bg: 'bg-info/15',
+    ring: 'ring-info/20',
+    gradient: 'from-info/20 to-info/5',
+    barColor: 'bg-info',
   },
   light: {
     label: 'LEVE',
     icon: 'self_improvement',
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/15',
-    ring: 'ring-amber-500/20',
-    gradient: 'from-amber-500/20 to-amber-600/5',
-    barColor: 'bg-amber-500',
+    color: 'text-warning',
+    bg: 'bg-warning/15',
+    ring: 'ring-warning/20',
+    gradient: 'from-warning/20 to-warning/5',
+    barColor: 'bg-warning',
   },
   rest: {
     label: 'DESCANSO',
@@ -85,11 +85,11 @@ const feelingEmojis = [
 ];
 
 const sorenessLevels = [
-  { value: 1, label: 'Nenhuma', color: 'bg-emerald-500' },
-  { value: 2, label: 'Leve', color: 'bg-emerald-400' },
-  { value: 3, label: 'Moderada', color: 'bg-amber-400' },
+  { value: 1, label: 'Nenhuma', color: 'bg-success' },
+  { value: 2, label: 'Leve', color: 'bg-success' },
+  { value: 3, label: 'Moderada', color: 'bg-warning' },
   { value: 4, label: 'Alta', color: 'bg-orange-500' },
-  { value: 5, label: 'Muito alta', color: 'bg-rose-500' },
+  { value: 5, label: 'Muito alta', color: 'bg-danger' },
 ];
 
 export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProps) {
@@ -138,8 +138,8 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg text-slate-400">smart_toy</span>
-          <h3 className="font-heading text-base font-bold text-slate-100">Mentor AI</h3>
+          <span className="material-symbols-outlined text-lg text-text-secondary">smart_toy</span>
+          <h3 className="font-heading text-base font-bold text-text-primary">Mentor AI</h3>
         </div>
         {!showCheckin && (
           <button
@@ -147,7 +147,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 shrink-0 whitespace-nowrap',
               hasCheckedIn
-                ? 'bg-bg-elevated/50 text-slate-400 hover:text-slate-200'
+                ? 'bg-bg-elevated/50 text-text-secondary hover:text-text-primary'
                 : 'bg-primary/20 text-primary hover:bg-primary/30',
             )}
           >
@@ -160,11 +160,11 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
       {/* Check-in form */}
       {showCheckin && (
         <div className="bg-bg-elevated/60 rounded-2xl p-4 mb-4 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Como voce esta hoje?</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">Como voce esta hoje?</p>
 
           {/* Feeling */}
           <div>
-            <p className="text-xs text-slate-500 mb-2">Sensacao geral</p>
+            <p className="text-xs text-text-muted mb-2">Sensacao geral</p>
             <div className="flex gap-1.5">
               {feelingEmojis.map((f) => (
                 <button
@@ -175,11 +175,11 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
                     'flex-1 flex flex-col items-center gap-1 py-2 rounded-xl border transition-all',
                     feeling === f.value
                       ? 'bg-primary/15 border-primary/40 scale-105'
-                      : 'bg-bg-surface border-slate-700/50 hover:border-slate-600',
+                      : 'bg-bg-surface border-border-strong/50 hover:border-border-strong',
                   )}
                 >
                   <span className="text-lg">{f.emoji}</span>
-                  <span className="text-[9px] text-slate-400">{f.label}</span>
+                  <span className="text-[9px] text-text-secondary">{f.label}</span>
                 </button>
               ))}
             </div>
@@ -187,7 +187,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
           {/* Muscle soreness */}
           <div>
-            <p className="text-xs text-slate-500 mb-2">Dor muscular</p>
+            <p className="text-xs text-text-muted mb-2">Dor muscular</p>
             <div className="flex gap-1.5">
               {sorenessLevels.map((s) => (
                 <button
@@ -198,11 +198,11 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
                     'flex-1 flex flex-col items-center gap-1.5 py-2 rounded-xl border transition-all',
                     soreness === s.value
                       ? 'bg-primary/15 border-primary/40 scale-105'
-                      : 'bg-bg-surface border-slate-700/50 hover:border-slate-600',
+                      : 'bg-bg-surface border-border-strong/50 hover:border-border-strong',
                   )}
                 >
                   <div className={cn('w-3 h-3 rounded-full', s.color)} />
-                  <span className="text-[9px] text-slate-400 leading-tight text-center">{s.label}</span>
+                  <span className="text-[9px] text-text-secondary leading-tight text-center">{s.label}</span>
                 </button>
               ))}
             </div>
@@ -210,13 +210,13 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
           {/* Injury note */}
           <div>
-            <p className="text-xs text-slate-500 mb-2">Lesao ou dor especifica (opcional)</p>
+            <p className="text-xs text-text-muted mb-2">Lesao ou dor especifica (opcional)</p>
             <textarea
               value={injuryNote}
               onChange={(e) => setInjuryNote(e.target.value)}
               placeholder="Ex: dor no joelho direito, tendinite no ombro..."
               rows={2}
-              className="w-full bg-bg-input border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors resize-none"
+              className="w-full bg-bg-input border border-border-strong rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-text-muted focus:border-primary focus:outline-none transition-colors resize-none"
             />
           </div>
 
@@ -224,7 +224,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
           <div className="flex gap-2">
             <button
               onClick={() => setShowCheckin(false)}
-              className="flex-1 h-10 rounded-full bg-bg-surface text-slate-400 text-xs font-bold active:scale-[0.98] transition-transform"
+              className="flex-1 h-10 rounded-full bg-bg-surface text-text-secondary text-xs font-bold active:scale-[0.98] transition-transform"
             >
               Cancelar
             </button>
@@ -238,7 +238,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
           </div>
 
           {mutation.isError && (
-            <p className="text-xs text-rose-400 text-center">Erro ao recalcular. Tente novamente.</p>
+            <p className="text-xs text-danger text-center">Erro ao recalcular. Tente novamente.</p>
           )}
         </div>
       )}
@@ -255,14 +255,14 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
             <span className={cn('text-sm font-bold uppercase tracking-wider', config.color)}>
               {config.label}
             </span>
-            <span className="font-mono text-xs text-slate-500">
+            <span className="font-mono text-xs text-text-muted">
               {readiness.score}/100
             </span>
             {hasCheckedIn && (
               <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">ATUALIZADO</span>
             )}
           </div>
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-2 bg-bg-elevated rounded-full overflow-hidden">
             <div
               className={cn('h-full rounded-full transition-all duration-700 ease-out', config.barColor)}
               style={{ width: `${readiness.score}%` }}
@@ -273,15 +273,15 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
 
       {/* Mentor message */}
       <div className={cn('rounded-2xl p-4 mb-4', config.bg)}>
-        <p className="text-sm text-slate-200 leading-relaxed">
+        <p className="text-sm text-text-primary leading-relaxed">
           {readiness.mentorMessage}
         </p>
       </div>
 
       {/* Recommendation */}
       <div className="flex items-start gap-2 mb-4">
-        <span className="material-symbols-outlined text-base text-slate-500 mt-0.5">tips_and_updates</span>
-        <p className="text-xs text-slate-400 leading-relaxed">{readiness.recommendation}</p>
+        <span className="material-symbols-outlined text-base text-text-muted mt-0.5">tips_and_updates</span>
+        <p className="text-xs text-text-secondary leading-relaxed">{readiness.recommendation}</p>
       </div>
 
       {/* Alvo de carga de hoje (estilo WHOOP strain target) */}
@@ -290,15 +290,15 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-base text-primary">bolt</span>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Alvo de hoje</p>
-              <p className="text-xs text-slate-300">{readiness.loadTarget.label}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Alvo de hoje</p>
+              <p className="text-xs text-text-secondary">{readiness.loadTarget.label}</p>
             </div>
           </div>
           <div className="text-right">
             <p className="font-mono text-lg font-bold text-white leading-none">
               {readiness.loadTarget.tssLow}–{readiness.loadTarget.tssHigh}
             </p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">TSS</p>
+            <p className="text-[10px] text-text-muted uppercase tracking-wider">TSS</p>
           </div>
         </div>
       )}
@@ -307,35 +307,35 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-bg-elevated/50 rounded-xl p-2.5 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
-            <span className="material-symbols-outlined text-xs text-slate-500">
+            <span className="material-symbols-outlined text-xs text-text-muted">
               {trendIcons[readiness.factors.tsbTrend] ?? 'trending_flat'}
             </span>
-            <span className="text-[10px] text-slate-500">Forma</span>
+            <span className="text-[10px] text-text-muted">Forma</span>
           </div>
           <span className={cn(
             'font-mono text-sm font-bold',
-            readiness.factors.tsb >= 0 ? 'text-emerald-400' : 'text-rose-400',
+            readiness.factors.tsb >= 0 ? 'text-success' : 'text-danger',
           )}>
             {readiness.factors.tsb >= 0 ? '+' : ''}{readiness.factors.tsb.toFixed(0)}
           </span>
         </div>
         <div className="bg-bg-elevated/50 rounded-xl p-2.5 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
-            <span className="material-symbols-outlined text-xs text-slate-500">fitness_center</span>
-            <span className="text-[10px] text-slate-500">Fitness</span>
+            <span className="material-symbols-outlined text-xs text-text-muted">fitness_center</span>
+            <span className="text-[10px] text-text-muted">Fitness</span>
           </div>
-          <span className="font-mono text-sm font-bold text-blue-400">
+          <span className="font-mono text-sm font-bold text-info">
             {readiness.factors.ctl.toFixed(0)}
           </span>
         </div>
         <div className="bg-bg-elevated/50 rounded-xl p-2.5 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
-            <span className="material-symbols-outlined text-xs text-slate-500">
+            <span className="material-symbols-outlined text-xs text-text-muted">
               {trendIcons[readiness.factors.recentLoadTrend] ?? 'trending_flat'}
             </span>
-            <span className="text-[10px] text-slate-500">Carga</span>
+            <span className="text-[10px] text-text-muted">Carga</span>
           </div>
-          <span className="font-mono text-sm font-bold text-slate-300">
+          <span className="font-mono text-sm font-bold text-text-secondary">
             {readiness.factors.recentLoadTrend === 'increasing' ? 'Alta' :
               readiness.factors.recentLoadTrend === 'decreasing' ? 'Baixa' : 'Estavel'}
           </span>

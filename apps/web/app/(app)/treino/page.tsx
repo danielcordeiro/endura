@@ -85,21 +85,21 @@ function WeeklyPlanSkeleton() {
   return (
     <div className="space-y-8 pt-6 pb-6">
       <div className="space-y-3">
-        <div className="h-4 w-24 rounded-full bg-slate-800/60 animate-pulse" />
-        <div className="h-8 w-48 rounded-lg bg-slate-800/60 animate-pulse" />
-        <div className="h-4 w-32 rounded bg-slate-800/60 animate-pulse" />
+        <div className="h-4 w-24 rounded-full bg-bg-elevated/60 animate-pulse" />
+        <div className="h-8 w-48 rounded-lg bg-bg-elevated/60 animate-pulse" />
+        <div className="h-4 w-32 rounded bg-bg-elevated/60 animate-pulse" />
       </div>
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 space-y-2 animate-pulse"
+            className="rounded-2xl border border-border bg-bg-surface p-4 space-y-2 animate-pulse"
           >
             <div className="flex items-center gap-3">
-              <div className="h-6 w-16 rounded-full bg-slate-800/60" />
-              <div className="h-5 w-48 rounded bg-slate-800/60" />
+              <div className="h-6 w-16 rounded-full bg-bg-elevated/60" />
+              <div className="h-5 w-48 rounded bg-bg-elevated/60" />
             </div>
-            <div className="h-4 w-36 rounded bg-slate-800/60" />
+            <div className="h-4 w-36 rounded bg-bg-elevated/60" />
           </div>
         ))}
       </div>
@@ -140,7 +140,7 @@ export default function TreinoPage() {
   if (isError || !data) {
     return (
       <div className="pt-6 space-y-4">
-        <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-slate-100">
+        <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-text-primary">
           Plano Semanal
         </h1>
         <AlertBanner variant="danger">
@@ -179,7 +179,7 @@ export default function TreinoPage() {
           {selectedWeek != null && (
             <button
               onClick={() => setSelectedWeek(null)}
-              className="ml-auto text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-primary transition-colors"
+              className="ml-auto text-[11px] font-bold uppercase tracking-wider text-text-secondary hover:text-primary transition-colors"
             >
               Hoje
             </button>
@@ -191,10 +191,10 @@ export default function TreinoPage() {
             disabled={!canPrev}
             aria-label="Semana anterior"
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border transition-all',
               canPrev
-                ? 'text-slate-200 hover:bg-bg-elevated active:scale-95'
-                : 'text-slate-600 opacity-40 cursor-not-allowed',
+                ? 'text-text-primary hover:bg-bg-elevated active:scale-95'
+                : 'text-text-faint opacity-40 cursor-not-allowed',
             )}
           >
             <span className="material-symbols-outlined text-xl">chevron_left</span>
@@ -204,10 +204,10 @@ export default function TreinoPage() {
             <h1 className="font-heading text-2xl font-bold text-text-primary leading-tight">
               Semana {weekNumber}
               {totalWeeks != null && (
-                <span className="text-xl font-semibold text-slate-500"> / {totalWeeks}</span>
+                <span className="text-xl font-semibold text-text-muted"> / {totalWeeks}</span>
               )}
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-text-secondary mt-1">
               {formatDayMonth(startDate)} a {formatDayMonth(endDate)}
             </p>
           </div>
@@ -217,10 +217,10 @@ export default function TreinoPage() {
             disabled={!canNext}
             aria-label="Proxima semana"
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border transition-all',
               canNext
-                ? 'text-slate-200 hover:bg-bg-elevated active:scale-95'
-                : 'text-slate-600 opacity-40 cursor-not-allowed',
+                ? 'text-text-primary hover:bg-bg-elevated active:scale-95'
+                : 'text-text-faint opacity-40 cursor-not-allowed',
             )}
           >
             <span className="material-symbols-outlined text-xl">chevron_right</span>
@@ -229,18 +229,18 @@ export default function TreinoPage() {
       </div>
 
       {/* ── Section label ── */}
-      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+      <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
         Treinos da semana
       </p>
 
       {/* ── Workout List ── */}
       <div className="space-y-3">
         {sorted.length === 0 && (
-          <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-8 text-center">
-            <span className="material-symbols-outlined text-4xl text-slate-500 mb-2">
+          <div className="rounded-2xl border border-border bg-bg-surface p-8 text-center">
+            <span className="material-symbols-outlined text-4xl text-text-muted mb-2">
               event_busy
             </span>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-text-muted">
               Nenhum treino programado para esta semana.
             </p>
           </div>
@@ -262,7 +262,7 @@ export default function TreinoPage() {
                 'animate-fade-in-up',
                 today
                   ? 'bg-bg-surface border-primary/40 ring-1 ring-primary/20'
-                  : 'bg-bg-surface border-slate-800/50',
+                  : 'bg-bg-surface border-border',
                 workout.completed && 'opacity-60',
               )}
               style={{
@@ -275,7 +275,7 @@ export default function TreinoPage() {
                 <span
                   className={cn(
                     'text-[11px] font-medium uppercase',
-                    today ? 'text-primary' : 'text-slate-500',
+                    today ? 'text-primary' : 'text-text-muted',
                   )}
                 >
                   {formatWeekday(workout.scheduledDate)}
@@ -283,7 +283,7 @@ export default function TreinoPage() {
                 <span
                   className={cn(
                     'font-[var(--font-mono)] text-lg font-bold',
-                    today ? 'text-primary' : 'text-slate-100',
+                    today ? 'text-primary' : 'text-text-primary',
                   )}
                 >
                   {new Date(workout.scheduledDate).getDate()}
@@ -294,7 +294,7 @@ export default function TreinoPage() {
               <div
                 className={cn(
                   'w-px h-10 shrink-0',
-                  today ? 'bg-primary/30' : 'bg-slate-700/50',
+                  today ? 'bg-primary/30' : 'bg-bg-elevated/50',
                 )}
               />
 
@@ -308,16 +308,16 @@ export default function TreinoPage() {
                     </span>
                   )}
                   {workout.completed && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-success">
                       <span className="material-symbols-outlined text-xs">check_circle</span>
                       CONCLUIDO
                     </span>
                   )}
                 </div>
-                <p className="font-semibold text-[15px] text-slate-100 truncate">
+                <p className="font-semibold text-[15px] text-text-primary truncate">
                   {workout.title}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-text-secondary mt-0.5">
                   <span className="inline-flex items-center gap-1">
                     <span className="material-symbols-outlined text-xs">timer</span>
                     {formatDuration(workout.durationMin)}
@@ -335,7 +335,7 @@ export default function TreinoPage() {
               </div>
 
               {/* Chevron */}
-              <span className="material-symbols-outlined text-lg text-slate-500 shrink-0">
+              <span className="material-symbols-outlined text-lg text-text-muted shrink-0">
                 chevron_right
               </span>
             </button>

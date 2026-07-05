@@ -22,37 +22,37 @@ function formatSleepDuration(hours: number): string {
 }
 
 function getHrvColor(hrv: number): string {
-  if (hrv >= 60) return 'text-emerald-400';
-  if (hrv >= 40) return 'text-blue-400';
-  if (hrv >= 25) return 'text-amber-400';
-  return 'text-rose-400';
+  if (hrv >= 60) return 'text-success';
+  if (hrv >= 40) return 'text-info';
+  if (hrv >= 25) return 'text-warning';
+  return 'text-danger';
 }
 
 function getSleepColor(score: number): string {
-  if (score >= 80) return 'text-emerald-400';
-  if (score >= 60) return 'text-blue-400';
-  if (score >= 40) return 'text-amber-400';
-  return 'text-rose-400';
+  if (score >= 80) return 'text-success';
+  if (score >= 60) return 'text-info';
+  if (score >= 40) return 'text-warning';
+  return 'text-danger';
 }
 
 function getStressColor(level: number): string {
-  if (level <= 25) return 'text-emerald-400';
-  if (level <= 50) return 'text-blue-400';
-  if (level <= 75) return 'text-amber-400';
-  return 'text-rose-400';
+  if (level <= 25) return 'text-success';
+  if (level <= 50) return 'text-info';
+  if (level <= 75) return 'text-warning';
+  return 'text-danger';
 }
 
 function getBatteryColor(battery: number): string {
-  if (battery >= 70) return 'text-emerald-400';
-  if (battery >= 40) return 'text-blue-400';
-  if (battery >= 20) return 'text-amber-400';
-  return 'text-rose-400';
+  if (battery >= 70) return 'text-success';
+  if (battery >= 40) return 'text-info';
+  if (battery >= 20) return 'text-warning';
+  return 'text-danger';
 }
 
 function getSpO2Color(spo2: number): string {
-  if (spo2 >= 95) return 'text-emerald-400';
-  if (spo2 >= 90) return 'text-amber-400';
-  return 'text-rose-400';
+  if (spo2 >= 95) return 'text-success';
+  if (spo2 >= 90) return 'text-warning';
+  return 'text-danger';
 }
 
 function CircularGauge({ value, max, color, size = 56 }: { value: number; max: number; color: string; size?: number }) {
@@ -116,10 +116,10 @@ function MetricTile({
       )}
       <p className={cn('font-mono text-lg font-bold leading-tight', colorClass)}>
         {value}
-        {unit && <span className="text-[10px] text-slate-500 font-normal ml-0.5">{unit}</span>}
+        {unit && <span className="text-[10px] text-text-muted font-normal ml-0.5">{unit}</span>}
       </p>
-      <p className="text-[10px] text-slate-500 mt-0.5">{label}</p>
-      {subtext && <p className="text-[9px] text-slate-600 mt-0.5">{subtext}</p>}
+      <p className="text-[10px] text-text-muted mt-0.5">{label}</p>
+      {subtext && <p className="text-[9px] text-text-faint mt-0.5">{subtext}</p>}
     </div>
   );
 }
@@ -162,10 +162,10 @@ export function WellnessCard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <span className="material-symbols-outlined text-lg text-slate-400">watch</span>
+          <span className="material-symbols-outlined text-lg text-text-secondary">watch</span>
           <div>
             <h3 className="font-heading text-base font-bold text-text-primary">Dados do Relogio</h3>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-text-muted">
               {data.date ? new Date(data.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : ''}
               {' '}via Garmin
             </p>
@@ -184,7 +184,7 @@ export function WellnessCard() {
             colorClass={getHrvColor(data.hrv)}
             gaugeValue={data.hrv}
             gaugeMax={100}
-            gaugeColor={data.hrv >= 60 ? '#22c55e' : data.hrv >= 40 ? '#3b82f6' : data.hrv >= 25 ? '#f59e0b' : '#ef4444'}
+            gaugeColor={data.hrv >= 60 ? '#2fd583' : data.hrv >= 40 ? '#4c9af0' : data.hrv >= 25 ? '#f5a524' : '#f0524e'}
           />
         )}
 
@@ -194,10 +194,10 @@ export function WellnessCard() {
             label="Sono"
             value={formatSleepDuration(data.sleepDurationH)}
             subtext={data.sleepScore != null ? `Score: ${data.sleepScore}` : undefined}
-            colorClass={data.sleepScore != null ? getSleepColor(data.sleepScore) : 'text-blue-400'}
+            colorClass={data.sleepScore != null ? getSleepColor(data.sleepScore) : 'text-info'}
             gaugeValue={data.sleepDurationH}
             gaugeMax={9}
-            gaugeColor={data.sleepDurationH >= 7 ? '#22c55e' : data.sleepDurationH >= 6 ? '#3b82f6' : '#f59e0b'}
+            gaugeColor={data.sleepDurationH >= 7 ? '#2fd583' : data.sleepDurationH >= 6 ? '#4c9af0' : '#f5a524'}
           />
         )}
 
@@ -210,7 +210,7 @@ export function WellnessCard() {
             colorClass={getBatteryColor(data.bodyBattery)}
             gaugeValue={data.bodyBattery}
             gaugeMax={100}
-            gaugeColor={data.bodyBattery >= 70 ? '#22c55e' : data.bodyBattery >= 40 ? '#3b82f6' : data.bodyBattery >= 20 ? '#f59e0b' : '#ef4444'}
+            gaugeColor={data.bodyBattery >= 70 ? '#2fd583' : data.bodyBattery >= 40 ? '#4c9af0' : data.bodyBattery >= 20 ? '#f5a524' : '#f0524e'}
           />
         )}
 
@@ -230,7 +230,7 @@ export function WellnessCard() {
             label="FC Repouso"
             value={String(data.restingHr)}
             unit="bpm"
-            colorClass="text-rose-400"
+            colorClass="text-danger"
           />
         )}
 
@@ -243,7 +243,7 @@ export function WellnessCard() {
             colorClass={getSpO2Color(data.spo2)}
             gaugeValue={data.spo2}
             gaugeMax={100}
-            gaugeColor={data.spo2 >= 95 ? '#22c55e' : data.spo2 >= 90 ? '#f59e0b' : '#ef4444'}
+            gaugeColor={data.spo2 >= 95 ? '#2fd583' : data.spo2 >= 90 ? '#f5a524' : '#f0524e'}
           />
         )}
       </div>

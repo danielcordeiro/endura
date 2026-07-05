@@ -43,9 +43,9 @@ interface DailyNutritionCardProps {
 
 function StatusBadge({ status }: { status: string | null }) {
   const config: Record<string, { label: string; bg: string; text: string }> = {
-    generated: { label: 'Gerado por IA', bg: 'bg-blue-500/15', text: 'text-blue-400' },
-    accepted: { label: 'Aceito', bg: 'bg-green-500/15', text: 'text-green-400' },
-    customized: { label: 'Personalizado', bg: 'bg-amber-500/15', text: 'text-amber-400' },
+    generated: { label: 'Gerado por IA', bg: 'bg-info/15', text: 'text-info' },
+    accepted: { label: 'Aceito', bg: 'bg-success/15', text: 'text-success' },
+    customized: { label: 'Personalizado', bg: 'bg-warning/15', text: 'text-warning' },
   };
   const c = config[status ?? 'generated'] ?? config.generated!;
 
@@ -112,7 +112,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
           </h3>
         </div>
 
-        <p className="text-sm text-slate-400 mb-5">
+        <p className="text-sm text-text-secondary mb-5">
           Nenhum protocolo nutricional definido para este treino. Gere um plano personalizado com IA.
         </p>
 
@@ -139,7 +139,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
         </div>
 
         {generateMutation.isError && (
-          <p className="text-[13px] text-red-400 mt-3">Erro ao gerar protocolo. Tente novamente.</p>
+          <p className="text-[13px] text-danger mt-3">Erro ao gerar protocolo. Tente novamente.</p>
         )}
       </div>
     );
@@ -189,13 +189,13 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
           ].map((item) => (
             <div
               key={item.label}
-              className="flex-1 text-center py-2.5 rounded-xl bg-bg-elevated border border-slate-800/50"
+              className="flex-1 text-center py-2.5 rounded-xl bg-bg-elevated border border-border"
             >
               <p className="font-[var(--font-mono)] font-bold text-sm text-white leading-none">
                 {Math.round(Number(item.value ?? 0))}
-                <span className="text-[10px] text-slate-500 font-normal">{item.unit}</span>
+                <span className="text-[10px] text-text-muted font-normal">{item.unit}</span>
               </p>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">{item.label}</p>
+              <p className="text-[8px] font-bold uppercase tracking-widest text-text-muted mt-0.5">{item.label}</p>
             </div>
           ))}
         </div>
@@ -211,10 +211,10 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
                 'w-2 h-2 rounded-full shrink-0',
                 item.phase === 'pre' ? 'bg-phase-pre' : item.phase === 'during' ? 'bg-phase-during' : 'bg-phase-post',
               )} />
-              <span className="text-sm text-slate-100 flex-1 truncate">
+              <span className="text-sm text-text-primary flex-1 truncate">
                 {item.productName}
               </span>
-              <span className="font-[var(--font-mono)] text-[12px] text-slate-400 shrink-0">
+              <span className="font-[var(--font-mono)] text-[12px] text-text-secondary shrink-0">
                 {item.carbsG ?? 0}g carb
               </span>
             </div>
@@ -255,9 +255,9 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
           </div>
         ) : (
           <div className="flex gap-2">
-            <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-full bg-green-500/10 border border-green-500/20">
-              <span className="material-symbols-outlined text-lg text-green-400">check_circle</span>
-              <span className="text-sm font-medium text-green-400">Plano aceito</span>
+            <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-full bg-success/10 border border-success/20">
+              <span className="material-symbols-outlined text-lg text-success">check_circle</span>
+              <span className="text-sm font-medium text-success">Plano aceito</span>
             </div>
             <Button
               variant="ghost"

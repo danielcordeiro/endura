@@ -55,8 +55,8 @@ const DISTANCE_OPTIONS = Object.keys(DISTANCE_LABELS);
 
 const PRIORITY_META: Record<string, { label: string; cls: string }> = {
   A: { label: 'A', cls: 'bg-primary text-white' },
-  B: { label: 'B', cls: 'bg-amber-500/90 text-black' },
-  C: { label: 'C', cls: 'bg-slate-600 text-slate-100' },
+  B: { label: 'B', cls: 'bg-warning/90 text-black' },
+  C: { label: 'C', cls: 'bg-bg-elevated text-text-primary' },
 };
 
 /* ---------- Helpers ---------- */
@@ -212,7 +212,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
           Calendário de provas
         </p>
         <button
@@ -232,16 +232,16 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
       {racesQuery.isLoading && (
         <div className="space-y-2">
           {[0, 1].map((i) => (
-            <div key={i} className="h-[76px] rounded-2xl bg-slate-800/40 animate-pulse" />
+            <div key={i} className="h-[76px] rounded-2xl bg-bg-elevated/40 animate-pulse" />
           ))}
         </div>
       )}
 
       {/* Empty */}
       {!racesQuery.isLoading && races.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-700/50 bg-bg-surface p-6 text-center">
-          <span className="material-symbols-outlined text-3xl text-slate-600">event</span>
-          <p className="text-sm text-slate-400 mt-1">Nenhuma prova no calendário.</p>
+        <div className="rounded-2xl border border-dashed border-border-strong/50 bg-bg-surface p-6 text-center">
+          <span className="material-symbols-outlined text-3xl text-text-faint">event</span>
+          <p className="text-sm text-text-secondary mt-1">Nenhuma prova no calendário.</p>
           <button onClick={openCreate} className="text-primary text-[13px] font-semibold mt-2">
             Adicionar a primeira
           </button>
@@ -258,7 +258,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
             key={r.id}
             onClick={() => openEdit(r)}
             className={cn(
-              'w-full text-left relative rounded-2xl border border-slate-800/50 bg-bg-surface p-4 flex items-center gap-3 transition-colors hover:border-slate-700',
+              'w-full text-left relative rounded-2xl border border-border bg-bg-surface p-4 flex items-center gap-3 transition-colors hover:border-border-strong',
               isPast && 'opacity-60',
             )}
           >
@@ -272,10 +272,10 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
               {pri.label}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-slate-100 truncate leading-tight">
+              <p className="font-semibold text-text-primary truncate leading-tight">
                 {r.raceName || DISTANCE_LABELS[r.distance] || 'Prova'}
               </p>
-              <p className="text-[12px] text-slate-400 mt-0.5 truncate">
+              <p className="text-[12px] text-text-secondary mt-0.5 truncate">
                 {DISTANCE_LABELS[r.distance] ?? r.distance}
                 {' · '}
                 {format(parseISO(r.raceDate), "dd MMM yyyy", { locale: ptBR })}
@@ -286,12 +286,12 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
               <p
                 className={cn(
                   'font-[var(--font-mono)] font-bold text-lg leading-none',
-                  isPast ? 'text-slate-500' : 'text-primary',
+                  isPast ? 'text-text-muted' : 'text-primary',
                 )}
               >
                 {isPast ? '—' : days}
               </p>
-              <p className="text-[9px] text-slate-500 uppercase tracking-wider mt-0.5">
+              <p className="text-[9px] text-text-muted uppercase tracking-wider mt-0.5">
                 {isPast ? 'feita' : 'dias'}
               </p>
             </div>
@@ -334,7 +334,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                       'flex-1 rounded-2xl border font-bold text-sm transition-colors',
                       form.priority === p
                         ? PRIORITY_META[p]!.cls + ' border-transparent'
-                        : 'border-slate-700/50 text-slate-400 bg-bg-input',
+                        : 'border-border-strong/50 text-text-secondary bg-bg-input',
                     )}
                   >
                     {p}
@@ -380,7 +380,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                       'flex-1 rounded-2xl border text-sm font-semibold transition-colors',
                       form.goal === val
                         ? 'bg-primary text-white border-transparent'
-                        : 'border-slate-700/50 text-slate-400 bg-bg-input',
+                        : 'border-border-strong/50 text-text-secondary bg-bg-input',
                     )}
                   >
                     {lbl}
@@ -432,13 +432,13 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
           </Field>
 
           {validationError && (
-            <p className="text-[13px] text-red-400 flex items-center gap-1.5">
+            <p className="text-[13px] text-danger flex items-center gap-1.5">
               <span className="material-symbols-outlined text-sm">error</span>
               {validationError}
             </p>
           )}
           {saveMutation.isError && (
-            <p className="text-[13px] text-red-400 flex items-center gap-1.5">
+            <p className="text-[13px] text-danger flex items-center gap-1.5">
               <span className="material-symbols-outlined text-sm">error</span>
               Erro ao salvar. Tente novamente.
             </p>
@@ -454,7 +454,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                 if (editingId) deleteMutation.mutate(editingId);
                 closeSheet();
               }}
-              className="px-5 text-red-400"
+              className="px-5 text-danger"
             >
               <span className="material-symbols-outlined">delete</span>
             </Button>

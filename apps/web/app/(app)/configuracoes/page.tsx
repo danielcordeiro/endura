@@ -40,17 +40,17 @@ function SettingsSkeleton() {
   return (
     <div className="py-6 space-y-8 animate-pulse">
       <div className="flex items-center justify-between">
-        <div className="h-8 w-24 rounded-lg bg-slate-800/60" />
-        <div className="h-10 w-10 rounded-full bg-slate-800/60" />
+        <div className="h-8 w-24 rounded-lg bg-bg-elevated/60" />
+        <div className="h-10 w-10 rounded-full bg-bg-elevated/60" />
       </div>
       <div className="flex flex-col items-center gap-3">
-        <div className="w-24 h-24 rounded-full bg-slate-800/60" />
-        <div className="h-5 w-32 rounded bg-slate-800/60" />
-        <div className="h-4 w-44 rounded bg-slate-800/60" />
+        <div className="w-24 h-24 rounded-full bg-bg-elevated/60" />
+        <div className="h-5 w-32 rounded bg-bg-elevated/60" />
+        <div className="h-4 w-44 rounded bg-bg-elevated/60" />
       </div>
-      <div className="h-[140px] rounded-2xl bg-slate-800/60" />
-      <div className="h-[88px] rounded-2xl bg-slate-800/60" />
-      <div className="h-[88px] rounded-2xl bg-slate-800/60" />
+      <div className="h-[140px] rounded-2xl bg-bg-elevated/60" />
+      <div className="h-[88px] rounded-2xl bg-bg-elevated/60" />
+      <div className="h-[88px] rounded-2xl bg-bg-elevated/60" />
     </div>
   );
 }
@@ -80,9 +80,9 @@ function IntegrationCard({
 }) {
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 animate-pulse">
-        <div className="h-5 w-24 rounded bg-slate-800/60 mb-3" />
-        <div className="h-4 w-32 rounded bg-slate-800/60" />
+      <div className="rounded-2xl border border-border bg-bg-surface p-4 animate-pulse">
+        <div className="h-5 w-24 rounded bg-bg-elevated/60 mb-3" />
+        <div className="h-4 w-32 rounded bg-bg-elevated/60" />
       </div>
     );
   }
@@ -90,7 +90,7 @@ function IntegrationCard({
   const connected = status?.connected ?? false;
 
   return (
-    <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4">
+    <div className="rounded-2xl border border-border bg-bg-surface p-4">
       <div className="flex items-center gap-3">
         {/* Brand icon */}
         <div
@@ -104,11 +104,11 @@ function IntegrationCard({
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <span className="font-semibold text-[15px] text-slate-100 block">{name}</span>
+          <span className="font-semibold text-[15px] text-text-primary block">{name}</span>
           {connected && status?.lastSync && (
             <div className="flex items-center gap-1.5 mt-0.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="text-[11px] text-slate-500">
+              <div className="w-1.5 h-1.5 rounded-full bg-success" />
+              <span className="text-[11px] text-text-muted">
                 Sincronizado{' '}
                 {format(parseISO(status.lastSync), "dd/MM 'às' HH:mm", {
                   locale: ptBR,
@@ -117,7 +117,7 @@ function IntegrationCard({
             </div>
           )}
           {!connected && (
-            <span className="text-[11px] text-slate-500 block mt-0.5">Não conectado</span>
+            <span className="text-[11px] text-text-muted block mt-0.5">Não conectado</span>
           )}
         </div>
 
@@ -126,7 +126,7 @@ function IntegrationCard({
           <button
             onClick={onSync}
             disabled={isSyncing}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition-colors disabled:opacity-40 shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-border-strong/50 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-40 shrink-0"
           >
             <span className={cn('material-symbols-outlined text-xl', isSyncing && 'animate-spin')}>
               sync
@@ -168,18 +168,18 @@ function MenuItem({
         soon ? 'cursor-not-allowed' : 'hover:bg-bg-elevated',
       )}
     >
-      <div className="w-9 h-9 rounded-xl bg-bg-elevated flex items-center justify-center text-slate-400 group-hover:text-slate-100 transition-colors shrink-0">
+      <div className="w-9 h-9 rounded-xl bg-bg-elevated flex items-center justify-center text-text-secondary group-hover:text-text-primary transition-colors shrink-0">
         <span className="material-symbols-outlined text-lg">{icon}</span>
       </div>
-      <span className={cn('text-[15px] flex-1 text-left', soon ? 'text-slate-500' : 'text-slate-100')}>
+      <span className={cn('text-[15px] flex-1 text-left', soon ? 'text-text-muted' : 'text-text-primary')}>
         {label}
       </span>
       {soon ? (
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-bg-elevated px-2 py-1 rounded-md shrink-0">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-elevated px-2 py-1 rounded-md shrink-0">
           Em breve
         </span>
       ) : (
-        <span className="material-symbols-outlined text-lg text-slate-500 group-hover:text-slate-400 transition-colors shrink-0">
+        <span className="material-symbols-outlined text-lg text-text-muted group-hover:text-text-secondary transition-colors shrink-0">
           chevron_right
         </span>
       )}
@@ -369,8 +369,8 @@ export default function ConfiguracoesPage() {
       {/* ── Avatar + User Info ── */}
       <div className="flex flex-col items-center animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="relative">
-          <div className="w-24 h-24 rounded-full bg-bg-surface border-2 border-slate-700/50 flex items-center justify-center">
-            <span className="material-symbols-outlined text-4xl text-slate-400">person</span>
+          <div className="w-24 h-24 rounded-full bg-bg-surface border-2 border-border-strong/50 flex items-center justify-center">
+            <span className="material-symbols-outlined text-4xl text-text-secondary">person</span>
           </div>
           {/* Edit badge */}
           <button
@@ -381,10 +381,10 @@ export default function ConfiguracoesPage() {
             <span className="material-symbols-outlined text-base text-white">edit</span>
           </button>
         </div>
-        <h2 className="font-[var(--font-heading)] font-bold text-lg text-slate-100 mt-3">
+        <h2 className="font-[var(--font-heading)] font-bold text-lg text-text-primary mt-3">
           {user?.name ?? 'Atleta'}
         </h2>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <p className="text-sm text-text-muted mt-0.5">
           {user?.email ?? '---'}
         </p>
       </div>
@@ -392,31 +392,31 @@ export default function ConfiguracoesPage() {
       {/* ── Race Target Card ── */}
       {raceGoal && (
         <div
-          className="relative rounded-2xl border border-slate-800/50 overflow-hidden animate-fade-in-up stagger-2"
+          className="relative rounded-2xl border border-border overflow-hidden animate-fade-in-up stagger-2"
           style={{ opacity: 0 }}
         >
           {/* Background gradient overlay (simulating bg image + gradient) */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-[#1c262f] to-[#1c262f]" />
           <div className="relative p-5 flex items-center gap-4">
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">
                 Prova Alvo
               </span>
-              <p className="font-[var(--font-heading)] font-bold text-lg text-slate-100 truncate leading-tight mt-1">
+              <p className="font-[var(--font-heading)] font-bold text-lg text-text-primary truncate leading-tight mt-1">
                 {raceGoal.raceName}
               </p>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-text-secondary mt-1">
                 {format(parseISO(raceGoal.raceDate), "dd 'de' MMMM 'de' yyyy", {
                   locale: ptBR,
                 })}
               </p>
             </div>
             {/* Days badge */}
-            <div className="shrink-0 text-center bg-bg-base/80 rounded-2xl px-4 py-3 border border-slate-800/50">
+            <div className="shrink-0 text-center bg-bg-base/80 rounded-2xl px-4 py-3 border border-border">
               <p className="font-[var(--font-mono)] font-bold text-3xl text-primary leading-none">
                 {daysUntilRace}
               </p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mt-0.5">
                 dias
               </p>
             </div>
@@ -431,7 +431,7 @@ export default function ConfiguracoesPage() {
 
       {/* ── Integrations section ── */}
       <div className="space-y-3 animate-fade-in-up stagger-3" style={{ opacity: 0 }}>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">
           Integracoes
         </p>
 
@@ -480,11 +480,11 @@ export default function ConfiguracoesPage() {
 
       {/* ── Account section ── */}
       <div className="space-y-1 animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">
           Conta
         </p>
 
-        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface overflow-hidden divide-y divide-slate-800/50">
+        <div className="rounded-2xl border border-border bg-bg-surface overflow-hidden divide-y divide-border">
           <MenuItem
             icon="manage_accounts"
             label="Editar perfil atletico"
@@ -515,9 +515,9 @@ export default function ConfiguracoesPage() {
           className={cn(
             'w-full h-14 rounded-full',
             'inline-flex items-center justify-center gap-2',
-            'text-sm font-semibold text-red-500',
-            'border border-red-500/30',
-            'hover:bg-red-500/10 transition-colors',
+            'text-sm font-semibold text-danger',
+            'border border-danger/30',
+            'hover:bg-danger/10 transition-colors',
             'active:scale-[0.98]',
           )}
         >
@@ -527,7 +527,7 @@ export default function ConfiguracoesPage() {
       </div>
 
       {/* ── Version ── */}
-      <p className="text-center text-xs text-slate-600 pb-4">
+      <p className="text-center text-xs text-text-faint pb-4">
         Endura v{APP_VERSION}
       </p>
 
@@ -536,15 +536,15 @@ export default function ConfiguracoesPage() {
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowIntervalsForm(false)} />
           <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up">
-            <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+            <div className="w-10 h-1 bg-text-faint rounded-full mx-auto mb-5" />
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-500/15">
-                <span className="material-symbols-outlined text-2xl text-blue-400">sync</span>
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-info/15">
+                <span className="material-symbols-outlined text-2xl text-info">sync</span>
               </div>
               <div>
-                <h2 className="font-heading text-lg font-bold text-slate-100">Conectar intervals.icu</h2>
-                <p className="text-xs text-slate-400">Acesse intervals.icu/settings para gerar sua API Key</p>
+                <h2 className="font-heading text-lg font-bold text-text-primary">Conectar intervals.icu</h2>
+                <p className="text-xs text-text-secondary">Acesse intervals.icu/settings para gerar sua API Key</p>
               </div>
             </div>
 

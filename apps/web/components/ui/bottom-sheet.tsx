@@ -55,7 +55,7 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
       >
         {/* Drag handle */}
         <div className="w-full flex justify-center pt-3 pb-2 cursor-grab">
-          <div className="h-1.5 w-12 rounded-full bg-slate-600/50" />
+          <div className="h-1.5 w-12 rounded-full bg-bg-elevated/50" />
         </div>
 
         {title && (

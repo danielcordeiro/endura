@@ -72,15 +72,15 @@ const phaseLabels: Record<Phase, string> = {
 };
 
 const phaseColors: Record<Phase, string> = {
-  pre: 'from-amber-500/20 via-amber-500/5',
-  during: 'from-blue-500/20 via-blue-500/5',
-  post: 'from-green-500/20 via-green-500/5',
+  pre: 'from-phase-pre/20 via-phase-pre/5',
+  during: 'from-phase-during/20 via-phase-during/5',
+  post: 'from-phase-post/20 via-phase-post/5',
 };
 
 const phaseIconColors: Record<Phase, string> = {
-  pre: 'text-amber-400',
-  during: 'text-blue-400',
-  post: 'text-green-400',
+  pre: 'text-phase-pre',
+  during: 'text-phase-during',
+  post: 'text-phase-post',
 };
 
 /* ---------- Skeletons ---------- */
@@ -102,16 +102,16 @@ function DetailSkeleton() {
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-28 rounded-2xl bg-bg-surface border border-slate-800/50" />
+          <div key={i} className="h-28 rounded-2xl bg-bg-surface border border-border" />
         ))}
       </div>
       {/* Map placeholder */}
-      <div className="h-44 rounded-2xl bg-bg-surface border border-slate-800/50" />
+      <div className="h-44 rounded-2xl bg-bg-surface border border-border" />
       {/* Nutrition */}
       <div className="space-y-3">
         <div className="h-5 w-24 rounded-lg bg-bg-surface" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 rounded-2xl bg-bg-surface border border-slate-800/50" />
+          <div key={i} className="h-16 rounded-2xl bg-bg-surface border border-border" />
         ))}
       </div>
     </div>
@@ -215,16 +215,16 @@ export default function ActivityDetailPage() {
       <div className="py-6 space-y-4">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-100 transition-colors"
+          className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           <span className="font-body text-sm">Voltar</span>
         </button>
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-bg-surface border border-slate-800/50 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[28px] text-slate-500">error_outline</span>
+          <div className="w-16 h-16 rounded-2xl bg-bg-surface border border-border flex items-center justify-center">
+            <span className="material-symbols-outlined text-[28px] text-text-muted">error_outline</span>
           </div>
-          <p className="font-body text-[15px] text-slate-400">
+          <p className="font-body text-[15px] text-text-secondary">
             Erro ao carregar atividade.
           </p>
           <Button variant="ghost" onClick={() => refetch()} className="rounded-full">
@@ -246,17 +246,17 @@ export default function ActivityDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
-          <span className="font-heading font-bold text-xs text-slate-400 uppercase tracking-widest truncate flex-1 text-center">
+          <span className="font-heading font-bold text-xs text-text-secondary uppercase tracking-widest truncate flex-1 text-center">
             Detalhes da Atividade
           </span>
           <button
             onClick={() => setShowDeleteSheet(true)}
             aria-label="Excluir atividade"
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-bg-elevated transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-danger hover:bg-bg-elevated transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>
@@ -269,7 +269,7 @@ export default function ActivityDetailPage() {
           </h1>
           <div className="flex items-center gap-3">
             <DisciplineBadge discipline={activity.discipline} size="md" />
-            <span className="font-body text-[13px] text-slate-400">
+            <span className="font-body text-[13px] text-text-secondary">
               {formattedDate}
             </span>
           </div>
@@ -282,44 +282,44 @@ export default function ActivityDetailPage() {
             { icon: 'location_on', label: 'Distância', value: activity.distance ?? '--', unit: '' },
             { icon: 'monitor_heart', label: 'Freq.', value: activity.avgHeartRate ?? '--', unit: activity.avgHeartRate ? 'bpm' : '' },
           ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-2 rounded-card border border-slate-800/50 bg-bg-surface p-4">
+            <div key={stat.label} className="flex flex-col items-center gap-2 rounded-card border border-border bg-bg-surface p-4">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
                 <span className="material-symbols-outlined text-lg text-primary">{stat.icon}</span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{stat.label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">{stat.label}</span>
               <div className="font-[var(--font-mono)] font-bold text-xl text-white leading-none">
                 {stat.value}
-                {stat.unit && <span className="text-sm text-slate-500 font-normal">{stat.unit}</span>}
+                {stat.unit && <span className="text-sm text-text-muted font-normal">{stat.unit}</span>}
               </div>
             </div>
           ))}
         </div>
 
         {/* Map placeholder */}
-        <div className="relative h-44 rounded-2xl bg-bg-surface border border-slate-800/50 overflow-hidden">
+        <div className="relative h-44 rounded-2xl bg-bg-surface border border-border overflow-hidden">
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-transparent to-transparent z-10" />
           {/* Placeholder pattern */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[48px] text-slate-700">map</span>
+            <span className="material-symbols-outlined text-[48px] text-text-faint">map</span>
           </div>
           {/* Location badge */}
-          <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated/90 border border-slate-700/50 backdrop-blur-sm">
+          <div className="absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated/90 border border-border-strong/50 backdrop-blur-sm">
             <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-            <span className="text-[11px] font-medium text-slate-300">Mapa em breve</span>
+            <span className="text-[11px] font-medium text-text-secondary">Mapa em breve</span>
           </div>
         </div>
 
         {/* ── Nutrition section ── */}
         <div className="space-y-5">
-          <h2 className="font-heading font-semibold text-lg text-slate-100">
+          <h2 className="font-heading font-semibold text-lg text-text-primary">
             Suplementacao
           </h2>
 
           {activity.nutrition.length === 0 && (
             <div className="flex flex-col items-center py-8 space-y-3">
-              <span className="material-symbols-outlined text-[32px] text-slate-600">nutrition</span>
-              <p className="font-body text-sm text-slate-500 text-center">
+              <span className="material-symbols-outlined text-[32px] text-text-faint">nutrition</span>
+              <p className="font-body text-sm text-text-muted text-center">
                 Nenhum consumo registrado.
               </p>
             </div>
@@ -351,12 +351,12 @@ export default function ActivityDetailPage() {
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-bg-surface border border-slate-800/50"
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-bg-surface border border-border"
                     >
                       {/* Colored icon */}
                       <div className={cn(
                         'flex items-center justify-center w-10 h-10 rounded-full shrink-0',
-                        phase === 'pre' ? 'bg-amber-500/15' : phase === 'during' ? 'bg-blue-500/15' : 'bg-green-500/15',
+                        phase === 'pre' ? 'bg-phase-pre/15' : phase === 'during' ? 'bg-phase-during/15' : 'bg-phase-post/15',
                       )}>
                         <span className={cn('material-symbols-outlined text-[20px]', phaseIconColors[phase])}>
                           nutrition
@@ -365,20 +365,20 @@ export default function ActivityDetailPage() {
 
                       {/* Info */}
                       <div className="min-w-0 flex-1">
-                        <p className="font-body text-sm text-slate-100 font-medium truncate">
+                        <p className="font-body text-sm text-text-primary font-medium truncate">
                           {item.product}
                         </p>
-                        <p className="font-body text-[12px] text-slate-500">
+                        <p className="font-body text-[12px] text-text-muted">
                           {item.quantity}
                         </p>
                       </div>
 
                       {/* Stats */}
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className="font-mono text-[12px] text-slate-400">
+                        <span className="font-mono text-[12px] text-text-secondary">
                           {item.carbsG}g
                         </span>
-                        <span className="font-mono text-[12px] text-slate-400">
+                        <span className="font-mono text-[12px] text-text-secondary">
                           {item.sodiumMg}mg
                         </span>
                       </div>
@@ -394,8 +394,8 @@ export default function ActivityDetailPage() {
             onClick={() => setShowLogSheet(true)}
             className={cn(
               'w-full flex items-center justify-center gap-2 py-4 rounded-2xl',
-              'border-2 border-dashed border-slate-700/50',
-              'text-slate-400 text-sm font-medium',
+              'border-2 border-dashed border-border-strong/50',
+              'text-text-secondary text-sm font-medium',
               'hover:border-primary/30 hover:text-primary hover:bg-primary/5',
               'transition-all duration-200',
             )}
@@ -429,7 +429,7 @@ export default function ActivityDetailPage() {
         {/* Adverse event link */}
         <button
           onClick={() => setShowAdverseSheet(true)}
-          className="flex items-center gap-2 text-slate-500 hover:text-amber-400 transition-colors font-body text-sm"
+          className="flex items-center gap-2 text-text-muted hover:text-warning transition-colors font-body text-sm"
         >
           <span className="material-symbols-outlined text-[18px]">warning</span>
           Relatar evento adverso
@@ -456,7 +456,7 @@ export default function ActivityDetailPage() {
           title="Relatar evento adverso"
         >
           <div className="space-y-4">
-            <p className="font-body text-sm text-slate-400">
+            <p className="font-body text-sm text-text-secondary">
               Selecione os eventos que ocorreram durante esta atividade:
             </p>
             <div className="space-y-2">
@@ -468,16 +468,16 @@ export default function ActivityDetailPage() {
                     'border',
                     selectedEvents.includes(event)
                       ? 'bg-primary/10 border-primary/30'
-                      : 'bg-bg-surface border-slate-800/50 hover:bg-bg-elevated',
+                      : 'bg-bg-surface border-border hover:bg-bg-elevated',
                   )}
                 >
                   <input
                     type="checkbox"
                     checked={selectedEvents.includes(event)}
                     onChange={() => toggleEvent(event)}
-                    className="w-5 h-5 rounded border-slate-600 accent-primary"
+                    className="w-5 h-5 rounded border-text-faint accent-primary"
                   />
-                  <span className="font-body text-sm text-slate-100">
+                  <span className="font-body text-sm text-text-primary">
                     {event}
                   </span>
                 </label>
@@ -515,9 +515,9 @@ export default function ActivityDetailPage() {
           title="Excluir atividade"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20">
-              <span className="material-symbols-outlined text-[20px] text-red-400 shrink-0">warning</span>
-              <p className="font-body text-sm text-slate-200">
+            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-danger/10 border border-danger/20">
+              <span className="material-symbols-outlined text-[20px] text-danger shrink-0">warning</span>
+              <p className="font-body text-sm text-text-primary">
                 Esta acao nao pode ser desfeita. A atividade sera removida do Endura junto com a nutricao registrada e o calculo de CTL/ATL/TSB sera recalculado.
               </p>
             </div>
@@ -540,7 +540,7 @@ export default function ActivityDetailPage() {
                 fullWidth
                 onClick={() => deleteMutation.mutate()}
                 loading={deleteMutation.isPending}
-                className="bg-red-500 hover:bg-red-600 shadow-red-500/25"
+                className="bg-danger hover:bg-red-600 shadow-danger/25"
               >
                 Excluir
               </Button>
@@ -555,8 +555,8 @@ export default function ActivityDetailPage() {
           <div className="bg-gradient-to-t from-bg-base via-bg-base to-transparent pt-6 pb-6 px-5">
             <div className="max-w-lg mx-auto">
               <div className="flex items-center justify-between gap-2 px-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resumo Nutricional</p>
-                <span className="material-symbols-outlined text-sm text-slate-600">info</span>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Resumo Nutricional</p>
+                <span className="material-symbols-outlined text-sm text-text-faint">info</span>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 {[
@@ -568,14 +568,14 @@ export default function ActivityDetailPage() {
                   <div
                     key={item.label}
                     className={cn(
-                      'flex-1 text-center py-3 rounded-2xl border border-slate-800/50',
+                      'flex-1 text-center py-3 rounded-2xl border border-border',
                       item.color,
                     )}
                   >
                     <p className="font-[var(--font-mono)] font-bold text-base text-white leading-none">
-                      {item.value}<span className="text-xs text-slate-500 font-normal">{item.unit}</span>
+                      {item.value}<span className="text-xs text-text-muted font-normal">{item.unit}</span>
                     </p>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">{item.label}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-text-muted mt-1">{item.label}</p>
                   </div>
                 ))}
               </div>

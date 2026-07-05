@@ -70,7 +70,7 @@ function groupByMonth(activities: ActivityItem[]): Record<string, ActivityItem[]
 
 function SkeletonRow() {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-bg-surface border border-slate-800/50 animate-pulse">
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-bg-surface border border-border animate-pulse">
       <div className="w-12 h-12 rounded-full bg-bg-elevated shrink-0" />
       <div className="flex-1 space-y-2.5">
         <div className="h-4 w-3/5 rounded-lg bg-bg-elevated" />
@@ -158,7 +158,7 @@ export default function AtividadesPage() {
         </h1>
         <button
           onClick={() => router.push('/configuracoes')}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">settings</span>
         </button>
@@ -190,13 +190,13 @@ export default function AtividadesPage() {
               'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0',
               discipline === opt.value
                 ? 'bg-primary/15 text-primary border border-primary/30'
-                : 'bg-bg-surface text-slate-400 border border-slate-800/50 hover:bg-bg-elevated hover:text-slate-200',
+                : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated hover:text-text-primary',
             )}
           >
             {opt.icon && (
               <span className={cn(
                 'material-symbols-outlined text-[16px]',
-                discipline === opt.value ? 'text-primary' : 'text-slate-500',
+                discipline === opt.value ? 'text-primary' : 'text-text-muted',
               )}>
                 {opt.icon}
               </span>
@@ -241,7 +241,7 @@ export default function AtividadesPage() {
             <Fragment key={month}>
               {/* Sticky month header */}
               <div className="sticky top-0 z-10 -mx-4 px-4 py-2.5 bg-bg-base/85 backdrop-blur-md">
-                <h2 className="font-heading font-semibold text-[12px] text-slate-500 uppercase tracking-[0.12em]">
+                <h2 className="font-heading font-semibold text-[12px] text-text-muted uppercase tracking-[0.12em]">
                   {month}
                 </h2>
               </div>
@@ -282,16 +282,16 @@ export default function AtividadesPage() {
       {/* Empty state */}
       {!isLoading && allActivities.length === 0 && !isError && (
         <div className="flex flex-col items-center justify-center py-20 space-y-6">
-          <div className="w-20 h-20 rounded-2xl bg-bg-surface border border-slate-800/50 flex items-center justify-center">
-            <span className="material-symbols-outlined text-[36px] text-slate-500">
+          <div className="w-20 h-20 rounded-2xl bg-bg-surface border border-border flex items-center justify-center">
+            <span className="material-symbols-outlined text-[36px] text-text-muted">
               directions_run
             </span>
           </div>
           <div className="text-center space-y-2">
-            <p className="font-heading font-bold text-lg text-slate-100">
+            <p className="font-heading font-bold text-lg text-text-primary">
               Nenhuma atividade
             </p>
-            <p className="font-body text-sm text-slate-500 max-w-[260px]">
+            <p className="font-body text-sm text-text-muted max-w-[260px]">
               Conecte o Strava nas configuracoes para importar seus treinos automaticamente.
             </p>
           </div>

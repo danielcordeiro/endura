@@ -59,12 +59,12 @@ const PEAK_META: Record<
   PMCForecastData['peak']['status'],
   { label: string; cls: string; icon: string }
 > = {
-  ideal: { label: 'No pico certo', cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300', icon: 'check_circle' },
-  too_fresh: { label: 'Forma na mesa', cls: 'border-sky-500/40 bg-sky-500/10 text-sky-300', icon: 'trending_up' },
-  too_fatigued: { label: 'Risco de fadiga', cls: 'border-rose-500/40 bg-rose-500/10 text-rose-300', icon: 'warning' },
-  building: { label: 'Em construção', cls: 'border-amber-500/40 bg-amber-500/10 text-amber-300', icon: 'construction' },
-  no_plan: { label: 'Sem plano', cls: 'border-slate-500/40 bg-slate-500/10 text-slate-300', icon: 'event_busy' },
-  no_race: { label: 'Sem prova-alvo', cls: 'border-slate-500/40 bg-slate-500/10 text-slate-300', icon: 'flag' },
+  ideal: { label: 'No pico certo', cls: 'border-success/40 bg-success/10 text-success', icon: 'check_circle' },
+  too_fresh: { label: 'Forma na mesa', cls: 'border-info/40 bg-info/10 text-info', icon: 'trending_up' },
+  too_fatigued: { label: 'Risco de fadiga', cls: 'border-danger/40 bg-danger/10 text-danger', icon: 'warning' },
+  building: { label: 'Em construção', cls: 'border-warning/40 bg-warning/10 text-warning', icon: 'construction' },
+  no_plan: { label: 'Sem plano', cls: 'border-text-muted/40 bg-text-muted/10 text-text-secondary', icon: 'event_busy' },
+  no_race: { label: 'Sem prova-alvo', cls: 'border-text-muted/40 bg-text-muted/10 text-text-secondary', icon: 'flag' },
 };
 
 function fmtShort(dateStr: string): string {
@@ -109,7 +109,7 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-heading text-base font-bold text-text-primary">Performance</h3>
-          <p className="text-xs text-slate-500 mt-0.5">CTL / ATL / TSB{useForecast ? ' + projeção' : ''}</p>
+          <p className="text-xs text-text-muted mt-0.5">CTL / ATL / TSB{useForecast ? ' + projeção' : ''}</p>
         </div>
         <div className="flex gap-1 bg-bg-elevated rounded-full p-1">
           {(['30d', '60d', '90d'] as TimeRange[]).map((r) => (
@@ -117,7 +117,7 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
               key={r}
               onClick={() => setRange(r)}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                range === r ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-200'
+                range === r ? 'bg-primary text-white' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               {r}
@@ -131,19 +131,19 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.fitness }}>CTL</p>
           <p className="font-mono text-lg font-bold text-white">{currentCTL.toFixed(0)}</p>
-          <p className="text-[10px] text-slate-500">Fitness</p>
+          <p className="text-[10px] text-text-muted">Fitness</p>
         </div>
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.fatigue }}>ATL</p>
           <p className="font-mono text-lg font-bold text-white">{currentATL.toFixed(0)}</p>
-          <p className="text-[10px] text-slate-500">Fadiga</p>
+          <p className="text-[10px] text-text-muted">Fadiga</p>
         </div>
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.form }}>TSB</p>
           <p className="font-mono text-lg font-bold" style={{ color: currentTSB >= 0 ? CHART_COLORS.form : CHART_COLORS.danger }}>
             {currentTSB >= 0 ? '+' : ''}{currentTSB.toFixed(0)}
           </p>
-          <p className="text-[10px] text-slate-500">Forma</p>
+          <p className="text-[10px] text-text-muted">Forma</p>
         </div>
       </div>
 
@@ -156,21 +156,21 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
       <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.fitness }} />
-          <span className="text-[10px] text-slate-500">Fitness (CTL)</span>
+          <span className="text-[10px] text-text-muted">Fitness (CTL)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-0.5 rounded border-dashed" style={{ backgroundColor: CHART_COLORS.fatigue }} />
-          <span className="text-[10px] text-slate-500">Fadiga (ATL)</span>
+          <span className="text-[10px] text-text-muted">Fadiga (ATL)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.form }} />
-          <span className="text-[10px] text-slate-500">Forma (TSB)</span>
+          <span className="text-[10px] text-text-muted">Forma (TSB)</span>
         </div>
         {hasForecast && (
           <button
             onClick={() => setShowForecast((v) => !v)}
             className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-all ${
-              showForecast ? 'bg-amber-500/15 text-amber-300' : 'bg-bg-elevated text-slate-400'
+              showForecast ? 'bg-warning/15 text-warning' : 'bg-bg-elevated text-text-secondary'
             }`}
           >
             {showForecast ? '◠ projeção on' : '◠ projeção off'}
@@ -185,7 +185,7 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
             <span className="material-symbols-outlined text-base">{peakMeta.icon}</span>
             <span className="text-xs font-bold uppercase tracking-wider">Projeção de forma — {peakMeta.label}</span>
           </div>
-          <p className="text-[13px] leading-snug text-slate-200/90">{peak.message}</p>
+          <p className="text-[13px] leading-snug text-text-primary/90">{peak.message}</p>
           {(raceDay || forecast?.race) && (
             <div className="flex flex-wrap items-center gap-2 mt-3">
               {forecast?.race && (

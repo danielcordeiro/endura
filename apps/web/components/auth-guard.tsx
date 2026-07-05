@@ -31,7 +31,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!hydrated || !token) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
-        <span className="material-symbols-outlined text-4xl text-slate-600 animate-spin">
+        <span className="material-symbols-outlined text-4xl text-text-faint animate-spin">
           progress_activity
         </span>
       </div>

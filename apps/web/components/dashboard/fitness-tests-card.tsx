@@ -89,8 +89,8 @@ function TestResultRow({ test, type, onNew }: { test: FitnessTest | null; type: 
             <span className={cn('material-symbols-outlined text-lg', config.color)}>{config.icon}</span>
           </div>
           <div>
-            <p className="text-sm font-bold text-slate-200">{config.label}</p>
-            {test && <p className="text-[10px] text-slate-500">{formatDate(test.testDate)}</p>}
+            <p className="text-sm font-bold text-text-primary">{config.label}</p>
+            {test && <p className="text-[10px] text-text-muted">{formatDate(test.testDate)}</p>}
           </div>
         </div>
         <button
@@ -108,48 +108,48 @@ function TestResultRow({ test, type, onNew }: { test: FitnessTest | null; type: 
           {type === 'swim_t30' && test.distanceM && (
             <>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">Distancia</p>
-                <p className="font-mono text-sm font-bold text-white">{test.distanceM}<span className="text-[10px] text-slate-500"> m</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">Distancia</p>
+                <p className="font-mono text-sm font-bold text-white">{test.distanceM}<span className="text-[10px] text-text-muted"> m</span></p>
               </div>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">Pace</p>
-                <p className="font-mono text-sm font-bold text-white">{test.derivedPace ? formatPace(test.derivedPace) : '—'}<span className="text-[10px] text-slate-500"> /100m</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">Pace</p>
+                <p className="font-mono text-sm font-bold text-white">{test.derivedPace ? formatPace(test.derivedPace) : '—'}<span className="text-[10px] text-text-muted"> /100m</span></p>
               </div>
             </>
           )}
           {type === 'bike_ftp20' && (
             <>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">Potencia 20min</p>
-                <p className="font-mono text-sm font-bold text-white">{test.avgPowerW ?? '—'}<span className="text-[10px] text-slate-500"> W</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">Potencia 20min</p>
+                <p className="font-mono text-sm font-bold text-white">{test.avgPowerW ?? '—'}<span className="text-[10px] text-text-muted"> W</span></p>
               </div>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">FTP estimado</p>
-                <p className="font-mono text-sm font-bold text-white">{test.derivedFtp ?? '—'}<span className="text-[10px] text-slate-500"> W</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">FTP estimado</p>
+                <p className="font-mono text-sm font-bold text-white">{test.derivedFtp ?? '—'}<span className="text-[10px] text-text-muted"> W</span></p>
               </div>
             </>
           )}
           {type === 'run_cooper12' && test.distanceM && (
             <>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">Distancia</p>
-                <p className="font-mono text-sm font-bold text-white">{test.distanceM}<span className="text-[10px] text-slate-500"> m</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">Distancia</p>
+                <p className="font-mono text-sm font-bold text-white">{test.distanceM}<span className="text-[10px] text-text-muted"> m</span></p>
               </div>
               <div className="bg-bg-elevated rounded-xl p-2.5">
-                <p className="text-[10px] text-slate-500 mb-0.5">VO2max</p>
-                <p className="font-mono text-sm font-bold text-white">{test.derivedVo2max ?? '—'}<span className="text-[10px] text-slate-500"> ml/kg/min</span></p>
+                <p className="text-[10px] text-text-muted mb-0.5">VO2max</p>
+                <p className="font-mono text-sm font-bold text-white">{test.derivedVo2max ?? '—'}<span className="text-[10px] text-text-muted"> ml/kg/min</span></p>
               </div>
             </>
           )}
           {test.avgHr && (
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">FC media</p>
-              <p className="font-mono text-sm font-bold text-slate-300">{test.avgHr}<span className="text-[10px] text-slate-500"> bpm</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">FC media</p>
+              <p className="font-mono text-sm font-bold text-text-secondary">{test.avgHr}<span className="text-[10px] text-text-muted"> bpm</span></p>
             </div>
           )}
         </div>
       ) : (
-        <p className="text-xs text-slate-500 text-center py-3">{config.desc}</p>
+        <p className="text-xs text-text-muted text-center py-3">{config.desc}</p>
       )}
     </div>
   );
@@ -208,33 +208,33 @@ function TestForm({ type, onClose }: { type: ActiveForm; onClose: () => void }) 
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up">
-        <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+        <div className="w-10 h-1 bg-bg-elevated rounded-full mx-auto mb-5" />
 
         <div className="flex items-center gap-3 mb-5">
           <div className={cn('flex items-center justify-center w-10 h-10 rounded-xl', config.bg)}>
             <span className={cn('material-symbols-outlined text-2xl', config.color)}>{config.icon}</span>
           </div>
           <div>
-            <h2 className="font-heading text-lg font-bold text-slate-100">{config.label}</h2>
-            <p className="text-xs text-slate-400">{config.desc}</p>
+            <h2 className="font-heading text-lg font-bold text-text-primary">{config.label}</h2>
+            <p className="text-xs text-text-secondary">{config.desc}</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">Data do teste</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">Data do teste</label>
             <input
               type="date"
               value={testDate}
               onChange={(e) => setTestDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white focus:border-primary focus:outline-none transition-colors"
+              className="w-full h-12 bg-bg-input border border-border-strong rounded-xl px-4 text-sm text-white focus:border-primary focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">{config.inputLabel}</label>
-            <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-14 focus-within:border-primary transition-colors">
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">{config.inputLabel}</label>
+            <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-14 focus-within:border-primary transition-colors">
               <input
                 type="number"
                 value={value}
@@ -242,23 +242,23 @@ function TestForm({ type, onClose }: { type: ActiveForm; onClose: () => void }) 
                 placeholder={config.inputPlaceholder}
                 required
                 autoFocus
-                className="flex-1 bg-transparent text-white font-mono text-xl font-bold focus:outline-none placeholder:text-slate-600"
+                className="flex-1 bg-transparent text-white font-mono text-xl font-bold focus:outline-none placeholder:text-text-muted"
               />
-              <span className="text-slate-500 text-sm font-bold">{config.unit}</span>
+              <span className="text-text-muted text-sm font-bold">{config.unit}</span>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">FC media (opcional)</label>
-            <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">FC media (opcional)</label>
+            <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
               <input
                 type="number"
                 value={hr}
                 onChange={(e) => setHr(e.target.value)}
                 placeholder="Ex: 165"
-                className="flex-1 bg-transparent text-white font-mono text-lg focus:outline-none placeholder:text-slate-600"
+                className="flex-1 bg-transparent text-white font-mono text-lg focus:outline-none placeholder:text-text-muted"
               />
-              <span className="text-slate-500 text-sm">bpm</span>
+              <span className="text-text-muted text-sm">bpm</span>
             </div>
           </div>
 
@@ -266,7 +266,7 @@ function TestForm({ type, onClose }: { type: ActiveForm; onClose: () => void }) 
           {value && Number(value) > 0 && (
             <div className="bg-bg-elevated rounded-xl p-3 flex items-center gap-3">
               <span className="material-symbols-outlined text-base text-primary">calculate</span>
-              <div className="text-xs text-slate-300">
+              <div className="text-xs text-text-secondary">
                 {type === 'swim_t30' && (
                   <>Pace estimado: <span className="font-mono font-bold text-white">{formatPace((30 * 60 / Number(value)) * 100)}/100m</span></>
                 )}
@@ -281,14 +281,14 @@ function TestForm({ type, onClose }: { type: ActiveForm; onClose: () => void }) 
           )}
 
           {mutation.isError && (
-            <p className="text-sm text-rose-400">Erro ao salvar. Tente novamente.</p>
+            <p className="text-sm text-danger">Erro ao salvar. Tente novamente.</p>
           )}
 
           <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-14 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
+              className="flex-1 h-14 rounded-full bg-bg-elevated text-text-secondary font-bold text-sm active:scale-[0.98] transition-transform"
             >
               Cancelar
             </button>
@@ -330,10 +330,10 @@ export function FitnessTestsCard() {
     <>
       <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
         <div className="flex items-center gap-2 mb-4">
-          <span className="material-symbols-outlined text-lg text-slate-400">science</span>
+          <span className="material-symbols-outlined text-lg text-text-secondary">science</span>
           <div>
             <h3 className="font-heading text-base font-bold text-text-primary">Testes de Fitness</h3>
-            <p className="text-[10px] text-slate-500">T30 / FTP 20min / Cooper 12min</p>
+            <p className="text-[10px] text-text-muted">T30 / FTP 20min / Cooper 12min</p>
           </div>
         </div>
 

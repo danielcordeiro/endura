@@ -46,17 +46,17 @@ export function LogPendingCard() {
       <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
         <div className="bg-gradient-to-br from-amber-900/30 to-card-gradient-lo rounded-[1.8rem] p-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-xl text-amber-400">restaurant</span>
+            <div className="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-xl text-warning">restaurant</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-warning">
                 Registrar nutricao
               </p>
-              <h3 className="font-heading text-lg font-bold text-slate-100 leading-tight mt-0.5 truncate">
+              <h3 className="font-heading text-lg font-bold text-text-primary leading-tight mt-0.5 truncate">
                 {first.workoutTitle ?? `Treino ${first.discipline}`}
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5">
                 {formatDuration(first.durationSec)}
                 {pending.length > 1 && ` · +${pending.length - 1} pendente${pending.length - 1 > 1 ? 's' : ''}`}
               </p>

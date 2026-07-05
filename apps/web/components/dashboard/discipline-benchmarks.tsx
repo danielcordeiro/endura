@@ -73,9 +73,9 @@ const disciplineConfig = {
 };
 
 const trendConfig = {
-  improving: { label: 'Melhorando', icon: 'trending_up', color: 'text-emerald-400' },
-  declining: { label: 'Caindo', icon: 'trending_down', color: 'text-rose-400' },
-  stable: { label: 'Estavel', icon: 'trending_flat', color: 'text-slate-400' },
+  improving: { label: 'Melhorando', icon: 'trending_up', color: 'text-success' },
+  declining: { label: 'Caindo', icon: 'trending_down', color: 'text-danger' },
+  stable: { label: 'Estavel', icon: 'trending_flat', color: 'text-text-secondary' },
 };
 
 function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
@@ -89,9 +89,9 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
           <div className={cn('flex items-center justify-center w-8 h-8 rounded-lg', config.bg)}>
             <span className={cn('material-symbols-outlined text-lg', config.color)}>{config.icon}</span>
           </div>
-          <span className="text-sm font-bold text-slate-200">{config.label}</span>
+          <span className="text-sm font-bold text-text-primary">{config.label}</span>
         </div>
-        <p className="text-xs text-slate-500 text-center py-4">Sem atividades nos ultimos 180 dias</p>
+        <p className="text-xs text-text-muted text-center py-4">Sem atividades nos ultimos 180 dias</p>
       </div>
     );
   }
@@ -105,8 +105,8 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
             <span className={cn('material-symbols-outlined text-lg', config.color)}>{config.icon}</span>
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-200">{config.label}</span>
-            <p className="text-[10px] text-slate-500">{data.totalActivities} treinos (180d)</p>
+            <span className="text-sm font-bold text-text-primary">{config.label}</span>
+            <p className="text-[10px] text-text-muted">{data.totalActivities} treinos (180d)</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -121,36 +121,36 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
         {data.discipline === 'swim' && data.bestPace && (
           <>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Melhor pace</p>
-              <p className="font-mono text-sm font-bold text-white">{formatPace(data.bestPace)}<span className="text-[10px] text-slate-500">/100m</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Melhor pace</p>
+              <p className="font-mono text-sm font-bold text-white">{formatPace(data.bestPace)}<span className="text-[10px] text-text-muted">/100m</span></p>
             </div>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Pace medio</p>
-              <p className="font-mono text-sm font-bold text-slate-300">{formatPace(data.avgPace!)}<span className="text-[10px] text-slate-500">/100m</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Pace medio</p>
+              <p className="font-mono text-sm font-bold text-text-secondary">{formatPace(data.avgPace!)}<span className="text-[10px] text-text-muted">/100m</span></p>
             </div>
           </>
         )}
         {data.discipline === 'run' && data.bestPace && (
           <>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Melhor pace</p>
-              <p className="font-mono text-sm font-bold text-white">{formatPace(data.bestPace)}<span className="text-[10px] text-slate-500">/km</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Melhor pace</p>
+              <p className="font-mono text-sm font-bold text-white">{formatPace(data.bestPace)}<span className="text-[10px] text-text-muted">/km</span></p>
             </div>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Pace medio</p>
-              <p className="font-mono text-sm font-bold text-slate-300">{formatPace(data.avgPace!)}<span className="text-[10px] text-slate-500">/km</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Pace medio</p>
+              <p className="font-mono text-sm font-bold text-text-secondary">{formatPace(data.avgPace!)}<span className="text-[10px] text-text-muted">/km</span></p>
             </div>
           </>
         )}
         {data.discipline === 'bike' && (
           <>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Melhor velocidade</p>
-              <p className="font-mono text-sm font-bold text-white">{data.bestSpeedKmh}<span className="text-[10px] text-slate-500"> km/h</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Melhor velocidade</p>
+              <p className="font-mono text-sm font-bold text-white">{data.bestSpeedKmh}<span className="text-[10px] text-text-muted"> km/h</span></p>
             </div>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Velocidade media</p>
-              <p className="font-mono text-sm font-bold text-slate-300">{data.avgSpeedKmh}<span className="text-[10px] text-slate-500"> km/h</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Velocidade media</p>
+              <p className="font-mono text-sm font-bold text-text-secondary">{data.avgSpeedKmh}<span className="text-[10px] text-text-muted"> km/h</span></p>
             </div>
           </>
         )}
@@ -159,12 +159,12 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
         {data.discipline === 'bike' && data.bestPowerW && (
           <>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Melhor potencia</p>
-              <p className="font-mono text-sm font-bold text-white">{data.bestPowerW}<span className="text-[10px] text-slate-500"> W</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Melhor potencia</p>
+              <p className="font-mono text-sm font-bold text-white">{data.bestPowerW}<span className="text-[10px] text-text-muted"> W</span></p>
             </div>
             <div className="bg-bg-elevated rounded-xl p-2.5">
-              <p className="text-[10px] text-slate-500 mb-0.5">Potencia media</p>
-              <p className="font-mono text-sm font-bold text-slate-300">{data.avgPowerW}<span className="text-[10px] text-slate-500"> W</span></p>
+              <p className="text-[10px] text-text-muted mb-0.5">Potencia media</p>
+              <p className="font-mono text-sm font-bold text-text-secondary">{data.avgPowerW}<span className="text-[10px] text-text-muted"> W</span></p>
             </div>
           </>
         )}
@@ -172,24 +172,24 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
         {/* HR */}
         {data.avgHr && (
           <div className="bg-bg-elevated rounded-xl p-2.5">
-            <p className="text-[10px] text-slate-500 mb-0.5">FC media</p>
-            <p className="font-mono text-sm font-bold text-slate-300">{data.avgHr}<span className="text-[10px] text-slate-500"> bpm</span></p>
+            <p className="text-[10px] text-text-muted mb-0.5">FC media</p>
+            <p className="font-mono text-sm font-bold text-text-secondary">{data.avgHr}<span className="text-[10px] text-text-muted"> bpm</span></p>
           </div>
         )}
 
         {/* Longest */}
         {data.longestDistanceM && (
           <div className="bg-bg-elevated rounded-xl p-2.5">
-            <p className="text-[10px] text-slate-500 mb-0.5">Maior distancia</p>
-            <p className="font-mono text-sm font-bold text-slate-300">{formatDistance(data.longestDistanceM)}</p>
+            <p className="text-[10px] text-text-muted mb-0.5">Maior distancia</p>
+            <p className="font-mono text-sm font-bold text-text-secondary">{formatDistance(data.longestDistanceM)}</p>
           </div>
         )}
       </div>
 
       {/* Volume footer */}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/50">
-        <span className="text-[10px] text-slate-500">Volume total (180d)</span>
-        <span className="font-mono text-xs text-slate-400">
+      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+        <span className="text-[10px] text-text-muted">Volume total (180d)</span>
+        <span className="font-mono text-xs text-text-secondary">
           {formatDistance(data.totalDistanceM)} &middot; {formatDuration(data.totalDurationSec)}
         </span>
       </div>
@@ -201,10 +201,10 @@ export function DisciplineBenchmarks({ swim, bike, run }: DisciplineBenchmarksPr
   return (
     <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
       <div className="flex items-center gap-2 mb-4">
-        <span className="material-symbols-outlined text-lg text-slate-400">analytics</span>
+        <span className="material-symbols-outlined text-lg text-text-secondary">analytics</span>
         <div>
           <h3 className="font-heading text-base font-bold text-text-primary">Testes por Disciplina</h3>
-          <p className="text-[10px] text-slate-500">Resultados dos ultimos 180 dias</p>
+          <p className="text-[10px] text-text-muted">Resultados dos ultimos 180 dias</p>
         </div>
       </div>
 

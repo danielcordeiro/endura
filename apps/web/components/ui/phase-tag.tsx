@@ -49,7 +49,7 @@ const phases: { value: Phase; label: string }[] = [
 
 export function PhaseToggle({ value, onChange, className }: PhaseToggleProps) {
   return (
-    <div className={cn('bg-bg-surface border border-slate-700/50 p-1.5 rounded-full flex', className)}>
+    <div className={cn('bg-bg-surface border border-border-strong/50 p-1.5 rounded-full flex', className)}>
       {phases.map((opt) => (
         <button
           key={opt.value}
@@ -59,7 +59,7 @@ export function PhaseToggle({ value, onChange, className }: PhaseToggleProps) {
             'flex-1 py-2.5 rounded-full text-[13px] font-semibold transition-all',
             value === opt.value
               ? 'bg-primary text-white shadow-md'
-              : 'text-slate-400 hover:text-white',
+              : 'text-text-secondary hover:text-white',
           )}
         >
           {opt.label}

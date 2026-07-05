@@ -38,9 +38,9 @@ export function QuickLogButtons({
 
   if (hasLog) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 rounded-full bg-green-500/10 border border-green-500/20">
-        <span className="material-symbols-outlined text-lg text-green-400">check_circle</span>
-        <span className="text-sm font-medium text-green-400">Nutricao registrada</span>
+      <div className="flex items-center gap-2 px-4 py-3 rounded-full bg-success/10 border border-success/20">
+        <span className="material-symbols-outlined text-lg text-success">check_circle</span>
+        <span className="text-sm font-medium text-success">Nutricao registrada</span>
       </div>
     );
   }

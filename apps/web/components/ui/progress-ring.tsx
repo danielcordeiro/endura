@@ -52,7 +52,7 @@ export function ProgressRing({
           {Math.round(progress)}%
         </span>
         {label && (
-          <span className="text-[12px] text-slate-500">{label}</span>
+          <span className="text-[12px] text-text-muted">{label}</span>
         )}
       </div>
     </div>

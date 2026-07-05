@@ -46,21 +46,21 @@ interface ShoppingListResponse {
 
 function PresetSkeleton() {
   return (
-    <div className="p-4 rounded-2xl border border-slate-800/50 bg-bg-surface animate-pulse space-y-2">
-      <div className="h-4 w-2/3 rounded bg-slate-800/60" />
-      <div className="h-3 w-1/3 rounded bg-slate-800/60" />
+    <div className="p-4 rounded-2xl border border-border bg-bg-surface animate-pulse space-y-2">
+      <div className="h-4 w-2/3 rounded bg-bg-elevated/60" />
+      <div className="h-3 w-1/3 rounded bg-bg-elevated/60" />
     </div>
   );
 }
 
 function ShoppingItemSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface animate-pulse">
-      <div className="w-4 h-4 rounded-full bg-slate-800/60" />
+    <div className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-bg-surface animate-pulse">
+      <div className="w-4 h-4 rounded-full bg-bg-elevated/60" />
       <div className="flex-1">
-        <div className="h-3.5 w-3/5 rounded bg-slate-800/60" />
+        <div className="h-3.5 w-3/5 rounded bg-bg-elevated/60" />
       </div>
-      <div className="h-3 w-12 rounded bg-slate-800/60" />
+      <div className="h-3 w-12 rounded bg-bg-elevated/60" />
     </div>
   );
 }
@@ -241,7 +241,7 @@ export default function NutricaoPage() {
       {/* -------- Meus Presets -------- */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <h2 className="text-sm font-bold text-text-secondary uppercase tracking-widest flex items-center gap-2">
             <span className="material-symbols-outlined text-base text-primary">inventory_2</span>
             Meus Presets
           </h2>
@@ -271,10 +271,10 @@ export default function NutricaoPage() {
         {/* Empty */}
         {!presetsQuery.isLoading && presets.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 space-y-3">
-            <div className="w-16 h-16 rounded-full bg-bg-surface border border-slate-800/50 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-slate-500">inventory_2</span>
+            <div className="w-16 h-16 rounded-full bg-bg-surface border border-border flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-text-muted">inventory_2</span>
             </div>
-            <p className="text-sm text-slate-400 text-center">
+            <p className="text-sm text-text-secondary text-center">
               Nenhum preset criado ainda.
             </p>
           </div>
@@ -286,13 +286,13 @@ export default function NutricaoPage() {
             {presets.map((preset) => (
               <div
                 key={preset.id}
-                className="flex items-center justify-between p-4 rounded-2xl border border-slate-800/50 bg-bg-surface hover:bg-bg-elevated transition-colors"
+                className="flex items-center justify-between p-4 rounded-2xl border border-border bg-bg-surface hover:bg-bg-elevated transition-colors"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-[15px] text-slate-100 truncate">
+                  <p className="font-semibold text-[15px] text-text-primary truncate">
                     {preset.name}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-text-muted mt-0.5">
                     {preset.items.length}{' '}
                     {preset.items.length === 1 ? 'item' : 'itens'}
                   </p>
@@ -300,7 +300,7 @@ export default function NutricaoPage() {
                 <button
                   onClick={() => deletePresetMutation.mutate(preset.id)}
                   disabled={deletePresetMutation.isPending}
-                  className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                  className="flex items-center justify-center w-11 h-11 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
                 >
                   <span className="material-symbols-outlined text-lg">delete</span>
                 </button>
@@ -312,7 +312,7 @@ export default function NutricaoPage() {
 
       {/* -------- Lista de Compras -------- */}
       <section className="space-y-4">
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+        <h2 className="text-sm font-bold text-text-secondary uppercase tracking-widest flex items-center gap-2">
           <span className="material-symbols-outlined text-base text-primary">shopping_cart</span>
           Lista de Compras
         </h2>
@@ -329,10 +329,10 @@ export default function NutricaoPage() {
         {/* Empty */}
         {!shoppingListQuery.isLoading && shoppingList.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 space-y-3">
-            <div className="w-16 h-16 rounded-full bg-bg-surface border border-slate-800/50 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-slate-500">inbox</span>
+            <div className="w-16 h-16 rounded-full bg-bg-surface border border-border flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-text-muted">inbox</span>
             </div>
-            <p className="text-sm text-slate-400 text-center">
+            <p className="text-sm text-text-secondary text-center">
               Nenhum item na lista de compras.
             </p>
           </div>
@@ -344,13 +344,13 @@ export default function NutricaoPage() {
             {shoppingList.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface"
+                className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-bg-surface"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
-                <p className="text-sm text-slate-100 flex-1 truncate">
+                <p className="text-sm text-text-primary flex-1 truncate">
                   {item.product}
                 </p>
-                <span className="font-[var(--font-mono)] text-[13px] text-slate-400 shrink-0">
+                <span className="font-[var(--font-mono)] text-[13px] text-text-secondary shrink-0">
                   {item.totalQuantity}
                 </span>
               </div>
@@ -388,24 +388,24 @@ export default function NutricaoPage() {
 
           {/* Items */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-widest text-slate-400 block">
+            <label className="text-xs font-bold uppercase tracking-widest text-text-secondary block">
               Itens
             </label>
 
             {presetItems.map((item, index) => (
               <div
                 key={index}
-                className="space-y-3 p-3 rounded-2xl border border-slate-800/50 bg-bg-surface"
+                className="space-y-3 p-3 rounded-2xl border border-border bg-bg-surface"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-text-muted">
                     Item {index + 1}
                   </span>
                   {presetItems.length > 1 && (
                     <button
                       onClick={() => removePresetItem(index)}
                       aria-label="Remover item"
-                      className="flex items-center justify-center w-11 h-11 -m-2.5 text-slate-500 hover:text-red-400 transition-colors shrink-0"
+                      className="flex items-center justify-center w-11 h-11 -m-2.5 text-text-muted hover:text-danger transition-colors shrink-0"
                     >
                       <span className="material-symbols-outlined text-sm">delete</span>
                     </button>
@@ -466,12 +466,12 @@ export default function NutricaoPage() {
 
           {/* Validation error */}
           {validationError && (
-            <p className="text-[13px] text-red-400">{validationError}</p>
+            <p className="text-[13px] text-danger">{validationError}</p>
           )}
 
           {/* Mutation error */}
           {createPresetMutation.isError && (
-            <p className="text-[13px] text-red-400">
+            <p className="text-[13px] text-danger">
               Erro ao criar preset. Tente novamente.
             </p>
           )}

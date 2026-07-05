@@ -46,7 +46,7 @@ export function NutritionTimeline({ items, className }: NutritionTimelineProps) 
       </div>
 
       {/* Timeline line */}
-      <div className="relative h-px bg-slate-700/50 my-3">
+      <div className="relative h-px bg-bg-elevated/50 my-3">
         {/* Dots */}
         <div className="absolute inset-0 flex items-center justify-between px-1">
           {sorted.map((item, i) => (
@@ -76,10 +76,10 @@ export function NutritionTimeline({ items, className }: NutritionTimelineProps) 
               maxWidth: 80,
             }}
           >
-            <p className="font-[var(--font-mono)] text-[11px] text-slate-500">{formatOffset(item.minuteOffset)}</p>
-            <p className="text-[11px] text-slate-400 truncate">{item.product}</p>
+            <p className="font-[var(--font-mono)] text-[11px] text-text-muted">{formatOffset(item.minuteOffset)}</p>
+            <p className="text-[11px] text-text-secondary truncate">{item.product}</p>
             {item.detail && (
-              <p className="text-[10px] text-slate-500 truncate">{item.detail}</p>
+              <p className="text-[10px] text-text-muted truncate">{item.detail}</p>
             )}
           </div>
         ))}

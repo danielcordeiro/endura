@@ -17,9 +17,9 @@ interface RacePlanCardProps {
 }
 
 const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
-  draft: { label: 'Rascunho', bg: 'bg-slate-500/15', text: 'text-slate-400' },
-  tested: { label: 'Testado', bg: 'bg-amber-500/15', text: 'text-amber-400' },
-  race_ready: { label: 'Race Ready', bg: 'bg-green-500/15', text: 'text-green-400' },
+  draft: { label: 'Rascunho', bg: 'bg-text-muted/15', text: 'text-text-secondary' },
+  tested: { label: 'Testado', bg: 'bg-warning/15', text: 'text-warning' },
+  race_ready: { label: 'Race Ready', bg: 'bg-success/15', text: 'text-success' },
 };
 
 function formatTime(sec: number | null): string {
@@ -50,7 +50,7 @@ export function RacePlanCard({ plan, onSelect }: RacePlanCardProps) {
   return (
     <div
       onClick={() => onSelect(plan.id)}
-      className="p-4 rounded-card border border-slate-800/50 bg-bg-surface hover:bg-bg-elevated transition-colors cursor-pointer"
+      className="p-4 rounded-card border border-border bg-bg-surface hover:bg-bg-elevated transition-colors cursor-pointer"
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-heading font-bold text-base text-text-primary truncate flex-1">
@@ -61,26 +61,26 @@ export function RacePlanCard({ plan, onSelect }: RacePlanCardProps) {
         </span>
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+      <div className="flex items-center gap-3 text-xs text-text-muted mb-3">
         <span>Tempo: {formatTime(plan.targetTimeSec)}</span>
         {totals && <span>{Math.round(totals.totalKcal)} kcal</span>}
       </div>
 
       {totals && (
         <div className="flex gap-2">
-          <span className="font-[var(--font-mono)] text-[11px] text-slate-400">{Math.round(totals.totalCarbsG)}g carb</span>
-          <span className="font-[var(--font-mono)] text-[11px] text-slate-400">{Math.round(totals.totalSodiumMg)}mg Na</span>
+          <span className="font-[var(--font-mono)] text-[11px] text-text-secondary">{Math.round(totals.totalCarbsG)}g carb</span>
+          <span className="font-[var(--font-mono)] text-[11px] text-text-secondary">{Math.round(totals.totalSodiumMg)}mg Na</span>
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/30">
-        <span className="text-[11px] text-slate-500">
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-strong/30">
+        <span className="text-[11px] text-text-muted">
           {new Date(plan.createdAt).toLocaleDateString('pt-BR')}
         </span>
         <button
           onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
           disabled={deleteMutation.isPending}
-          className="text-slate-500 hover:text-red-400 transition-colors"
+          className="text-text-muted hover:text-danger transition-colors"
         >
           <span className="material-symbols-outlined text-lg">delete</span>
         </button>

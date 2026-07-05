@@ -32,8 +32,8 @@ const DISTANCE_LABELS: Record<string, string> = {
 
 const PRIORITY_CLS: Record<string, string> = {
   A: 'bg-primary text-white',
-  B: 'bg-amber-500/90 text-black',
-  C: 'bg-slate-600 text-slate-100',
+  B: 'bg-warning/90 text-black',
+  C: 'bg-text-faint text-text-primary',
 };
 
 /**

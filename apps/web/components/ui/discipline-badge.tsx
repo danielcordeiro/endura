@@ -16,7 +16,7 @@ const config: Record<Discipline, { label: string; icon: string; colorClass: stri
   bike:  { label: 'BIKE',  icon: 'directions_bike', colorClass: 'text-bike',     bgClass: 'bg-bike/20',         borderClass: 'border-bike/30' },
   run:   { label: 'RUN',   icon: 'directions_run',  colorClass: 'text-run',      bgClass: 'bg-run/20',          borderClass: 'border-run/30' },
   brick: { label: 'BRICK', icon: 'bolt',            colorClass: 'text-brick',    bgClass: 'bg-brick/20',        borderClass: 'border-brick/30' },
-  other: { label: 'OUTRO', icon: 'fitness_center',  colorClass: 'text-slate-300', bgClass: 'bg-slate-500/20',   borderClass: 'border-slate-500/30' },
+  other: { label: 'OUTRO', icon: 'fitness_center',  colorClass: 'text-text-secondary', bgClass: 'bg-text-muted/20',   borderClass: 'border-text-muted/30' },
 };
 
 export function DisciplineBadge({ discipline, size = 'sm', className }: DisciplineBadgeProps) {

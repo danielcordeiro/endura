@@ -158,26 +158,26 @@ export function LogModal({
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 max-h-[90dvh] overflow-y-auto">
-        <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+        <div className="w-10 h-1 bg-bg-elevated rounded-full mx-auto mb-5" />
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-            <span className="material-symbols-outlined text-2xl text-emerald-400">edit_note</span>
+          <div className="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center">
+            <span className="material-symbols-outlined text-2xl text-success">edit_note</span>
           </div>
           <div>
-            <h2 className="font-heading text-lg font-bold text-slate-100">Registrar nutricao</h2>
-            <p className="text-xs text-slate-400">{workoutTitle ?? 'Treino'} · {scheduledDate}</p>
+            <h2 className="font-heading text-lg font-bold text-text-primary">Registrar nutricao</h2>
+            <p className="text-xs text-text-secondary">{workoutTitle ?? 'Treino'} · {scheduledDate}</p>
           </div>
         </div>
 
         {mode === 'choose' ? (
           <div className="space-y-3">
-            <p className="text-sm text-slate-400 mb-4">Como foi sua nutricao no treino?</p>
+            <p className="text-sm text-text-secondary mb-4">Como foi sua nutricao no treino?</p>
 
             <button
               onClick={() => followMutation.mutate()}
               disabled={followMutation.isPending}
-              className="w-full h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-50"
+              className="w-full h-14 rounded-2xl bg-success/15 border border-success/30 text-success font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition disabled:opacity-50"
             >
               <span className="material-symbols-outlined">check_circle</span>
               Segui o plano
@@ -185,7 +185,7 @@ export function LogModal({
 
             <button
               onClick={() => setMode('detail')}
-              className="w-full h-14 rounded-2xl bg-bg-elevated border border-slate-700/50 text-slate-200 font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition"
+              className="w-full h-14 rounded-2xl bg-bg-elevated border border-border-strong/50 text-text-primary font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition"
             >
               <span className="material-symbols-outlined">tune</span>
               Registrar detalhes
@@ -193,7 +193,7 @@ export function LogModal({
 
             <button
               onClick={onClose}
-              className="w-full h-12 text-slate-500 text-sm font-semibold"
+              className="w-full h-12 text-text-muted text-sm font-semibold"
             >
               Cancelar
             </button>
@@ -201,12 +201,12 @@ export function LogModal({
         ) : (
           <div className="space-y-3">
             {entries.length === 0 && (
-              <p className="text-sm text-slate-400">Carregando...</p>
+              <p className="text-sm text-text-secondary">Carregando...</p>
             )}
             {entries.map((entry, idx) => (
               <div key={idx} className={cn(
                 'rounded-xl border p-3 space-y-2',
-                entry.skipped ? 'border-slate-800 bg-slate-800/30 opacity-50' : 'border-slate-700/50 bg-bg-elevated',
+                entry.skipped ? 'border-border-strong bg-bg-elevated/30 opacity-50' : 'border-border-strong/50 bg-bg-elevated',
               )}>
                 <div className="flex items-center gap-3">
                   <input
@@ -217,10 +217,10 @@ export function LogModal({
                       next[idx] = { ...entry, skipped: !e.target.checked };
                       setEntries(next);
                     }}
-                    className="w-5 h-5 accent-emerald-500"
+                    className="w-5 h-5 accent-success"
                   />
-                  <span className="font-mono text-xs text-slate-500 w-10 shrink-0">{formatOffset(entry.item.minuteOffset)}</span>
-                  <span className="flex-1 text-sm text-slate-200">{entry.item.productName}</span>
+                  <span className="font-mono text-xs text-text-muted w-10 shrink-0">{formatOffset(entry.item.minuteOffset)}</span>
+                  <span className="flex-1 text-sm text-text-primary">{entry.item.productName}</span>
                   {!entry.skipped && (
                     <Input
                       size="sm"
@@ -236,7 +236,7 @@ export function LogModal({
                       className="w-20 shrink-0 px-2 text-center font-mono"
                     />
                   )}
-                  <span className="text-xs text-slate-500 w-6 shrink-0">{entry.item.unit}</span>
+                  <span className="text-xs text-text-muted w-6 shrink-0">{entry.item.unit}</span>
                 </div>
 
                 {!entry.skipped && (
@@ -248,7 +248,7 @@ export function LogModal({
                           next[idx] = { ...entry, showDetails: true };
                           setEntries(next);
                         }}
-                        className="text-[11px] text-slate-500 hover:text-primary ml-8"
+                        className="text-[11px] text-text-muted hover:text-primary ml-8"
                       >
                         + detalhar produto
                       </button>
@@ -284,7 +284,7 @@ export function LogModal({
             ))}
 
             {anyChanged && (
-              <p className="text-[11px] text-amber-400">
+              <p className="text-[11px] text-warning">
                 * No MVP, ajustes finos (skipped, marca real) sao registrados como "seguiu o plano". Edicao granular dos items do log apos criacao sera liberada em breve.
               </p>
             )}
@@ -292,7 +292,7 @@ export function LogModal({
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setMode('choose')}
-                className="flex-1 h-12 rounded-full bg-bg-elevated text-slate-300 font-semibold text-sm active:scale-[0.98] transition"
+                className="flex-1 h-12 rounded-full bg-bg-elevated text-text-secondary font-semibold text-sm active:scale-[0.98] transition"
               >
                 Voltar
               </button>

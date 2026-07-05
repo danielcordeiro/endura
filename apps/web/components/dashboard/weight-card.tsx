@@ -60,20 +60,20 @@ export function WeightCard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg text-slate-400">scale</span>
+          <span className="material-symbols-outlined text-lg text-text-secondary">scale</span>
           <h3 className="font-heading text-base font-bold text-text-primary">Peso</h3>
         </div>
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider">Ultimos 90 dias</span>
+        <span className="text-[10px] text-text-muted uppercase tracking-wider">Ultimos 90 dias</span>
       </div>
 
       {/* Current weight + delta */}
       <div className="flex items-end gap-3 mb-4">
         <span className="font-mono text-3xl font-bold text-white">{current?.toFixed(1)}</span>
-        <span className="text-sm text-slate-500 mb-1">kg</span>
+        <span className="text-sm text-text-muted mb-1">kg</span>
         {delta !== null && (
           <span className={cn(
             'font-mono text-sm font-bold mb-1 ml-auto px-2 py-0.5 rounded-full',
-            delta < 0 ? 'text-emerald-400 bg-emerald-500/10' : delta > 0 ? 'text-rose-400 bg-rose-500/10' : 'text-slate-400 bg-slate-800',
+            delta < 0 ? 'text-success bg-success/10' : delta > 0 ? 'text-danger bg-danger/10' : 'text-text-secondary bg-bg-elevated',
           )}>
             {deltaLabel}
           </span>
@@ -83,8 +83,8 @@ export function WeightCard() {
       {/* Range */}
       {history.length > 1 && (
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-slate-500">Min: {min.toFixed(1)}kg</span>
-          <span className="text-[10px] text-slate-500">Max: {max.toFixed(1)}kg</span>
+          <span className="text-[10px] text-text-muted">Min: {min.toFixed(1)}kg</span>
+          <span className="text-[10px] text-text-muted">Max: {max.toFixed(1)}kg</span>
         </div>
       )}
 
@@ -96,7 +96,7 @@ export function WeightCard() {
       )}
 
       {/* Source */}
-      <p className="text-[9px] text-slate-600 mt-2 text-right">
+      <p className="text-[9px] text-text-faint mt-2 text-right">
         {history.length > 0 ? 'Garmin via intervals.icu' : 'Perfil do atleta'}
       </p>
     </div>

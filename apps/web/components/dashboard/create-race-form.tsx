@@ -71,10 +71,10 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 animate-slide-up max-h-[85dvh] overflow-y-auto">
         {/* Handle */}
-        <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+        <div className="w-10 h-1 bg-bg-elevated rounded-full mx-auto mb-5" />
 
-        <h2 className="font-heading text-xl font-bold text-slate-100 mb-1">Cadastrar Prova Alvo</h2>
-        <p className="text-sm text-slate-400 mb-6">Defina sua proxima prova para acompanhar a preparacao</p>
+        <h2 className="font-heading text-xl font-bold text-text-primary mb-1">Cadastrar Prova Alvo</h2>
+        <p className="text-sm text-text-secondary mb-6">Defina sua proxima prova para acompanhar a preparacao</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Race name */}
@@ -89,7 +89,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Distance */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">
               Distancia
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -102,16 +102,16 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                     'rounded-xl p-3 text-left border transition-all',
                     distance === opt.value
                       ? 'bg-primary/15 border-primary/40 ring-1 ring-primary/20'
-                      : 'bg-bg-elevated border-slate-700 hover:border-slate-600',
+                      : 'bg-bg-elevated border-border-strong hover:border-border-strong',
                   )}
                 >
                   <p className={cn(
                     'text-sm font-bold',
-                    distance === opt.value ? 'text-primary' : 'text-slate-200',
+                    distance === opt.value ? 'text-primary' : 'text-text-primary',
                   )}>
                     {opt.label}
                   </p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{opt.desc}</p>
+                  <p className="text-[10px] text-text-muted mt-0.5">{opt.desc}</p>
                 </button>
               ))}
             </div>
@@ -130,7 +130,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Goal type */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">
               Objetivo
             </label>
             <div className="flex gap-2">
@@ -141,7 +141,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                   'flex-1 h-12 rounded-xl border text-sm font-bold transition-all',
                   goal === 'time'
                     ? 'bg-primary/15 border-primary/40 text-primary'
-                    : 'bg-bg-elevated border-slate-700 text-slate-400 hover:border-slate-600',
+                    : 'bg-bg-elevated border-border-strong text-text-secondary hover:border-border-strong',
                 )}
               >
                 Tempo alvo
@@ -153,7 +153,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                   'flex-1 h-12 rounded-xl border text-sm font-bold transition-all',
                   goal === 'finish'
                     ? 'bg-primary/15 border-primary/40 text-primary'
-                    : 'bg-bg-elevated border-slate-700 text-slate-400 hover:border-slate-600',
+                    : 'bg-bg-elevated border-border-strong text-text-secondary hover:border-border-strong',
                 )}
               >
                 Completar
@@ -164,12 +164,12 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
           {/* Target time */}
           {goal === 'time' && (
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+              <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">
                 Tempo alvo
               </label>
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-12">
+                  <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-12">
                     <input
                       type="number"
                       value={targetH}
@@ -178,12 +178,12 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                       max={20}
                       className="w-12 bg-transparent text-white text-center font-mono text-lg font-bold focus:outline-none"
                     />
-                    <span className="text-slate-500 text-sm">horas</span>
+                    <span className="text-text-muted text-sm">horas</span>
                   </div>
                 </div>
-                <span className="text-slate-500 font-bold text-xl">:</span>
+                <span className="text-text-muted font-bold text-xl">:</span>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-12">
+                  <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-12">
                     <input
                       type="number"
                       value={targetM}
@@ -192,7 +192,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                       max={59}
                       className="w-12 bg-transparent text-white text-center font-mono text-lg font-bold focus:outline-none"
                     />
-                    <span className="text-slate-500 text-sm">min</span>
+                    <span className="text-text-muted text-sm">min</span>
                   </div>
                 </div>
               </div>
@@ -201,13 +201,13 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Elevation (optional) */}
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
+            <label className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2 block">
               Altimetria do percurso (opcional)
             </label>
-            <p className="text-[10px] text-slate-500 mb-3">Ganho de elevacao acumulado — melhora a precisao da previsao de tempo</p>
+            <p className="text-[10px] text-text-muted mb-3">Ganho de elevacao acumulado — melhora a precisao da previsao de tempo</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
+                <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
                   <span className="material-symbols-outlined text-base text-bike">directions_bike</span>
                   <input
                     type="number"
@@ -216,13 +216,13 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                     placeholder="Bike"
                     min={0}
                     max={5000}
-                    className="flex-1 bg-transparent text-white font-mono text-sm font-bold focus:outline-none placeholder:text-slate-600"
+                    className="flex-1 bg-transparent text-white font-mono text-sm font-bold focus:outline-none placeholder:text-text-faint"
                   />
-                  <span className="text-slate-500 text-xs">m</span>
+                  <span className="text-text-muted text-xs">m</span>
                 </div>
               </div>
               <div>
-                <div className="flex items-center gap-2 bg-bg-input border border-slate-700 rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
+                <div className="flex items-center gap-2 bg-bg-input border border-border-strong rounded-xl px-4 h-12 focus-within:border-primary transition-colors">
                   <span className="material-symbols-outlined text-base text-run">directions_run</span>
                   <input
                     type="number"
@@ -231,9 +231,9 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
                     placeholder="Run"
                     min={0}
                     max={3000}
-                    className="flex-1 bg-transparent text-white font-mono text-sm font-bold focus:outline-none placeholder:text-slate-600"
+                    className="flex-1 bg-transparent text-white font-mono text-sm font-bold focus:outline-none placeholder:text-text-faint"
                   />
-                  <span className="text-slate-500 text-xs">m</span>
+                  <span className="text-text-muted text-xs">m</span>
                 </div>
               </div>
             </div>

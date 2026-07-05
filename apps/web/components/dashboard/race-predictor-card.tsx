@@ -91,18 +91,18 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-lg text-slate-400">timer</span>
+          <span className="material-symbols-outlined text-lg text-text-secondary">timer</span>
           <div>
             <h3 className="font-heading text-base font-bold text-text-primary">Race Predictor</h3>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider">Ironman 70.3</p>
+            <p className="text-[10px] text-text-muted uppercase tracking-wider">Ironman 70.3</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-elevated shrink-0">
-          <span className="text-[10px] text-slate-500 whitespace-nowrap">Confianca</span>
+          <span className="text-[10px] text-text-muted whitespace-nowrap">Confianca</span>
           <span className={cn(
             'font-mono text-xs font-bold',
-            prediction.confidence >= 70 ? 'text-emerald-400' :
-              prediction.confidence >= 40 ? 'text-amber-400' : 'text-rose-400',
+            prediction.confidence >= 70 ? 'text-success' :
+              prediction.confidence >= 40 ? 'text-warning' : 'text-danger',
           )}>
             {prediction.confidence}%
           </span>
@@ -114,11 +114,11 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
         <p className="font-mono text-4xl font-bold text-white tracking-tight">
           {formatTime(prediction.totalTimeSec)}
         </p>
-        <p className="text-xs text-slate-500 mt-1">Tempo previsto</p>
+        <p className="text-xs text-text-muted mt-1">Tempo previsto</p>
         {diff !== null && (
           <p className={cn(
             'text-xs font-mono font-bold mt-1',
-            diff <= 0 ? 'text-emerald-400' : 'text-rose-400',
+            diff <= 0 ? 'text-success' : 'text-danger',
           )}>
             {diff <= 0 ? '' : '+'}{formatTime(Math.abs(diff))} {diff <= 0 ? 'abaixo' : 'acima'} da meta
           </p>
@@ -136,10 +136,10 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-slate-400">{split.label} ({split.distance})</span>
+                <span className="text-xs text-text-secondary">{split.label} ({split.distance})</span>
                 <span className="font-mono text-sm font-bold text-white">{formatTime(split.time!)}</span>
               </div>
-              <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-bg-elevated rounded-full overflow-hidden">
                 <div
                   className={cn('h-full rounded-full transition-all', split.barColor)}
                   style={{ width: `${(split.time! / maxTime) * 100}%`, opacity: 0.8 }}
@@ -153,12 +153,12 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
       {/* Transitions */}
       <div className="flex gap-2 mb-4">
         <div className="flex-1 bg-bg-elevated rounded-xl p-2 text-center">
-          <p className="text-[10px] text-slate-500">T1</p>
-          <p className="font-mono text-xs font-bold text-slate-300">{formatTime(prediction.t1Sec)}</p>
+          <p className="text-[10px] text-text-muted">T1</p>
+          <p className="font-mono text-xs font-bold text-text-secondary">{formatTime(prediction.t1Sec)}</p>
         </div>
         <div className="flex-1 bg-bg-elevated rounded-xl p-2 text-center">
-          <p className="text-[10px] text-slate-500">T2</p>
-          <p className="font-mono text-xs font-bold text-slate-300">{formatTime(prediction.t2Sec)}</p>
+          <p className="text-[10px] text-text-muted">T2</p>
+          <p className="font-mono text-xs font-bold text-text-secondary">{formatTime(prediction.t2Sec)}</p>
         </div>
       </div>
 
@@ -169,7 +169,7 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
             <div className="flex-1 flex items-center gap-1.5 bg-bg-elevated rounded-xl p-2.5">
               <span className="material-symbols-outlined text-sm text-bike">landscape</span>
               <div>
-                <p className="text-[10px] text-slate-500">Bike D+</p>
+                <p className="text-[10px] text-text-muted">Bike D+</p>
                 <p className="font-mono text-xs font-bold text-white">{prediction.factors.bikeElevationGainM}m</p>
               </div>
             </div>
@@ -178,7 +178,7 @@ export function RacePredictorCard({ prediction, targetTimeSec }: RacePredictorCa
             <div className="flex-1 flex items-center gap-1.5 bg-bg-elevated rounded-xl p-2.5">
               <span className="material-symbols-outlined text-sm text-run">landscape</span>
               <div>
-                <p className="text-[10px] text-slate-500">Run D+</p>
+                <p className="text-[10px] text-text-muted">Run D+</p>
                 <p className="font-mono text-xs font-bold text-white">{prediction.factors.runElevationGainM}m</p>
               </div>
             </div>

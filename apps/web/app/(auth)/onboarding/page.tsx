@@ -198,7 +198,7 @@ export default function OnboardingPage() {
         <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
           <span className="material-symbols-outlined text-primary text-3xl animate-spin">progress_activity</span>
         </div>
-        <p className="text-slate-400 text-base text-center">
+        <p className="text-text-secondary text-base text-center">
           Gerando seu plano personalizado...
         </p>
       </div>
@@ -226,7 +226,7 @@ export default function OnboardingPage() {
               'rounded-full transition-all',
               i + 1 <= step
                 ? 'w-3 h-3 bg-primary shadow-lg shadow-primary/30'
-                : 'w-2.5 h-2.5 bg-slate-700',
+                : 'w-2.5 h-2.5 bg-bg-elevated',
             )}
           />
         ))}
@@ -245,7 +245,7 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={back}
-            className="flex items-center justify-center w-14 h-14 rounded-full border border-slate-700/50 text-slate-400 hover:bg-bg-surface transition-colors"
+            className="flex items-center justify-center w-14 h-14 rounded-full border border-border-strong/50 text-text-secondary hover:bg-bg-surface transition-colors"
             aria-label="Voltar"
           >
             <span className="material-symbols-outlined">arrow_back</span>
@@ -290,9 +290,9 @@ const LEVELS: { value: Level; label: string; desc: string; emoji: string }[] = [
 ];
 
 const DISCIPLINES: { value: Discipline; label: string; icon: string; color: string }[] = [
-  { value: 'SWIM', label: 'SWIM', icon: 'pool', color: 'bg-cyan-500' },
-  { value: 'BIKE', label: 'BIKE', icon: 'directions_bike', color: 'bg-blue-500' },
-  { value: 'RUN', label: 'RUN', icon: 'directions_run', color: 'bg-orange-500' },
+  { value: 'SWIM', label: 'SWIM', icon: 'pool', color: 'bg-swim' },
+  { value: 'BIKE', label: 'BIKE', icon: 'directions_bike', color: 'bg-bike' },
+  { value: 'RUN', label: 'RUN', icon: 'directions_run', color: 'bg-run' },
 ];
 
 const DAY_LABELS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -313,7 +313,7 @@ function Step1({ data, update }: StepProps) {
 
       {/* Level — radio cards with emoji */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">Nível</label>
+        <label className="text-text-secondary text-sm font-medium">Nível</label>
         <div className="space-y-2">
           {LEVELS.map((lvl) => (
             <button
@@ -325,7 +325,7 @@ function Step1({ data, update }: StepProps) {
                 'bg-bg-surface',
                 data.level === lvl.value
                   ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
-                  : 'border-slate-700/50 hover:border-slate-600',
+                  : 'border-border-strong/50 hover:border-text-faint',
               )}
             >
               <span className="text-2xl">{lvl.emoji}</span>
@@ -333,7 +333,7 @@ function Step1({ data, update }: StepProps) {
                 <span className="block text-white font-semibold text-[15px]">
                   {lvl.label}
                 </span>
-                <span className="block text-slate-500 text-[13px] mt-0.5">
+                <span className="block text-text-muted text-[13px] mt-0.5">
                   {lvl.desc}
                 </span>
               </div>
@@ -344,10 +344,10 @@ function Step1({ data, update }: StepProps) {
 
       {/* Weakest discipline — segmented pill */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">
+        <label className="text-text-secondary text-sm font-medium">
           Disciplina mais fraca
         </label>
-        <div className="flex gap-2 bg-bg-surface border border-slate-700/50 p-1.5 rounded-full">
+        <div className="flex gap-2 bg-bg-surface border border-border-strong/50 p-1.5 rounded-full">
           {DISCIPLINES.map((d) => (
             <button
               key={d.value}
@@ -357,7 +357,7 @@ function Step1({ data, update }: StepProps) {
                 'flex-1 h-11 rounded-full text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5',
                 data.weakestDiscipline === d.value
                   ? `${d.color} text-white shadow-md`
-                  : 'text-slate-400 hover:text-white',
+                  : 'text-text-secondary hover:text-white',
               )}
             >
               <span className="material-symbols-outlined text-lg">{d.icon}</span>
@@ -369,7 +369,7 @@ function Step1({ data, update }: StepProps) {
 
       {/* Available days — circles */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">
+        <label className="text-text-secondary text-sm font-medium">
           Dias disponíveis
         </label>
         <div className="flex gap-2 justify-between">
@@ -382,7 +382,7 @@ function Step1({ data, update }: StepProps) {
                 'w-11 h-11 rounded-full text-sm font-semibold transition-all',
                 data.availableDays.includes(i)
                   ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                  : 'bg-bg-surface border border-slate-700/50 text-slate-500 hover:border-slate-600',
+                  : 'bg-bg-surface border border-border-strong/50 text-text-muted hover:border-text-faint',
               )}
             >
               {label}
@@ -393,7 +393,7 @@ function Step1({ data, update }: StepProps) {
 
       {/* Weekly hours — range slider */}
       <div className="space-y-3">
-        <label className="text-slate-400 text-sm font-medium">
+        <label className="text-text-secondary text-sm font-medium">
           Horas semanais: <span className="text-primary font-bold">{data.weeklyHours}h</span>
         </label>
         <input
@@ -402,9 +402,9 @@ function Step1({ data, update }: StepProps) {
           max={25}
           value={data.weeklyHours}
           onChange={(e) => update({ weeklyHours: parseInt(e.target.value, 10) })}
-          className="w-full h-2 rounded-full appearance-none bg-slate-700 accent-primary cursor-pointer"
+          className="w-full h-2 rounded-full appearance-none bg-bg-elevated accent-primary cursor-pointer"
         />
-        <div className="flex justify-between text-[12px] text-slate-500">
+        <div className="flex justify-between text-[12px] text-text-muted">
           <span>3h</span>
           <span>25h</span>
         </div>
@@ -433,7 +433,7 @@ function Step2({ data, update }: StepProps) {
 
       {/* Distance grid — emoji cards */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">Distância</label>
+        <label className="text-text-secondary text-sm font-medium">Distância</label>
         <div className="grid grid-cols-2 gap-2">
           {RACE_DISTANCES.map((rd) => (
             <button
@@ -444,14 +444,14 @@ function Step2({ data, update }: StepProps) {
                 'p-4 rounded-2xl border text-left transition-all bg-bg-surface',
                 data.raceDistance === rd.value
                   ? 'border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/30'
-                  : 'border-slate-700/50 hover:border-slate-600',
+                  : 'border-border-strong/50 hover:border-text-faint',
               )}
             >
               <span className="text-xl mb-2 block">{rd.emoji}</span>
               <span className="block text-white font-bold text-[15px]">
                 {rd.label}
               </span>
-              <span className="block text-slate-500 text-[12px] mt-1">
+              <span className="block text-text-muted text-[12px] mt-1">
                 {rd.detail}
               </span>
             </button>
@@ -471,8 +471,8 @@ function Step2({ data, update }: StepProps) {
 
       {/* Goal type — segmented pill */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">Objetivo</label>
-        <div className="flex gap-1 bg-bg-surface border border-slate-700/50 p-1.5 rounded-full">
+        <label className="text-text-secondary text-sm font-medium">Objetivo</label>
+        <div className="flex gap-1 bg-bg-surface border border-border-strong/50 p-1.5 rounded-full">
           <button
             type="button"
             onClick={() => update({ raceGoalType: 'FINISH' })}
@@ -480,7 +480,7 @@ function Step2({ data, update }: StepProps) {
               'flex-1 h-11 rounded-full text-sm font-semibold transition-all',
               data.raceGoalType === 'FINISH'
                 ? 'bg-primary text-white shadow-md'
-                : 'text-slate-400 hover:text-white',
+                : 'text-text-secondary hover:text-white',
             )}
           >
             Terminar
@@ -492,7 +492,7 @@ function Step2({ data, update }: StepProps) {
               'flex-1 h-11 rounded-full text-sm font-semibold transition-all',
               data.raceGoalType === 'TIME'
                 ? 'bg-primary text-white shadow-md'
-                : 'text-slate-400 hover:text-white',
+                : 'text-text-secondary hover:text-white',
             )}
           >
             Bater tempo
@@ -593,7 +593,7 @@ function Step3({ data, update }: StepProps) {
 
       {/* Equipment */}
       <div className="space-y-3">
-        <label className="text-slate-400 text-sm font-medium">Equipamentos</label>
+        <label className="text-text-secondary text-sm font-medium">Equipamentos</label>
         <ToggleCheckbox
           checked={data.hasPool}
           onChange={(v) => update({ hasPool: v })}
@@ -656,7 +656,7 @@ function Step4({ data, update }: StepProps) {
 
       {/* Owned products — pill buttons */}
       <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">
+        <label className="text-text-secondary text-sm font-medium">
           Produtos que já possui
         </label>
         <div className="flex flex-wrap gap-2">
@@ -669,7 +669,7 @@ function Step4({ data, update }: StepProps) {
                 'px-5 h-10 rounded-full text-[13px] font-medium transition-all border',
                 data.ownedProducts.includes(product)
                   ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20'
-                  : 'bg-bg-surface border-slate-700/50 text-slate-400 hover:border-slate-600',
+                  : 'bg-bg-surface border-border-strong/50 text-text-secondary hover:border-text-faint',
               )}
             >
               {product}
@@ -680,7 +680,7 @@ function Step4({ data, update }: StepProps) {
 
       {/* Boolean toggles */}
       <div className="space-y-3">
-        <label className="text-slate-400 text-sm font-medium">Histórico</label>
+        <label className="text-text-secondary text-sm font-medium">Histórico</label>
         <ToggleCheckbox
           checked={data.giSensitivity}
           onChange={(v) => update({ giSensitivity: v })}
@@ -722,7 +722,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
       <h2 className="font-bold text-2xl text-white tracking-tight">
         Integrações
       </h2>
-      <p className="text-slate-400 text-sm">
+      <p className="text-text-secondary text-sm">
         Conecte suas contas para sincronizar treinos automaticamente.
       </p>
 
@@ -730,7 +730,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
       <div
         className={cn(
           'p-5 rounded-2xl border transition-all bg-bg-surface',
-          data.stravaConnected ? 'border-green-500/50' : 'border-slate-700/50',
+          data.stravaConnected ? 'border-success/50' : 'border-border-strong/50',
         )}
       >
         <div className="flex items-center justify-between">
@@ -742,11 +742,11 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
             </div>
             <div>
               <p className="text-white font-semibold text-[15px]">Strava</p>
-              <p className="text-slate-500 text-[12px]">Sincronize treinos e atividades</p>
+              <p className="text-text-muted text-[12px]">Sincronize treinos e atividades</p>
             </div>
           </div>
           {data.stravaConnected ? (
-            <div className="flex items-center gap-1.5 text-green-400 text-[13px] font-medium">
+            <div className="flex items-center gap-1.5 text-success text-[13px] font-medium">
               <span className="material-symbols-outlined text-base">check_circle</span>
               Conectado
             </div>
@@ -762,7 +762,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
       <div
         className={cn(
           'p-5 rounded-2xl border transition-all bg-bg-surface',
-          data.intervalsConnected ? 'border-green-500/50' : 'border-slate-700/50',
+          data.intervalsConnected ? 'border-success/50' : 'border-border-strong/50',
         )}
       >
         <div className="flex items-center justify-between">
@@ -772,11 +772,11 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
             </div>
             <div>
               <p className="text-white font-semibold text-[15px]">intervals.icu</p>
-              <p className="text-slate-500 text-[12px]">Métricas avançadas de treino</p>
+              <p className="text-text-muted text-[12px]">Métricas avançadas de treino</p>
             </div>
           </div>
           {data.intervalsConnected ? (
-            <div className="flex items-center gap-1.5 text-green-400 text-[13px] font-medium">
+            <div className="flex items-center gap-1.5 text-success text-[13px] font-medium">
               <span className="material-symbols-outlined text-base">check_circle</span>
               Conectado
             </div>
@@ -825,7 +825,7 @@ function ToggleCheckbox({
         'flex items-center gap-3 w-full text-left p-3.5 rounded-2xl border transition-all',
         checked
           ? 'bg-primary/10 border-primary/30'
-          : 'bg-bg-surface border-slate-700/50 hover:border-slate-600',
+          : 'bg-bg-surface border-border-strong/50 hover:border-text-faint',
       )}
     >
       <div
@@ -833,7 +833,7 @@ function ToggleCheckbox({
           'w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0',
           checked
             ? 'bg-primary border-primary'
-            : 'bg-bg-elevated border-slate-600',
+            : 'bg-bg-elevated border-text-faint',
         )}
       >
         {checked && (
@@ -841,11 +841,11 @@ function ToggleCheckbox({
         )}
       </div>
       {icon && (
-        <span className={cn('material-symbols-outlined text-lg', checked ? 'text-primary' : 'text-slate-500')}>
+        <span className={cn('material-symbols-outlined text-lg', checked ? 'text-primary' : 'text-text-muted')}>
           {icon}
         </span>
       )}
-      <span className={cn('text-[14px]', checked ? 'text-white' : 'text-slate-400')}>{label}</span>
+      <span className={cn('text-[14px]', checked ? 'text-white' : 'text-text-secondary')}>{label}</span>
     </button>
   );
 }

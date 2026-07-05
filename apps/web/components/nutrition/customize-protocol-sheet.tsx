@@ -98,7 +98,7 @@ export function CustomizeProtocolSheet({
         {items.map((item, index) => (
           <div
             key={index}
-            className="p-3 rounded-2xl border border-slate-800/50 bg-bg-surface space-y-2"
+            className="p-3 rounded-2xl border border-border bg-bg-surface space-y-2"
           >
             <div className="flex items-center justify-between">
               <div className="flex gap-1">
@@ -110,11 +110,11 @@ export function CustomizeProtocolSheet({
                       'inline-flex items-center justify-center h-11 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors',
                       item.phase === opt.value
                         ? opt.value === 'pre'
-                          ? 'bg-amber-500/20 text-amber-400'
+                          ? 'bg-phase-pre/20 text-phase-pre'
                           : opt.value === 'during'
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'bg-green-500/20 text-green-400'
-                        : 'text-slate-500 hover:text-slate-300',
+                            ? 'bg-phase-during/20 text-phase-during'
+                            : 'bg-phase-post/20 text-phase-post'
+                        : 'text-text-muted hover:text-text-secondary',
                     )}
                   >
                     {opt.label}
@@ -125,7 +125,7 @@ export function CustomizeProtocolSheet({
                 <button
                   onClick={() => removeItem(index)}
                   aria-label="Remover item"
-                  className="flex items-center justify-center w-11 h-11 text-slate-500 hover:text-red-400 transition-colors shrink-0"
+                  className="flex items-center justify-center w-11 h-11 text-text-muted hover:text-danger transition-colors shrink-0"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                 </button>
@@ -183,14 +183,14 @@ export function CustomizeProtocolSheet({
 
         <button
           onClick={addItem}
-          className="flex items-center gap-1.5 text-primary text-[13px] font-semibold hover:text-blue-400 transition-colors"
+          className="flex items-center gap-1.5 text-primary text-[13px] font-semibold hover:text-primary-bright transition-colors"
         >
           <span className="material-symbols-outlined text-sm">add</span>
           Adicionar item
         </button>
 
         {mutation.isError && (
-          <p className="text-[13px] text-red-400">Erro ao salvar. Tente novamente.</p>
+          <p className="text-[13px] text-danger">Erro ao salvar. Tente novamente.</p>
         )}
 
         <div className="flex gap-3 pt-2">

@@ -35,8 +35,8 @@ interface CockpitProps {
   targetRace?: { raceName: string | null; raceDate: string; daysRemaining: number } | null;
 }
 
-const BAND_RING = { green: '#22c55e', yellow: '#f59e0b', red: '#f43f5e', unknown: '#64748b' } as const;
-const BAND_TEXT = { green: 'text-emerald-400', yellow: 'text-amber-400', red: 'text-rose-400', unknown: 'text-slate-400' } as const;
+const BAND_RING = { green: '#2fd583', yellow: '#f5a524', red: '#f0524e', unknown: '#64748b' } as const;
+const BAND_TEXT = { green: 'text-success', yellow: 'text-warning', red: 'text-danger', unknown: 'text-text-secondary' } as const;
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -117,7 +117,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
   });
 
   const tsb = pmc.currentTSB;
-  const tsbColor = tsb >= 0 ? '#22c55e' : '#f43f5e';
+  const tsbColor = tsb >= 0 ? '#2fd583' : '#f0524e';
   const band = recovery?.band ?? 'unknown';
   const ringColor = BAND_RING[band];
   const sparkVals = pmc.metrics.slice(-14).map((m) => m.tsb);
@@ -126,9 +126,9 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
   const trendIcon = trend === 'rising' ? 'trending_up' : trend === 'falling' ? 'trending_down' : 'trending_flat';
 
   const peak = forecast?.peak;
-  const peakDot = peak?.status === 'ideal' ? 'bg-emerald-400'
-    : peak?.status === 'too_fatigued' ? 'bg-rose-400'
-    : peak?.status === 'too_fresh' ? 'bg-sky-400' : 'bg-amber-400';
+  const peakDot = peak?.status === 'ideal' ? 'bg-success'
+    : peak?.status === 'too_fatigued' ? 'bg-danger'
+    : peak?.status === 'too_fresh' ? 'bg-info' : 'bg-warning';
 
   return (
     <section aria-label="Resumo do dia" className="space-y-4">

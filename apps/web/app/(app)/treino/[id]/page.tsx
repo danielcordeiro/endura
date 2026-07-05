@@ -78,16 +78,16 @@ function WorkoutDetailSkeleton() {
     <div className="space-y-8 pt-6 pb-28">
       {/* Top nav */}
       <div className="flex items-center justify-between">
-        <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
-        <div className="h-4 w-36 rounded bg-slate-800/60 animate-pulse" />
-        <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
+        <div className="h-8 w-8 rounded-full bg-bg-elevated/60 animate-pulse" />
+        <div className="h-4 w-36 rounded bg-bg-elevated/60 animate-pulse" />
+        <div className="h-8 w-8 rounded-full bg-bg-elevated/60 animate-pulse" />
       </div>
 
       {/* Badge + title */}
       <div className="space-y-3">
-        <div className="h-7 w-20 rounded-full bg-slate-800/60 animate-pulse" />
-        <div className="h-9 w-64 rounded-lg bg-slate-800/60 animate-pulse" />
-        <div className="h-4 w-48 rounded bg-slate-800/60 animate-pulse" />
+        <div className="h-7 w-20 rounded-full bg-bg-elevated/60 animate-pulse" />
+        <div className="h-9 w-64 rounded-lg bg-bg-elevated/60 animate-pulse" />
+        <div className="h-4 w-48 rounded bg-bg-elevated/60 animate-pulse" />
       </div>
 
       {/* Stat row */}
@@ -97,8 +97,8 @@ function WorkoutDetailSkeleton() {
             key={i}
             className="rounded-card border border-hairline bg-bg-surface p-4 space-y-2 animate-pulse"
           >
-            <div className="h-3 w-14 rounded bg-slate-800/60" />
-            <div className="h-6 w-16 rounded bg-slate-800/60" />
+            <div className="h-3 w-14 rounded bg-bg-elevated/60" />
+            <div className="h-6 w-16 rounded bg-bg-elevated/60" />
           </div>
         ))}
       </div>
@@ -109,8 +109,8 @@ function WorkoutDetailSkeleton() {
           key={i}
           className="rounded-card border border-hairline bg-bg-surface p-4 space-y-2 animate-pulse"
         >
-          <div className="h-5 w-32 rounded bg-slate-800/60" />
-          <div className="h-4 w-full rounded bg-slate-800/60" />
+          <div className="h-5 w-32 rounded bg-bg-elevated/60" />
+          <div className="h-4 w-full rounded bg-bg-elevated/60" />
         </div>
       ))}
     </div>
@@ -141,12 +141,12 @@ function StructureCard({
       )}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="material-symbols-outlined text-base text-slate-400">{icon}</span>
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <span className="material-symbols-outlined text-base text-text-secondary">{icon}</span>
+        <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">
           {label}
         </span>
       </div>
-      <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
+      <p className="text-sm text-text-secondary whitespace-pre-line leading-relaxed">
         {content}
       </p>
     </div>
@@ -254,7 +254,7 @@ function NutritionDetailPanel({ items }: { items: NutritionItem[] }) {
         <div className="space-y-4 mt-4 animate-fade-in">
           {grouped.map((group) => (
             <div key={group.key}>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary mb-2">
                 {group.label}
               </p>
               <div className="space-y-2">
@@ -264,22 +264,22 @@ function NutritionDetailPanel({ items }: { items: NutritionItem[] }) {
                     className="bg-bg-elevated rounded-xl p-3 flex items-start justify-between"
                   >
                     <div>
-                      <p className="text-sm font-medium text-slate-100">
+                      <p className="text-sm font-medium text-text-primary">
                         {item.product}
                       </p>
-                      <p className="font-[var(--font-mono)] text-[11px] text-slate-500 mt-0.5">
+                      <p className="font-[var(--font-mono)] text-[11px] text-text-muted mt-0.5">
                         {item.minuteOffset > 0 ? '+' : ''}
                         {item.minuteOffset}min
                       </p>
                     </div>
                     <div className="flex items-center gap-3 text-right">
                       {item.carbsG != null && (
-                        <span className="font-[var(--font-mono)] text-[11px] text-slate-400">
+                        <span className="font-[var(--font-mono)] text-[11px] text-text-secondary">
                           {item.carbsG}g carb
                         </span>
                       )}
                       {item.kcal != null && (
-                        <span className="font-[var(--font-mono)] text-[11px] text-slate-400">
+                        <span className="font-[var(--font-mono)] text-[11px] text-text-secondary">
                           {item.kcal}kcal
                         </span>
                       )}
@@ -340,7 +340,7 @@ export default function TreinoDetailPage() {
       <div className="pt-6 space-y-4">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Voltar
@@ -372,11 +372,11 @@ export default function TreinoDetailPage() {
       >
         <button
           onClick={() => router.back()}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-xl">arrow_back</span>
         </button>
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">
           Detalhes do Treino
         </span>
         <button
@@ -390,7 +390,7 @@ export default function TreinoDetailPage() {
             }
           }}
           aria-label="Compartilhar treino"
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-bg-elevated transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
         >
           <span className="material-symbols-outlined text-xl">share</span>
         </button>
@@ -402,12 +402,12 @@ export default function TreinoDetailPage() {
         <h1 className="font-heading text-2xl font-bold text-text-primary leading-tight">
           {data.title}
         </h1>
-        <div className="flex items-center gap-2 mt-2 text-slate-400">
+        <div className="flex items-center gap-2 mt-2 text-text-secondary">
           <span className="material-symbols-outlined text-base">calendar_today</span>
           <span className="text-sm capitalize">{formatDate(data.scheduledDate)}</span>
         </div>
         {data.description && (
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-text-muted mt-2">
             {data.description}
           </p>
         )}
@@ -419,37 +419,37 @@ export default function TreinoDetailPage() {
         style={{ opacity: 0 }}
       >
         <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
-          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+          <span className="material-symbols-outlined text-base text-text-muted mb-1 block">
             timer
           </span>
-          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
+          <p className="font-[var(--font-mono)] font-bold text-xl text-text-primary">
             {formatDuration(data.durationMin)}
           </p>
-          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
+          <p className="text-[11px] text-text-muted uppercase tracking-wider mt-1">
             Duracao
           </p>
         </div>
 
         <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
-          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+          <span className="material-symbols-outlined text-base text-text-muted mb-1 block">
             straighten
           </span>
-          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
+          <p className="font-[var(--font-mono)] font-bold text-xl text-text-primary">
             {distanceFormatted ?? '--'}
           </p>
-          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
+          <p className="text-[11px] text-text-muted uppercase tracking-wider mt-1">
             Distancia
           </p>
         </div>
 
         <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
-          <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
+          <span className="material-symbols-outlined text-base text-text-muted mb-1 block">
             speed
           </span>
-          <p className="font-[var(--font-mono)] font-bold text-xl text-slate-100">
+          <p className="font-[var(--font-mono)] font-bold text-xl text-text-primary">
             {data.intensityZone ?? '--'}
           </p>
-          <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-1">
+          <p className="text-[11px] text-text-muted uppercase tracking-wider mt-1">
             Zona
           </p>
         </div>

@@ -61,12 +61,12 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
 
       {raceGoal && (
         <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
-          <p className="text-xs text-slate-400">Prova alvo: <span className="text-primary font-semibold">{raceGoal.raceName ?? raceGoal.distance}</span></p>
+          <p className="text-xs text-text-secondary">Prova alvo: <span className="text-primary font-semibold">{raceGoal.raceName ?? raceGoal.distance}</span></p>
         </div>
       )}
 
       <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">Tempo alvo</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-text-secondary mb-2 block">Tempo alvo</label>
         <div className="grid grid-cols-2 gap-x-3 gap-y-4">
           <Field label="Horas">
             <Input size="sm" type="number" min={0} max={20} value={hours} onChange={(e) => updateTime(Number(e.target.value), minutes)} className="font-[var(--font-mono)]" />
@@ -78,7 +78,7 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
       </div>
 
       <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">Condicoes climaticas</label>
+        <label className="text-xs font-bold uppercase tracking-widest text-text-secondary mb-2 block">Condicoes climaticas</label>
         <div className="grid grid-cols-2 gap-x-3 gap-y-4">
           <Field label="Temp (C)">
             <Input size="sm" type="number" value={tempC} onChange={(e) => setTempC(Number(e.target.value))} className="font-[var(--font-mono)]" />
@@ -90,7 +90,7 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
       </div>
 
       {mutation.isError && (
-        <p className="text-[13px] text-red-400">Erro ao gerar simulacao. Tente novamente.</p>
+        <p className="text-[13px] text-danger">Erro ao gerar simulacao. Tente novamente.</p>
       )}
 
       <Button variant="primary" fullWidth onClick={() => mutation.mutate()} loading={mutation.isPending} className="gap-2">

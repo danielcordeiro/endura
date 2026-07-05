@@ -125,7 +125,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">API Keys</p>
+        <p className="text-sm font-bold text-text-secondary uppercase tracking-widest">API Keys</p>
         <button
           onClick={() => {
             resetCreateForm();
@@ -138,7 +138,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
         </button>
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-text-muted">
         Gere chaves para acessar seus dados via API pública. Use em sistemas externos ou integre com LLMs.{' '}
         <a href="/docs/api" target="_blank" className="text-primary hover:underline">
           Ver documentação ↗
@@ -146,25 +146,25 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
       </p>
 
       {listQuery.isLoading && (
-        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 h-16 animate-pulse" />
+        <div className="rounded-2xl border border-border bg-bg-surface p-4 h-16 animate-pulse" />
       )}
 
       {activeKeys.length === 0 && !listQuery.isLoading && (
-        <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4 text-center">
-          <span className="text-xs text-slate-500">Nenhuma API Key ativa</span>
+        <div className="rounded-2xl border border-border bg-bg-surface p-4 text-center">
+          <span className="text-xs text-text-muted">Nenhuma API Key ativa</span>
         </div>
       )}
 
       {activeKeys.map((k) => (
-        <div key={k.id} className="rounded-2xl border border-slate-800/50 bg-bg-surface p-4">
+        <div key={k.id} className="rounded-2xl border border-border bg-bg-surface p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-xl text-emerald-400">key</span>
+            <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-xl text-success">key</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-[15px] text-slate-100 truncate">{k.name}</p>
-              <p className="font-mono text-[11px] text-slate-500 truncate">{k.prefix}</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="font-semibold text-[15px] text-text-primary truncate">{k.name}</p>
+              <p className="font-mono text-[11px] text-text-muted truncate">{k.prefix}</p>
+              <p className="text-[11px] text-text-muted mt-0.5">
                 Criada {format(parseISO(k.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
                 {k.lastUsedAt ? ` · Usada ${format(parseISO(k.lastUsedAt), "dd/MM 'às' HH:mm", { locale: ptBR })}` : ' · Nunca usada'}
                 {k.expiresAt ? ` · Expira ${format(parseISO(k.expiresAt), 'dd/MM/yyyy', { locale: ptBR })}` : ''}
@@ -177,7 +177,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                 }
               }}
               disabled={revokeMutation.isPending}
-              className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40 shrink-0"
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-border-strong/50 text-danger hover:bg-danger/10 transition-colors disabled:opacity-40 shrink-0"
               title="Revogar"
             >
               <span className="material-symbols-outlined text-xl">delete</span>
@@ -190,8 +190,8 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                 className={cn(
                   'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono',
                   s.startsWith('write:')
-                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                    : 'bg-slate-700/40 text-slate-300 border border-slate-600/40',
+                    ? 'bg-warning/15 text-warning border border-warning/30'
+                    : 'bg-bg-elevated/40 text-text-secondary border border-border-strong/40',
                 )}
               >
                 {s}
@@ -214,14 +214,14 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
             }}
           />
           <div className="relative w-full max-w-lg bg-bg-surface rounded-t-[2rem] p-6 max-h-[90dvh] overflow-y-auto">
-            <div className="w-10 h-1 bg-slate-600 rounded-full mx-auto mb-5" />
+            <div className="w-10 h-1 bg-bg-elevated rounded-full mx-auto mb-5" />
             <div className="flex items-center gap-3 mb-5">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/15">
-                <span className="material-symbols-outlined text-2xl text-emerald-400">key</span>
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-success/15">
+                <span className="material-symbols-outlined text-2xl text-success">key</span>
               </div>
               <div>
-                <h2 className="font-heading text-lg font-bold text-slate-100">Nova API Key</h2>
-                <p className="text-xs text-slate-400">Nome descritivo + escopos de acesso</p>
+                <h2 className="font-heading text-lg font-bold text-text-primary">Nova API Key</h2>
+                <p className="text-xs text-text-secondary">Nome descritivo + escopos de acesso</p>
               </div>
             </div>
 
@@ -236,19 +236,19 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               </Field>
 
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Bundles</p>
+                <p className="text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-2">Bundles</p>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => applyBundle('coach')}
-                    className="flex-1 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/15 transition-colors"
+                    className="flex-1 h-11 rounded-lg bg-success/10 border border-success/30 text-success text-xs font-semibold hover:bg-success/15 transition-colors"
                   >
                     Coach (full)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyBundle('readOnly')}
-                    className="flex-1 h-11 rounded-lg bg-slate-700/40 border border-slate-600/40 text-slate-300 text-xs font-semibold hover:bg-slate-700/60 transition-colors"
+                    className="flex-1 h-11 rounded-lg bg-bg-elevated/40 border border-border-strong/40 text-text-secondary text-xs font-semibold hover:bg-bg-elevated/60 transition-colors"
                   >
                     Somente leitura
                   </button>
@@ -256,7 +256,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               </div>
 
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Leitura</p>
+                <p className="text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-2">Leitura</p>
                 <div className="space-y-2">
                   {readScopes.map((s) => (
                     <ScopeCheckbox
@@ -270,7 +270,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               </div>
 
               <div>
-                <p className="text-[11px] font-bold text-amber-300 uppercase tracking-widest mb-2">Escrita</p>
+                <p className="text-[11px] font-bold text-warning uppercase tracking-widest mb-2">Escrita</p>
                 <div className="space-y-2">
                   {writeScopes.map((s) => (
                     <ScopeCheckbox
@@ -285,7 +285,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               </div>
 
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Expiração</p>
+                <p className="text-[11px] font-bold text-text-secondary uppercase tracking-widest mb-2">Expiração</p>
                 <div className="grid grid-cols-4 gap-2">
                   {[
                     { label: 'Nunca', val: null },
@@ -301,7 +301,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                         'h-11 rounded-lg text-xs font-semibold transition-colors border',
                         expiresInDays === opt.val
                           ? 'bg-primary/15 border-primary/50 text-primary'
-                          : 'bg-bg-input border-slate-700 text-slate-400 hover:text-slate-200',
+                          : 'bg-bg-input border-border-strong text-text-secondary hover:text-text-primary',
                       )}
                     >
                       {opt.label}
@@ -316,7 +316,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                     setShowCreate(false);
                     resetCreateForm();
                   }}
-                  className="flex-1 h-14 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
+                  className="flex-1 h-14 rounded-full bg-bg-elevated text-text-secondary font-bold text-sm active:scale-[0.98] transition-transform"
                 >
                   Cancelar
                 </button>
@@ -347,19 +347,19 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
           <div className="relative w-full max-w-lg bg-bg-surface rounded-2xl p-6 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/15">
-                <span className="material-symbols-outlined text-2xl text-emerald-400">check_circle</span>
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-success/15">
+                <span className="material-symbols-outlined text-2xl text-success">check_circle</span>
               </div>
               <div>
-                <h2 className="font-heading text-lg font-bold text-slate-100">API Key criada</h2>
-                <p className="text-xs text-amber-400">Copie agora — ela NAO sera exibida novamente.</p>
+                <h2 className="font-heading text-lg font-bold text-text-primary">API Key criada</h2>
+                <p className="text-xs text-warning">Copie agora — ela NAO sera exibida novamente.</p>
               </div>
             </div>
 
-            <div className="bg-bg-input border border-slate-700 rounded-xl p-3">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Nome</p>
-              <p className="text-sm text-slate-100 mb-3">{createdKey.name}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Escopos</p>
+            <div className="bg-bg-input border border-border-strong rounded-xl p-3">
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Nome</p>
+              <p className="text-sm text-text-primary mb-3">{createdKey.name}</p>
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Escopos</p>
               <div className="flex flex-wrap gap-1 mb-3">
                 {createdKey.scopes.map((s) => (
                   <span
@@ -367,24 +367,24 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                     className={cn(
                       'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono',
                       s.startsWith('write:')
-                        ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                        : 'bg-slate-700/40 text-slate-300 border border-slate-600/40',
+                        ? 'bg-warning/15 text-warning border border-warning/30'
+                        : 'bg-bg-elevated/40 text-text-secondary border border-border-strong/40',
                     )}
                   >
                     {s}
                   </span>
                 ))}
               </div>
-              <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Chave</p>
+              <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Chave</p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 font-mono text-xs text-emerald-300 break-all bg-black/40 rounded-lg px-3 py-2">
+                <code className="flex-1 font-mono text-xs text-success break-all bg-black/40 rounded-lg px-3 py-2">
                   {createdKey.key}
                 </code>
                 <button
                   onClick={() => handleCopy(createdKey.key)}
                   className={cn(
                     'flex items-center justify-center w-11 h-11 rounded-xl bg-primary text-white shrink-0',
-                    copied && 'bg-emerald-600',
+                    copied && 'bg-success',
                   )}
                   title={copied ? 'Copiado!' : 'Copiar'}
                 >
@@ -393,8 +393,8 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
               </div>
             </div>
 
-            <div className="text-xs text-slate-500 bg-black/20 rounded-lg p-3">
-              <p className="font-semibold text-slate-400 mb-1">Como usar:</p>
+            <div className="text-xs text-text-muted bg-black/20 rounded-lg p-3">
+              <p className="font-semibold text-text-secondary mb-1">Como usar:</p>
               <code className="font-mono text-[11px] block">
                 curl -H "X-API-Key: {createdKey.key.substring(0, 20)}..." \
                 <br />
@@ -404,7 +404,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
 
             <button
               onClick={() => setCreatedKey(null)}
-              className="w-full h-12 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
+              className="w-full h-12 rounded-full bg-bg-elevated text-text-secondary font-bold text-sm active:scale-[0.98] transition-transform"
             >
               Entendi, ja copiei
             </button>
@@ -435,9 +435,9 @@ function ScopeCheckbox({
         'w-full flex items-start gap-3 px-3 py-3 rounded-lg border text-left transition-colors',
         checked
           ? tone === 'write'
-            ? 'bg-amber-500/10 border-amber-500/40'
-            : 'bg-emerald-500/10 border-emerald-500/40'
-          : 'bg-bg-input border-slate-700 hover:border-slate-600',
+            ? 'bg-warning/10 border-warning/40'
+            : 'bg-success/10 border-success/40'
+          : 'bg-bg-input border-border-strong hover:border-border-strong',
       )}
     >
       <span
@@ -445,19 +445,19 @@ function ScopeCheckbox({
           'mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0',
           checked
             ? tone === 'write'
-              ? 'bg-amber-400 border-amber-400'
-              : 'bg-emerald-400 border-emerald-400'
-            : 'border-slate-500',
+              ? 'bg-warning border-warning'
+              : 'bg-success border-success'
+            : 'border-text-muted',
         )}
       >
         {checked && <span className="material-symbols-outlined text-[14px] text-black">check</span>}
       </span>
       <div className="flex-1 min-w-0">
-        <p className={cn('text-xs font-semibold', checked ? 'text-slate-100' : 'text-slate-300')}>
+        <p className={cn('text-xs font-semibold', checked ? 'text-text-primary' : 'text-text-secondary')}>
           {meta?.label ?? scope}
-          <span className="font-mono text-[10px] text-slate-500 ml-1.5">{scope}</span>
+          <span className="font-mono text-[10px] text-text-muted ml-1.5">{scope}</span>
         </p>
-        {meta?.description && <p className="text-[11px] text-slate-500 leading-tight">{meta.description}</p>}
+        {meta?.description && <p className="text-[11px] text-text-muted leading-tight">{meta.description}</p>}
       </div>
     </button>
   );

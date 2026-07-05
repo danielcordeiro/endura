@@ -24,17 +24,17 @@ interface RecoveryData {
 }
 
 const BAND = {
-  green: { ring: '#22c55e', text: 'text-emerald-400', soft: 'bg-emerald-500/10 border-emerald-500/30' },
-  yellow: { ring: '#f59e0b', text: 'text-amber-400', soft: 'bg-amber-500/10 border-amber-500/30' },
-  red: { ring: '#f43f5e', text: 'text-rose-400', soft: 'bg-rose-500/10 border-rose-500/30' },
-  unknown: { ring: '#64748b', text: 'text-slate-400', soft: 'bg-slate-500/10 border-slate-500/30' },
+  green: { ring: '#2fd583', text: 'text-success', soft: 'bg-success/10 border-success/30' },
+  yellow: { ring: '#f5a524', text: 'text-warning', soft: 'bg-warning/10 border-warning/30' },
+  red: { ring: '#f0524e', text: 'text-danger', soft: 'bg-danger/10 border-danger/30' },
+  unknown: { ring: '#64748b', text: 'text-text-secondary', soft: 'bg-text-muted/10 border-text-muted/30' },
 } as const;
 
 function subColor(score: number | null): string {
-  if (score == null) return 'bg-slate-700';
-  if (score >= 67) return 'bg-emerald-500';
-  if (score >= 34) return 'bg-amber-500';
-  return 'bg-rose-500';
+  if (score == null) return 'bg-bg-elevated';
+  if (score >= 67) return 'bg-success';
+  if (score >= 34) return 'bg-warning';
+  return 'bg-danger';
 }
 
 const UNIT: Record<RecoveryMetric['key'], string> = { hrv: 'ms', rhr: 'bpm', sleep: '', resp: 'rpm' };
@@ -100,10 +100,10 @@ export function RecoveryCard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <span className="material-symbols-outlined text-lg text-slate-400">ecg_heart</span>
+          <span className="material-symbols-outlined text-lg text-text-secondary">ecg_heart</span>
           <div>
             <h3 className="font-heading text-base font-bold text-text-primary">Recuperação</h3>
-            <p className="text-[10px] text-slate-500">vs baseline pessoal · {data.baselineDays}d</p>
+            <p className="text-[10px] text-text-muted">vs baseline pessoal · {data.baselineDays}d</p>
           </div>
         </div>
         <span className={cn('text-[11px] font-bold px-2.5 py-1 rounded-full border', band.soft, band.text)}>
@@ -117,36 +117,36 @@ export function RecoveryCard() {
           <ScoreRing score={data.score} color={band.ring} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className={cn('font-mono text-4xl font-bold leading-none', band.text)}>{data.score}</span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider mt-1">recovery</span>
+            <span className="text-[10px] text-text-muted uppercase tracking-wider mt-1">recovery</span>
           </div>
         </div>
       </div>
 
       {/* Recomendação */}
-      <p className="text-xs text-slate-400 leading-relaxed text-center mb-5 px-2">{data.recommendation}</p>
+      <p className="text-xs text-text-secondary leading-relaxed text-center mb-5 px-2">{data.recommendation}</p>
 
       {/* Métricas (bandas por contribuição) */}
       <div className="grid grid-cols-2 gap-2">
         {data.metrics.map((m) => (
           <div key={m.key} className="bg-bg-elevated rounded-2xl p-3">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">{m.label}</span>
+              <span className="text-[10px] text-text-muted uppercase tracking-wider">{m.label}</span>
               {m.score != null && (
-                <span className="text-[10px] font-mono font-bold text-slate-300">{m.score}</span>
+                <span className="text-[10px] font-mono font-bold text-text-secondary">{m.score}</span>
               )}
             </div>
             {m.today != null ? (
-              <p className="font-mono text-sm font-bold text-slate-100 leading-none">
+              <p className="font-mono text-sm font-bold text-text-primary leading-none">
                 {m.today}
-                <span className="text-[9px] text-slate-500 font-normal ml-0.5">{UNIT[m.key]}</span>
+                <span className="text-[9px] text-text-muted font-normal ml-0.5">{UNIT[m.key]}</span>
                 {m.baseline != null && (
-                  <span className="text-[9px] text-slate-600 font-normal ml-1.5">base {m.baseline}</span>
+                  <span className="text-[9px] text-text-faint font-normal ml-1.5">base {m.baseline}</span>
                 )}
               </p>
             ) : (
-              <p className="font-mono text-sm text-slate-600 leading-none">—</p>
+              <p className="font-mono text-sm text-text-faint leading-none">—</p>
             )}
-            <div className="mt-2 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full bg-bg-elevated overflow-hidden">
               <div
                 className={cn('h-full rounded-full', subColor(m.score))}
                 style={{ width: m.score != null ? `${m.score}%` : '0%' }}
