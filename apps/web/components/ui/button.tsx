@@ -4,12 +4,20 @@ import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'strava';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   fullWidth?: boolean;
 }
+
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: 'h-10 px-5 text-[13px]',
+  md: 'h-12 px-6 text-[14px]',
+  lg: 'h-14 px-6 text-[14px]',
+};
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: [
@@ -42,19 +50,19 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', loading, fullWidth, disabled, children, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', loading, fullWidth, disabled, children, ...props }, ref) => {
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
         className={cn(
           'inline-flex items-center justify-center gap-2',
-          'font-semibold text-[14px] tracking-wide',
-          'h-12 px-6 rounded-full',
+          'font-semibold tracking-wide rounded-full',
           'transition-all duration-200 ease-out',
           'focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2',
           'disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none',
           fullWidth && 'w-full',
+          sizeStyles[size],
           variantStyles[variant],
           className,
         )}
