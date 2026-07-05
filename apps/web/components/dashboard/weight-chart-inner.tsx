@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
+import { CHART_COLORS, CHART_AXIS_TICK, CHART_TOOLTIP_CONTAINER, formatChartDate } from '@/lib/chart-theme';
 
 interface DataPoint {
   date: string;
@@ -18,26 +19,14 @@ interface WeightChartInnerProps {
   data: DataPoint[];
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip(props: any) {
   const { active, payload, label } = props;
   if (!active || !Array.isArray(payload) || payload.length === 0) return null;
   const val = Number(payload[0]?.value);
   return (
-    <div style={{
-      background: '#283139',
-      border: '1px solid #334155',
-      borderRadius: 12,
-      padding: 10,
-      fontSize: 12,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-    }}>
-      <p style={{ color: '#94a3b8', marginBottom: 4 }}>{label ? formatDate(String(label)) : ''}</p>
+    <div style={CHART_TOOLTIP_CONTAINER}>
+      <p style={{ color: '#94a3b8', marginBottom: 4 }}>{label ? formatChartDate(String(label)) : ''}</p>
       <p style={{ color: '#fff', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
         {isFinite(val) ? val.toFixed(1) : '—'} kg
       </p>
@@ -58,21 +47,21 @@ export default function WeightChartInner({ data }: WeightChartInnerProps) {
       <AreaChart data={data}>
         <defs>
           <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            <stop offset="0%" stopColor={CHART_COLORS.weight} stopOpacity={0.3} />
+            <stop offset="100%" stopColor={CHART_COLORS.weight} stopOpacity={0} />
           </linearGradient>
         </defs>
         <XAxis
           dataKey="date"
-          tickFormatter={formatDate}
-          tick={{ fontSize: 9, fill: '#64748b' }}
+          tickFormatter={formatChartDate}
+          tick={{ ...CHART_AXIS_TICK, fontSize: 9 }}
           axisLine={false}
           tickLine={false}
           interval={Math.max(Math.floor(data.length / 5), 1)}
         />
         <YAxis
           domain={[min - padding, max + padding]}
-          tick={{ fontSize: 9, fill: '#64748b' }}
+          tick={{ ...CHART_AXIS_TICK, fontSize: 9 }}
           axisLine={false}
           tickLine={false}
           width={35}
@@ -82,11 +71,11 @@ export default function WeightChartInner({ data }: WeightChartInnerProps) {
         <Area
           type="monotone"
           dataKey="weightKg"
-          stroke="#3b82f6"
+          stroke={CHART_COLORS.weight}
           strokeWidth={2}
           fill="url(#weightGradient)"
           dot={false}
-          activeDot={{ r: 4, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+          activeDot={{ r: 4, fill: CHART_COLORS.weight, stroke: '#fff', strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>

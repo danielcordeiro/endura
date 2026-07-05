@@ -10,6 +10,7 @@ import {
   Tooltip,
   ReferenceLine,
 } from 'recharts';
+import { CHART_COLORS, CHART_GRID, CHART_AXIS_TICK, CHART_TOOLTIP_CONTAINER, formatChartDate } from '@/lib/chart-theme';
 
 interface DataPoint {
   date: string;
@@ -30,11 +31,6 @@ interface PMCChartInnerProps {
   raceDate?: string | null;
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip(props: any) {
   const { active, payload, label } = props;
@@ -42,12 +38,12 @@ function CustomTooltip(props: any) {
 
   // Une histórico e forecast por métrica (CTL/ATL/TSB) e remove o Area duplicado.
   const LABELS: Record<string, { name: string; color: string }> = {
-    ctl: { name: 'CTL', color: '#3b82f6' },
-    ctlF: { name: 'CTL', color: '#3b82f6' },
-    atl: { name: 'ATL', color: '#f43f5e' },
-    atlF: { name: 'ATL', color: '#f43f5e' },
-    tsb: { name: 'TSB', color: '#22c55e' },
-    tsbF: { name: 'TSB', color: '#22c55e' },
+    ctl: { name: 'CTL', color: CHART_COLORS.fitness },
+    ctlF: { name: 'CTL', color: CHART_COLORS.fitness },
+    atl: { name: 'ATL', color: CHART_COLORS.fatigue },
+    atlF: { name: 'ATL', color: CHART_COLORS.fatigue },
+    tsb: { name: 'TSB', color: CHART_COLORS.form },
+    tsbF: { name: 'TSB', color: CHART_COLORS.form },
   };
   const byMetric = new Map<string, { name: string; color: string; value: number }>();
   for (const entry of payload) {
@@ -62,15 +58,8 @@ function CustomTooltip(props: any) {
   if (rows.length === 0) return null;
 
   return (
-    <div style={{
-      background: '#283139',
-      border: '1px solid #334155',
-      borderRadius: 12,
-      padding: 12,
-      fontSize: 12,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-    }}>
-      <p style={{ color: '#94a3b8', marginBottom: 8 }}>{label ? formatDate(String(label)) : ''}</p>
+    <div style={CHART_TOOLTIP_CONTAINER}>
+      <p style={{ color: '#94a3b8', marginBottom: 8 }}>{label ? formatChartDate(String(label)) : ''}</p>
       {rows.map((entry, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: entry.color, display: 'inline-block' }} />
@@ -100,35 +89,35 @@ export default function PMCChartInner({ data, raceDate }: PMCChartInnerProps) {
       <ComposedChart data={data}>
         <defs>
           <linearGradient id="tsbGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
-            <stop offset="50%" stopColor="#22c55e" stopOpacity={0} />
-            <stop offset="50%" stopColor="#ef4444" stopOpacity={0} />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3} />
+            <stop offset="0%" stopColor={CHART_COLORS.form} stopOpacity={0.3} />
+            <stop offset="50%" stopColor={CHART_COLORS.form} stopOpacity={0} />
+            <stop offset="50%" stopColor={CHART_COLORS.danger} stopOpacity={0} />
+            <stop offset="100%" stopColor={CHART_COLORS.danger} stopOpacity={0.3} />
           </linearGradient>
         </defs>
         <XAxis
           dataKey="date"
-          tickFormatter={formatDate}
-          tick={{ fontSize: 10, fill: '#64748b' }}
+          tickFormatter={formatChartDate}
+          tick={CHART_AXIS_TICK}
           axisLine={false}
           tickLine={false}
           interval={Math.floor(data.length / 5)}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: '#64748b' }}
+          tick={CHART_AXIS_TICK}
           axisLine={false}
           tickLine={false}
           width={30}
         />
         <Tooltip content={<CustomTooltip />} />
-        <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+        <ReferenceLine y={0} stroke={CHART_GRID} strokeDasharray="3 3" />
         {hasForecast && raceDate && (
           <ReferenceLine
             x={raceDate}
-            stroke="#fbbf24"
+            stroke={CHART_COLORS.warning}
             strokeWidth={1.5}
             strokeDasharray="2 2"
-            label={{ value: 'PROVA', position: 'top', fontSize: 9, fill: '#fbbf24' }}
+            label={{ value: 'PROVA', position: 'top', fontSize: 9, fill: CHART_COLORS.warning }}
           />
         )}
         <Area
@@ -142,16 +131,16 @@ export default function PMCChartInner({ data, raceDate }: PMCChartInnerProps) {
         />
 
         {/* Histórico (linha sólida) */}
-        <Line type="monotone" dataKey="ctl" name="CTL" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls={false} />
-        <Line type="monotone" dataKey="atl" name="ATL" stroke="#f43f5e" strokeWidth={2} dot={false} strokeDasharray="4 4" connectNulls={false} />
-        <Line type="monotone" dataKey="tsb" name="TSB" stroke="#22c55e" strokeWidth={2} dot={false} connectNulls={false} />
+        <Line type="monotone" dataKey="ctl" name="CTL" stroke={CHART_COLORS.fitness} strokeWidth={2} dot={false} connectNulls={false} />
+        <Line type="monotone" dataKey="atl" name="ATL" stroke={CHART_COLORS.fatigue} strokeWidth={2} dot={false} strokeDasharray="4 4" connectNulls={false} />
+        <Line type="monotone" dataKey="tsb" name="TSB" stroke={CHART_COLORS.form} strokeWidth={2} dot={false} connectNulls={false} />
 
         {/* Projeção (linha tracejada, mais clara) */}
         {hasForecast && (
           <>
-            <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke="#3b82f6" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="atlF" name="ATL proj." stroke="#f43f5e" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke="#22c55e" strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke={CHART_COLORS.fitness} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="atlF" name="ATL proj." stroke={CHART_COLORS.fatigue} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+            <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke={CHART_COLORS.form} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
           </>
         )}
       </ComposedChart>

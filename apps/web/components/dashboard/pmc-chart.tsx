@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { CHART_COLORS } from '@/lib/chart-theme';
 
 interface DailyMetric {
   date: string;
@@ -128,18 +129,18 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
       {/* Current values */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-1">CTL</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.fitness }}>CTL</p>
           <p className="font-mono text-lg font-bold text-white">{currentCTL.toFixed(0)}</p>
           <p className="text-[10px] text-slate-500">Fitness</p>
         </div>
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1">ATL</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.fatigue }}>ATL</p>
           <p className="font-mono text-lg font-bold text-white">{currentATL.toFixed(0)}</p>
           <p className="text-[10px] text-slate-500">Fadiga</p>
         </div>
         <div className="bg-bg-elevated rounded-card-inner p-3.5 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">TSB</p>
-          <p className={`font-mono text-lg font-bold ${currentTSB >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: CHART_COLORS.form }}>TSB</p>
+          <p className="font-mono text-lg font-bold" style={{ color: currentTSB >= 0 ? CHART_COLORS.form : CHART_COLORS.danger }}>
             {currentTSB >= 0 ? '+' : ''}{currentTSB.toFixed(0)}
           </p>
           <p className="text-[10px] text-slate-500">Forma</p>
@@ -154,15 +155,15 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
       {/* Legend + toggle de projeção */}
       <div className="flex items-center justify-center gap-4 mt-3 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 bg-blue-500 rounded" />
+          <span className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.fitness }} />
           <span className="text-[10px] text-slate-500">Fitness (CTL)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 bg-rose-500 rounded border-dashed" />
+          <span className="w-3 h-0.5 rounded border-dashed" style={{ backgroundColor: CHART_COLORS.fatigue }} />
           <span className="text-[10px] text-slate-500">Fadiga (ATL)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 bg-emerald-500 rounded" />
+          <span className="w-3 h-0.5 rounded" style={{ backgroundColor: CHART_COLORS.form }} />
           <span className="text-[10px] text-slate-500">Forma (TSB)</span>
         </div>
         {hasForecast && (

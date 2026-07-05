@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
+import { CHART_COLORS, CHART_AXIS_TICK, CHART_TOOLTIP_CONTAINER } from '@/lib/chart-theme';
 
 interface DataPoint {
   date: string;
@@ -29,14 +30,7 @@ function CustomTooltip(props: any) {
   if (!active || !Array.isArray(payload) || payload.length === 0) return null;
   const val = Number(payload[0]?.value);
   return (
-    <div style={{
-      background: '#283139',
-      border: '1px solid #334155',
-      borderRadius: 12,
-      padding: 10,
-      fontSize: 12,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-    }}>
+    <div style={CHART_TOOLTIP_CONTAINER}>
       <p style={{ color: '#94a3b8', marginBottom: 4 }}>{label ? String(label) : ''}</p>
       <p style={{ color: '#fff', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
         TSS: {isFinite(val) ? val.toFixed(0) : '—'}
@@ -62,7 +56,7 @@ export default function WeeklyLoadChartInner({ data }: WeeklyLoadChartInnerProps
       <BarChart data={chartData} barSize={24}>
         <XAxis
           dataKey="day"
-          tick={{ fontSize: 10, fill: '#64748b' }}
+          tick={CHART_AXIS_TICK}
           axisLine={false}
           tickLine={false}
         />
@@ -70,7 +64,7 @@ export default function WeeklyLoadChartInner({ data }: WeeklyLoadChartInnerProps
         <Tooltip content={<CustomTooltip />} cursor={false} />
         <Bar
           dataKey="tss"
-          fill="#3b82f6"
+          fill={CHART_COLORS.load}
           radius={[8, 8, 0, 0]}
           opacity={0.8}
         />

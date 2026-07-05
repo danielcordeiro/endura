@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { CHART_COLORS } from '@/lib/chart-theme';
 
 /* ── Types ── */
 
@@ -45,7 +46,7 @@ const categoryLabels: Record<string, string> = {
 function ScoreRing({ score }: { score: number }) {
   const circumference = 2 * Math.PI * 36;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const color = score >= 80 ? CHART_COLORS.success : score >= 60 ? CHART_COLORS.warning : CHART_COLORS.danger;
 
   return (
     <div className="relative w-24 h-24">

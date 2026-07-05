@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { CHART_COLORS } from '@/lib/chart-theme';
 
 interface ReadinessScoreProps {
   score: number;
@@ -10,7 +11,7 @@ interface ReadinessScoreProps {
 export function ReadinessScore({ score, className }: ReadinessScoreProps) {
   const circumference = 2 * Math.PI * 54;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const color = score >= 80 ? CHART_COLORS.success : score >= 60 ? CHART_COLORS.warning : CHART_COLORS.danger;
   const label = score >= 80 ? 'Excelente' : score >= 60 ? 'Bom' : 'Precisa melhorar';
 
   return (
