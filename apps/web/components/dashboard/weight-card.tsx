@@ -30,7 +30,7 @@ export function WeightCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
         <div className="skeleton h-4 w-24 rounded mb-4" />
         <div className="skeleton h-32 w-full rounded-xl" />
       </div>
@@ -56,12 +56,12 @@ export function WeightCard() {
   const max = history.length > 0 ? Math.max(...history.map((h) => h.weightKg)) : current ?? 0;
 
   return (
-    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+    <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-lg text-slate-400">scale</span>
-          <h3 className="font-heading text-base font-bold text-slate-100">Peso</h3>
+          <h3 className="font-heading text-base font-bold text-text-primary">Peso</h3>
         </div>
         <span className="text-[10px] text-slate-500 uppercase tracking-wider">Ultimos 90 dias</span>
       </div>

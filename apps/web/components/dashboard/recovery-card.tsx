@@ -80,7 +80,7 @@ export function RecoveryCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
         <div className="skeleton h-4 w-32 rounded mb-4" />
         <div className="flex justify-center mb-4"><div className="skeleton h-32 w-32 rounded-full" /></div>
         <div className="grid grid-cols-2 gap-2">
@@ -96,13 +96,13 @@ export function RecoveryCard() {
   const band = BAND[data.band] ?? BAND.unknown;
 
   return (
-    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+    <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-lg text-slate-400">ecg_heart</span>
           <div>
-            <h3 className="font-heading text-base font-bold text-slate-100">Recuperação</h3>
+            <h3 className="font-heading text-base font-bold text-text-primary">Recuperação</h3>
             <p className="text-[10px] text-slate-500">vs baseline pessoal · {data.baselineDays}d</p>
           </div>
         </div>

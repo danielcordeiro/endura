@@ -82,7 +82,7 @@ function TestResultRow({ test, type, onNew }: { test: FitnessTest | null; type: 
   const config = testConfig[type];
 
   return (
-    <div className={cn('rounded-2xl border p-4', config.border, 'bg-bg-surface')}>
+    <div className={cn('rounded-card-inner border p-4', config.border, 'bg-bg-surface')}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className={cn('flex items-center justify-center w-8 h-8 rounded-lg', config.bg)}>
@@ -328,11 +328,11 @@ export function FitnessTestsCard() {
 
   return (
     <>
-      <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
         <div className="flex items-center gap-2 mb-4">
           <span className="material-symbols-outlined text-lg text-slate-400">science</span>
           <div>
-            <h3 className="font-heading text-base font-bold text-slate-100">Testes de Fitness</h3>
+            <h3 className="font-heading text-base font-bold text-text-primary">Testes de Fitness</h3>
             <p className="text-[10px] text-slate-500">T30 / FTP 20min / Cooper 12min</p>
           </div>
         </div>

@@ -43,7 +43,7 @@ export function LogPendingCard() {
 
   return (
     <>
-      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
         <div className="bg-gradient-to-br from-amber-900/30 to-card-gradient-lo rounded-[1.8rem] p-5">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">

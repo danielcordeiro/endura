@@ -107,13 +107,13 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   // No analysis yet - show generate button
   if (!analysis && !analysisQuery.isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-5">
+      <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5">
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-500/15">
             <span className="material-symbols-outlined text-xl text-purple-400">auto_awesome</span>
           </div>
           <div>
-            <h3 className="font-heading font-bold text-base text-slate-100">Analise com IA</h3>
+            <h3 className="font-heading font-bold text-base text-text-primary">Analise com IA</h3>
             <p className="text-xs text-slate-500">Compare sua nutricao prescrita vs executada</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   // Loading
   if (analysisQuery.isLoading) {
     return (
-      <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-5 animate-pulse space-y-4">
+      <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5 animate-pulse space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[#1c262f]" />
           <div className="h-5 w-40 rounded bg-[#1c262f]" />
@@ -152,12 +152,12 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
   if (!analysis) return null;
 
   return (
-    <div className="rounded-2xl border border-slate-800/50 bg-bg-surface p-5 space-y-5">
+    <div className="rounded-card border border-slate-800/50 bg-bg-surface p-5 space-y-5">
       {/* Header with score */}
       <div className="flex items-start gap-4">
         <ScoreRing score={analysis.adherenceScore} />
         <div className="flex-1 min-w-0">
-          <h3 className="font-heading font-bold text-base text-slate-100 mb-1">
+          <h3 className="font-heading font-bold text-base text-text-primary mb-1">
             Analise Nutricional
           </h3>
           <p className="text-sm text-slate-400 leading-relaxed">

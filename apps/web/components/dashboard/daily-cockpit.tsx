@@ -137,7 +137,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-primary text-xl shrink-0 mt-0.5">neurology</span>
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary/80 mb-0.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-primary/80 mb-0.5">
               {greeting()}{userName ? `, ${userName.split(' ')[0]}` : ''}
             </p>
             <p className="text-[13px] leading-snug text-text-primary/90">
@@ -151,13 +151,13 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
       <div className="grid grid-cols-2 grid-rows-2 gap-4">
         {/* Recovery hero — ocupa as 2 linhas */}
         <div
-          className="row-span-2 relative overflow-hidden rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col items-center justify-center"
+          className="row-span-2 relative overflow-hidden rounded-card bg-bg-surface border border-hairline p-5 flex flex-col items-center justify-center"
           style={{ boxShadow: recovery?.score != null ? `inset 0 0 40px ${ringColor}14` : undefined }}
         >
           <div className="self-start mb-2">
             <div className="flex items-center gap-1.5">
               <span className={cn('w-1.5 h-1.5 rounded-full animate-pulse', `bg-current`, BAND_TEXT[band])} />
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Recuperação</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">Recuperação</span>
             </div>
             {recovery?.score != null && (
               <span className="block text-[9px] text-text-faint mt-0.5">
@@ -184,9 +184,9 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
         </div>
 
         {/* Forma (TSB) */}
-        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col justify-between">
+        <div className="rounded-card bg-bg-surface border border-hairline p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Forma</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">Forma</span>
             <span className="material-symbols-outlined text-base text-text-faint">{trendIcon}</span>
           </div>
           <div className="flex items-end justify-between gap-1 mt-1">
@@ -199,8 +199,8 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
         </div>
 
         {/* Alvo de hoje (strain target) */}
-        <div className="rounded-card bg-bg-surface ring-1 ring-hairline p-5 flex flex-col justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted">Alvo de hoje</span>
+        <div className="rounded-card bg-bg-surface border border-hairline p-5 flex flex-col justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">Alvo de hoje</span>
           {lt ? (
             <>
               <span className="font-mono text-2xl font-bold text-primary leading-none mt-1">

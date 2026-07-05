@@ -17,7 +17,7 @@ interface TrendsChartProps {
 
 export function CarbsSodiumChart({ data, className }: TrendsChartProps) {
   return (
-    <div className={cn('rounded-2xl border border-slate-800/50 bg-bg-surface p-4', className)}>
+    <div className={cn('rounded-card border border-slate-800/50 bg-bg-surface p-5', className)}>
       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Carbs/h e Sodio/h</h3>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
@@ -38,7 +38,7 @@ export function CarbsSodiumChart({ data, className }: TrendsChartProps) {
 
 export function AdherenceChart({ data, className }: TrendsChartProps) {
   return (
-    <div className={cn('rounded-2xl border border-slate-800/50 bg-bg-surface p-4', className)}>
+    <div className={cn('rounded-card border border-slate-800/50 bg-bg-surface p-5', className)}>
       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Score de Adesao por Semana</h3>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data}>

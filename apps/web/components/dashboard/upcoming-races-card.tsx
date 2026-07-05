@@ -58,10 +58,10 @@ export function UpcomingRacesCard() {
   if (races.length === 0) return null;
 
   return (
-    <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+    <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
       <div className="flex items-center gap-2 mb-3">
         <span className="material-symbols-outlined text-primary text-xl">event</span>
-        <h3 className="font-heading text-sm font-bold text-text-primary uppercase tracking-wider">
+        <h3 className="font-heading text-base font-bold text-text-primary">
           Próximas provas
         </h3>
       </div>

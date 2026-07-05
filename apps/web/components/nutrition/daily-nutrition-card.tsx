@@ -102,12 +102,12 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
   /* ── No protocol state ── */
   if (!protocol) {
     return (
-      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
             <span className="material-symbols-outlined text-xl text-primary">nutrition</span>
           </div>
-          <h3 className="font-heading font-bold text-base text-slate-100">
+          <h3 className="font-heading font-bold text-base text-text-primary">
             Nutricao do Dia
           </h3>
         </div>
@@ -158,14 +158,14 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
 
   return (
     <>
-      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
               <span className="material-symbols-outlined text-xl text-primary">nutrition</span>
             </div>
-            <h3 className="font-heading font-bold text-base text-slate-100">
+            <h3 className="font-heading font-bold text-base text-text-primary">
               Nutricao do Dia
             </h3>
           </div>

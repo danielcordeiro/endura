@@ -141,7 +141,7 @@ export function WellnessCard() {
 
   if (isLoading) {
     return (
-      <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+      <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
         <div className="skeleton h-4 w-32 rounded mb-4" />
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -158,13 +158,13 @@ export function WellnessCard() {
   if (!hasAnyData) return null;
 
   return (
-    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+    <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-lg text-slate-400">watch</span>
           <div>
-            <h3 className="font-heading text-base font-bold text-slate-100">Dados do Relogio</h3>
+            <h3 className="font-heading text-base font-bold text-text-primary">Dados do Relogio</h3>
             <p className="text-[10px] text-slate-500">
               {data.date ? new Date(data.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : ''}
               {' '}via Garmin

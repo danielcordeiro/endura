@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DisciplineBadge } from '@/components/ui/discipline-badge';
 import { NutritionTimeline } from '@/components/ui/nutrition-timeline';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { SectionLabel } from '@/components/ui/section-label';
 import { IntraWorkoutSuggestionCard } from '@/components/nutrition/intra-workout-suggestion-card';
 
 /* ── Types ── */
@@ -74,7 +75,7 @@ function formatDate(dateStr: string): string {
 
 function WorkoutDetailSkeleton() {
   return (
-    <div className="space-y-6 pt-4 pb-28">
+    <div className="space-y-6 pt-6 pb-28">
       {/* Top nav */}
       <div className="flex items-center justify-between">
         <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
@@ -94,7 +95,7 @@ function WorkoutDetailSkeleton() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-2 animate-pulse"
+            className="rounded-card border border-hairline bg-bg-surface p-4 space-y-2 animate-pulse"
           >
             <div className="h-3 w-14 rounded bg-slate-800/60" />
             <div className="h-6 w-16 rounded bg-slate-800/60" />
@@ -106,7 +107,7 @@ function WorkoutDetailSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl border border-slate-800/50 bg-[#1c262f] p-4 space-y-2 animate-pulse"
+          className="rounded-card border border-hairline bg-bg-surface p-4 space-y-2 animate-pulse"
         >
           <div className="h-5 w-32 rounded bg-slate-800/60" />
           <div className="h-4 w-full rounded bg-slate-800/60" />
@@ -134,7 +135,7 @@ function StructureCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-800/50 bg-[#1c262f] p-4',
+        'rounded-card border border-hairline bg-bg-surface p-4',
         'border-l-[3px]',
         borderColor,
       )}
@@ -363,7 +364,7 @@ export default function TreinoDetailPage() {
     })) ?? [];
 
   return (
-    <div className="space-y-6 pt-4 pb-28">
+    <div className="space-y-6 pt-6 pb-28">
       {/* ── Fixed Top Nav ── */}
       <div
         className="flex items-center justify-between animate-fade-in-up stagger-1"
@@ -398,7 +399,7 @@ export default function TreinoDetailPage() {
       {/* ── Header ── */}
       <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <DisciplineBadge discipline={discipline} size="md" className="mb-3" />
-        <h1 className="font-[var(--font-heading)] text-3xl font-bold text-slate-100 leading-tight">
+        <h1 className="font-heading text-2xl font-bold text-text-primary leading-tight">
           {data.title}
         </h1>
         <div className="flex items-center gap-2 mt-2 text-slate-400">
@@ -417,7 +418,7 @@ export default function TreinoDetailPage() {
         className="grid grid-cols-3 gap-3 animate-fade-in-up stagger-2"
         style={{ opacity: 0 }}
       >
-        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+        <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
           <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
             timer
           </span>
@@ -429,7 +430,7 @@ export default function TreinoDetailPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+        <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
           <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
             straighten
           </span>
@@ -441,7 +442,7 @@ export default function TreinoDetailPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-800/50 bg-[#1c262f] p-4 text-center">
+        <div className="rounded-card border border-hairline bg-bg-surface p-4 text-center">
           <span className="material-symbols-outlined text-base text-slate-500 mb-1 block">
             speed
           </span>
@@ -457,30 +458,30 @@ export default function TreinoDetailPage() {
       {/* ── Structure Section ── */}
       {data.structure && (
         <div
-          className="space-y-3 animate-fade-in-up stagger-3"
+          className="animate-fade-in-up stagger-3"
           style={{ opacity: 0 }}
         >
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Estrutura
-          </p>
-          <StructureCard
-            label="Aquecimento"
-            content={data.structure.warmup}
-            borderColor="border-l-emerald-500"
-            icon="wb_sunny"
-          />
-          <StructureCard
-            label="Principal"
-            content={data.structure.main}
-            borderColor="border-l-primary"
-            icon="fitness_center"
-          />
-          <StructureCard
-            label="Desaquecimento"
-            content={data.structure.cooldown}
-            borderColor="border-l-blue-300"
-            icon="ac_unit"
-          />
+          <SectionLabel>Estrutura</SectionLabel>
+          <div className="space-y-3">
+            <StructureCard
+              label="Aquecimento"
+              content={data.structure.warmup}
+              borderColor="border-l-emerald-500"
+              icon="wb_sunny"
+            />
+            <StructureCard
+              label="Principal"
+              content={data.structure.main}
+              borderColor="border-l-primary"
+              icon="fitness_center"
+            />
+            <StructureCard
+              label="Desaquecimento"
+              content={data.structure.cooldown}
+              borderColor="border-l-blue-300"
+              icon="ac_unit"
+            />
+          </div>
         </div>
       )}
 

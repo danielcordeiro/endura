@@ -14,7 +14,7 @@ export function ReadinessScore({ score, className }: ReadinessScoreProps) {
   const label = score >= 80 ? 'Excelente' : score >= 60 ? 'Bom' : 'Precisa melhorar';
 
   return (
-    <div className={cn('rounded-2xl border border-slate-800/50 bg-bg-surface p-6 flex flex-col items-center', className)}>
+    <div className={cn('rounded-card border border-slate-800/50 bg-bg-surface p-6 flex flex-col items-center', className)}>
       <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Nutrition Readiness</h3>
       <div className="relative w-32 h-32">
         <svg className="w-32 h-32 -rotate-90" viewBox="0 0 120 120">

@@ -252,7 +252,7 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-8 pb-6">
       <HeaderSkeleton />
-      <div className="rounded-card bg-bg-surface p-6 shadow-card ring-1 ring-hairline space-y-4">
+      <div className="rounded-card bg-bg-surface p-6 shadow-card border border-hairline space-y-4">
         <div className="skeleton h-7 w-40 rounded-full" />
         <div className="flex items-end justify-between">
           <div className="skeleton h-14 w-32 rounded" />
@@ -267,7 +267,7 @@ function DashboardSkeleton() {
       <div className="skeleton h-40 w-full rounded-card" />
       <div className="grid grid-cols-2 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-2xl bg-bg-surface ring-1 ring-hairline p-5 space-y-3">
+          <div key={i} className="rounded-card bg-bg-surface border border-hairline p-5 space-y-3">
             <div className="skeleton h-3 w-16 rounded" />
             <div className="skeleton h-8 w-12 rounded" />
           </div>
@@ -548,7 +548,7 @@ export default function DashboardPage() {
                 <TargetRaceCard race={perfData.targetRace} />
                 {/* Race Predictor inline */}
                 {perfData.racePrediction && (
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <RacePredictorCard
                       prediction={perfData.racePrediction}
                       targetTimeSec={perfData.targetRace.targetTime}
@@ -559,7 +559,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setShowRaceForm(true)}
-                className="w-full rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
+                className="w-full rounded-card bg-bg-surface p-6 border border-hairline shadow-card flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
                   <span className="material-symbols-outlined text-3xl text-primary">flag</span>
@@ -597,7 +597,7 @@ export default function DashboardPage() {
             </SectionLabel>
 
             {todayWorkout ? (
-              <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+              <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
                 <div className="bg-gradient-to-br from-card-gradient-hi to-card-gradient-lo rounded-card-inner p-5">
                   <div className="flex items-start gap-4">
                     <div className={cn(
@@ -664,7 +664,7 @@ export default function DashboardPage() {
               </div>
             ) : todayActivity ? (
               <Link href="/atividades">
-                <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
+                <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
                   <div className="bg-gradient-to-br from-success/10 to-card-gradient-lo rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(
@@ -704,7 +704,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-card flex flex-col items-center text-center">
+              <div className="rounded-card bg-bg-surface p-8 border border-hairline shadow-card flex flex-col items-center text-center">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                   <span className="material-symbols-outlined text-3xl text-text-muted">bedtime</span>
                 </div>
@@ -753,13 +753,15 @@ export default function DashboardPage() {
 
           {/* ── Alerts ── */}
           {alerts.filter((a) => a.type !== 'onboarding').length > 0 && (
-            <div className="space-y-3 animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
-              <SectionLabel className="mb-0">Alertas</SectionLabel>
-              {alerts.filter((a) => a.type !== 'onboarding').map((alert, i) => (
-                <AlertBanner key={`${alert.type}-${i}`} variant={alertLevelToVariant(alert.level)}>
-                  {alert.message}
-                </AlertBanner>
-              ))}
+            <div className="animate-fade-in-up stagger-5" style={{ opacity: 0 }}>
+              <SectionLabel>Alertas</SectionLabel>
+              <div className="space-y-3">
+                {alerts.filter((a) => a.type !== 'onboarding').map((alert, i) => (
+                  <AlertBanner key={`${alert.type}-${i}`} variant={alertLevelToVariant(alert.level)}>
+                    {alert.message}
+                  </AlertBanner>
+                ))}
+              </div>
             </div>
           )}
         </>
@@ -867,7 +869,7 @@ export default function DashboardPage() {
 
             </>
           ) : (
-            <div className="rounded-card bg-bg-surface p-8 ring-1 ring-hairline shadow-card flex flex-col items-center text-center">
+            <div className="rounded-card bg-bg-surface p-8 border border-hairline shadow-card flex flex-col items-center text-center">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-bg-elevated mb-4">
                 <span className="material-symbols-outlined text-3xl text-text-muted">monitoring</span>
               </div>

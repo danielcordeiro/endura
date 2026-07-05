@@ -84,7 +84,7 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
 
   if (data.totalActivities === 0) {
     return (
-      <div className={cn('rounded-2xl bg-bg-surface border p-4', config.border)}>
+      <div className={cn('rounded-card-inner bg-bg-surface border p-4', config.border)}>
         <div className="flex items-center gap-2 mb-3">
           <div className={cn('flex items-center justify-center w-8 h-8 rounded-lg', config.bg)}>
             <span className={cn('material-symbols-outlined text-lg', config.color)}>{config.icon}</span>
@@ -97,7 +97,7 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
   }
 
   return (
-    <div className={cn('rounded-2xl bg-bg-surface border p-4', config.border)}>
+    <div className={cn('rounded-card-inner bg-bg-surface border p-4', config.border)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -199,11 +199,11 @@ function BenchmarkCard({ data }: { data: DisciplineBenchmark }) {
 
 export function DisciplineBenchmarks({ swim, bike, run }: DisciplineBenchmarksProps) {
   return (
-    <div className="rounded-card bg-bg-surface p-6 ring-1 ring-hairline shadow-card">
+    <div className="rounded-card bg-bg-surface p-6 border border-hairline shadow-card">
       <div className="flex items-center gap-2 mb-4">
         <span className="material-symbols-outlined text-lg text-slate-400">analytics</span>
         <div>
-          <h3 className="font-heading text-base font-bold text-slate-100">Testes por Disciplina</h3>
+          <h3 className="font-heading text-base font-bold text-text-primary">Testes por Disciplina</h3>
           <p className="text-[10px] text-slate-500">Resultados dos ultimos 180 dias</p>
         </div>
       </div>

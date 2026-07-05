@@ -50,10 +50,10 @@ export function RacePlanCard({ plan, onSelect }: RacePlanCardProps) {
   return (
     <div
       onClick={() => onSelect(plan.id)}
-      className="p-4 rounded-2xl border border-slate-800/50 bg-[#1c262f] hover:bg-[#283139] transition-colors cursor-pointer"
+      className="p-4 rounded-card border border-slate-800/50 bg-bg-surface hover:bg-bg-elevated transition-colors cursor-pointer"
     >
       <div className="flex items-start justify-between mb-2">
-        <h3 className="font-heading font-bold text-[15px] text-slate-100 truncate flex-1">
+        <h3 className="font-heading font-bold text-base text-text-primary truncate flex-1">
           {plan.name}
         </h3>
         <span className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ml-2 shrink-0', config.bg, config.text)}>
