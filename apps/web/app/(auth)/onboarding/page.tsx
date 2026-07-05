@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 /* ═══════════════════════════════════════════════════════
    Types
@@ -189,9 +191,6 @@ export default function OnboardingPage() {
     }
   }
 
-  const inputClass =
-    'w-full h-14 px-5 bg-[#1c262f] border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 text-[15px] outline-none transition-colors focus:border-primary';
-
   /* ─── Loading overlay ─── */
   if (isSubmitting) {
     return (
@@ -234,10 +233,10 @@ export default function OnboardingPage() {
       </div>
 
       {/* Steps */}
-      {step === 1 && <Step1 data={data} update={update} inputClass={inputClass} />}
-      {step === 2 && <Step2 data={data} update={update} inputClass={inputClass} />}
-      {step === 3 && <Step3 data={data} update={update} inputClass={inputClass} />}
-      {step === 4 && <Step4 data={data} update={update} inputClass={inputClass} />}
+      {step === 1 && <Step1 data={data} update={update} />}
+      {step === 2 && <Step2 data={data} update={update} />}
+      {step === 3 && <Step3 data={data} update={update} />}
+      {step === 4 && <Step4 data={data} update={update} />}
       {step === 5 && <Step5 data={data} update={update} onSkip={handleSubmit} />}
 
       {/* Navigation */}
@@ -278,7 +277,6 @@ export default function OnboardingPage() {
 interface StepProps {
   data: OnboardingData;
   update: (partial: Partial<OnboardingData>) => void;
-  inputClass?: string;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -426,7 +424,7 @@ const RACE_DISTANCES: { value: RaceDistance; label: string; detail: string; emoj
   { value: 'FULL', label: 'Full', detail: '3.8km / 180km / 42.2km', emoji: '🦾' },
 ];
 
-function Step2({ data, update, inputClass }: StepProps) {
+function Step2({ data, update }: StepProps) {
   return (
     <div className="space-y-6">
       <h2 className="font-bold text-2xl text-white tracking-tight">
@@ -462,15 +460,14 @@ function Step2({ data, update, inputClass }: StepProps) {
       </div>
 
       {/* Race date */}
-      <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">Data da prova</label>
-        <input
+      <Field label="Data da prova">
+        <Input
+          size="lg"
           type="date"
           value={data.raceDate}
           onChange={(e) => update({ raceDate: e.target.value })}
-          className={inputClass}
         />
-      </div>
+      </Field>
 
       {/* Goal type — segmented pill */}
       <div className="space-y-2">
@@ -505,31 +502,27 @@ function Step2({ data, update, inputClass }: StepProps) {
 
       {/* Target time (conditional) */}
       {data.raceGoalType === 'TIME' && (
-        <div className="space-y-2">
-          <label className="text-slate-400 text-sm font-medium">Tempo alvo</label>
-          <input
+        <Field label="Tempo alvo">
+          <Input
+            size="lg"
             type="text"
             placeholder="Ex: 5:30:00"
             value={data.targetTime}
             onChange={(e) => update({ targetTime: e.target.value })}
-            className={inputClass}
           />
-        </div>
+        </Field>
       )}
 
       {/* Race name (optional) */}
-      <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">
-          Nome da prova <span className="text-slate-600">(opcional)</span>
-        </label>
-        <input
+      <Field label={<>Nome da prova <span className="text-text-faint font-normal">(opcional)</span></>}>
+        <Input
+          size="lg"
           type="text"
           placeholder="Ex: Ironman 70.3 Florianópolis"
           value={data.raceName}
           onChange={(e) => update({ raceName: e.target.value })}
-          className={inputClass}
         />
-      </div>
+      </Field>
     </div>
   );
 }
@@ -538,72 +531,65 @@ function Step2({ data, update, inputClass }: StepProps) {
    Step 3 — Dados Fisiológicos
    ═══════════════════════════════════════════════════════ */
 
-function Step3({ data, update, inputClass }: StepProps) {
+function Step3({ data, update }: StepProps) {
   return (
     <div className="space-y-6">
       <h2 className="font-bold text-2xl text-white tracking-tight">
         Dados Fisiológicos
       </h2>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-slate-400 text-sm font-medium">Peso (kg)</label>
-          <input
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+        <Field label="Peso (kg)">
+          <Input
+            size="lg"
             type="number"
             step="0.1"
             placeholder="72.5"
             value={data.weight}
             onChange={(e) => update({ weight: e.target.value })}
-            className={inputClass}
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-slate-400 text-sm font-medium">Altura (cm)</label>
-          <input
+        </Field>
+        <Field label="Altura (cm)">
+          <Input
+            size="lg"
             type="number"
             placeholder="175"
             value={data.height}
             onChange={(e) => update({ height: e.target.value })}
-            className={inputClass}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label className="text-slate-400 text-sm font-medium">FC máx (bpm)</label>
-          <input
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+        <Field label="FC máx (bpm)">
+          <Input
+            size="lg"
             type="number"
             placeholder="185"
             value={data.maxHr}
             onChange={(e) => update({ maxHr: e.target.value })}
-            className={inputClass}
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-slate-400 text-sm font-medium">
-            FTP (W) <span className="text-slate-600 text-[11px]">opc.</span>
-          </label>
-          <input
+        </Field>
+        <Field label={<>FTP (W) <span className="text-text-faint font-normal">opc.</span></>}>
+          <Input
+            size="lg"
             type="number"
             placeholder="220"
             value={data.ftp}
             onChange={(e) => update({ ftp: e.target.value })}
-            className={inputClass}
           />
-        </div>
+        </Field>
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-slate-400 text-sm font-medium">Pace 5K (min:seg)</label>
-        <input
+      <Field label="Pace 5K (min:seg)">
+        <Input
+          size="lg"
           type="text"
           placeholder="5:30"
           value={data.pace5k}
           onChange={(e) => update({ pace5k: e.target.value })}
-          className={inputClass}
         />
-      </div>
+      </Field>
 
       {/* Equipment */}
       <div className="space-y-3">
@@ -643,7 +629,7 @@ const NUTRITION_PRODUCTS: NutritionProduct[] = [
   'Cafeina',
 ];
 
-function Step4({ data, update, inputClass }: StepProps) {
+function Step4({ data, update }: StepProps) {
   function toggleProduct(product: NutritionProduct) {
     const products = data.ownedProducts.includes(product)
       ? data.ownedProducts.filter((p) => p !== product)
@@ -658,18 +644,15 @@ function Step4({ data, update, inputClass }: StepProps) {
       </h2>
 
       {/* Dietary restrictions */}
-      <div className="space-y-2">
-        <label className="text-slate-400 text-sm font-medium">
-          Restrições alimentares
-        </label>
-        <input
+      <Field label="Restrições alimentares">
+        <Input
+          size="lg"
           type="text"
           placeholder="Ex: vegetariano, lactose, glúten..."
           value={data.dietaryRestrictions}
           onChange={(e) => update({ dietaryRestrictions: e.target.value })}
-          className={inputClass}
         />
-      </div>
+      </Field>
 
       {/* Owned products — pill buttons */}
       <div className="space-y-2">
@@ -768,7 +751,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
               Conectado
             </div>
           ) : (
-            <Button variant="strava" onClick={handleConnectStrava} className="h-10 px-5 text-[13px]">
+            <Button variant="strava" size="sm" onClick={handleConnectStrava}>
               Conectar
             </Button>
           )}
@@ -798,7 +781,7 @@ function Step5({ data, update, onSkip }: Omit<StepProps, 'inputClass'> & { onSki
               Conectado
             </div>
           ) : (
-            <Button variant="secondary" onClick={handleConnectIntervals} className="h-10 px-5 text-[13px]">
+            <Button variant="secondary" size="sm" onClick={handleConnectIntervals}>
               Conectar
             </Button>
           )}

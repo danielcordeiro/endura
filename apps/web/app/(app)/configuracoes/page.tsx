@@ -10,6 +10,9 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { APP_VERSION } from '@/lib/version';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 import { ApiKeysSection } from '@/components/settings/api-keys-section';
 import { RaceCalendarSection } from '@/components/settings/race-calendar-section';
 
@@ -123,7 +126,7 @@ function IntegrationCard({
           <button
             onClick={onSync}
             disabled={isSyncing}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition-colors disabled:opacity-40 shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition-colors disabled:opacity-40 shrink-0"
           >
             <span className={cn('material-symbols-outlined text-xl', isSyncing && 'animate-spin')}>
               sync
@@ -132,7 +135,7 @@ function IntegrationCard({
         ) : (
           <button
             onClick={onConnect}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-sm">link</span>
             Conectar
@@ -373,9 +376,9 @@ export default function ConfiguracoesPage() {
           <button
             onClick={() => router.push('/onboarding')}
             aria-label="Editar perfil"
-            className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+            className="absolute bottom-0 right-0 w-11 h-11 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 active:scale-95 transition-transform"
           >
-            <span className="material-symbols-outlined text-sm text-white">edit</span>
+            <span className="material-symbols-outlined text-base text-white">edit</span>
           </button>
         </div>
         <h2 className="font-[var(--font-heading)] font-bold text-lg text-slate-100 mt-3">
@@ -546,52 +549,44 @@ export default function ConfiguracoesPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-                  Athlete ID
-                </label>
-                <input
+              <Field label="Athlete ID" hint="Visivel na URL do intervals.icu (ex: intervals.icu/athlete/i12345)">
+                <Input
                   type="text"
                   value={intervalsAthleteId}
                   onChange={(e) => setIntervalsAthleteId(e.target.value)}
                   placeholder="Ex: i12345"
-                  className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white font-mono placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                  className="font-mono"
                 />
-                <p className="text-[10px] text-slate-500 mt-1">Visivel na URL do intervals.icu (ex: intervals.icu/athlete/i12345)</p>
-              </div>
+              </Field>
 
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-                  API Key
-                </label>
-                <input
+              <Field label="API Key" hint="Gerada em intervals.icu/settings → Chave de API">
+                <Input
                   type="password"
                   value={intervalsApiKey}
                   onChange={(e) => setIntervalsApiKey(e.target.value)}
                   placeholder="Cole sua API Key aqui"
-                  className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white font-mono placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
+                  className="font-mono"
                 />
-                <p className="text-[10px] text-slate-500 mt-1">Gerada em intervals.icu/settings → Chave de API</p>
-              </div>
+              </Field>
 
               {intervalsConnectError && (
                 <p className="text-sm text-danger">{intervalsConnectError}</p>
               )}
 
               <div className="flex gap-3 pt-1">
-                <button
-                  onClick={() => setShowIntervalsForm(false)}
-                  className="flex-1 h-14 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
-                >
+                <Button variant="secondary" size="lg" fullWidth onClick={() => setShowIntervalsForm(false)}>
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
                   onClick={() => intervalsConnectMutation.mutate()}
                   disabled={!intervalsApiKey || !intervalsAthleteId || intervalsConnectMutation.isPending}
-                  className="flex-1 h-14 rounded-full bg-primary text-white font-bold text-sm active:scale-[0.98] transition-transform disabled:opacity-50"
+                  loading={intervalsConnectMutation.isPending}
                 >
-                  {intervalsConnectMutation.isPending ? 'Conectando...' : 'Conectar'}
-                </button>
+                  Conectar
+                </Button>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { Label } from './label';
 
 interface FieldProps {
-  label?: string;
+  label?: React.ReactNode;
   htmlFor?: string;
   hint?: string;
   error?: string;

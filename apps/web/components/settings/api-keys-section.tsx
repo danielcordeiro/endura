@@ -6,6 +6,8 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { apiFetch, cn } from '@/lib/utils';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 interface ApiKeyListItem {
   id: string;
@@ -129,7 +131,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
             resetCreateForm();
             setShowCreate(true);
           }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-full text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors"
         >
           <span className="material-symbols-outlined text-sm">add</span>
           Nova
@@ -175,7 +177,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                 }
               }}
               disabled={revokeMutation.isPending}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-elevated border border-slate-700/50 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40 shrink-0"
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40 shrink-0"
               title="Revogar"
             >
               <span className="material-symbols-outlined text-xl">delete</span>
@@ -224,13 +226,14 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
             </div>
 
             <div className="space-y-5">
-              <input
-                type="text"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                placeholder="Nome da chave (ex: openclaw, Home Assistant)"
-                className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
-              />
+              <Field>
+                <Input
+                  type="text"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  placeholder="Nome da chave (ex: openclaw, Home Assistant)"
+                />
+              </Field>
 
               <div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Bundles</p>
@@ -238,14 +241,14 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                   <button
                     type="button"
                     onClick={() => applyBundle('coach')}
-                    className="flex-1 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/15 transition-colors"
+                    className="flex-1 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/15 transition-colors"
                   >
                     Coach (full)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyBundle('readOnly')}
-                    className="flex-1 h-10 rounded-lg bg-slate-700/40 border border-slate-600/40 text-slate-300 text-xs font-semibold hover:bg-slate-700/60 transition-colors"
+                    className="flex-1 h-11 rounded-lg bg-slate-700/40 border border-slate-600/40 text-slate-300 text-xs font-semibold hover:bg-slate-700/60 transition-colors"
                   >
                     Somente leitura
                   </button>
@@ -254,7 +257,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
 
               <div>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Leitura</p>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {readScopes.map((s) => (
                     <ScopeCheckbox
                       key={s}
@@ -268,7 +271,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
 
               <div>
                 <p className="text-[11px] font-bold text-amber-300 uppercase tracking-widest mb-2">Escrita</p>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {writeScopes.map((s) => (
                     <ScopeCheckbox
                       key={s}
@@ -295,7 +298,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                       type="button"
                       onClick={() => setExpiresInDays(opt.val)}
                       className={cn(
-                        'h-10 rounded-lg text-xs font-semibold transition-colors border',
+                        'h-11 rounded-lg text-xs font-semibold transition-colors border',
                         expiresInDays === opt.val
                           ? 'bg-primary/15 border-primary/50 text-primary'
                           : 'bg-bg-input border-slate-700 text-slate-400 hover:text-slate-200',
@@ -380,7 +383,7 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
                 <button
                   onClick={() => handleCopy(createdKey.key)}
                   className={cn(
-                    'flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white shrink-0',
+                    'flex items-center justify-center w-11 h-11 rounded-xl bg-primary text-white shrink-0',
                     copied && 'bg-emerald-600',
                   )}
                   title={copied ? 'Copiado!' : 'Copiar'}
@@ -429,7 +432,7 @@ function ScopeCheckbox({
       type="button"
       onClick={onToggle}
       className={cn(
-        'w-full flex items-start gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors',
+        'w-full flex items-start gap-3 px-3 py-3 rounded-lg border text-left transition-colors',
         checked
           ? tone === 'write'
             ? 'bg-amber-500/10 border-amber-500/40'

@@ -9,6 +9,10 @@ import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { AlertBanner } from '@/components/ui/alert-banner';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Field } from '@/components/ui/field';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 /* ---------- Types ---------- */
 
@@ -205,10 +209,6 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
   const setField = (field: keyof FormState, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 block';
-  const inputClass =
-    'w-full h-12 px-4 bg-[#283139] border border-slate-700/50 rounded-2xl text-slate-100 placeholder:text-slate-500 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -306,29 +306,24 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
         title={editingId ? 'Editar prova' : 'Adicionar prova'}
       >
         <div className="flex flex-col gap-5">
-          <div>
-            <label className={labelClass}>Nome da prova</label>
-            <input
+          <Field label="Nome da prova">
+            <Input
               type="text"
               placeholder="Ex: IRONMAN 70.3 Nice"
               value={form.raceName}
               onChange={(e) => setField('raceName', e.target.value)}
-              className={inputClass}
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Data</label>
-              <input
+            <Field label="Data">
+              <Input
                 type="date"
                 value={form.raceDate}
                 onChange={(e) => setField('raceDate', e.target.value)}
-                className={inputClass}
               />
-            </div>
-            <div>
-              <label className={labelClass}>Prioridade</label>
+            </Field>
+            <Field label="Prioridade">
               <div className="flex gap-2 h-12">
                 {(['A', 'B', 'C'] as const).map((p) => (
                   <button
@@ -339,45 +334,42 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                       'flex-1 rounded-2xl border font-bold text-sm transition-colors',
                       form.priority === p
                         ? PRIORITY_META[p]!.cls + ' border-transparent'
-                        : 'border-slate-700/50 text-slate-400 bg-[#283139]',
+                        : 'border-slate-700/50 text-slate-400 bg-bg-input',
                     )}
                   >
                     {p}
                   </button>
                 ))}
               </div>
-            </div>
+            </Field>
           </div>
 
-          <div>
-            <label className={labelClass}>Tipo / distância</label>
-            <select
-              value={form.distance}
-              onChange={(e) => setField('distance', e.target.value)}
-              className={inputClass}
-            >
-              {DISTANCE_OPTIONS.map((d) => (
-                <option key={d} value={d}>
-                  {DISTANCE_LABELS[d]}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Field label="Tipo / distância">
+            <Select value={form.distance} onValueChange={(v) => setField('distance', v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DISTANCE_OPTIONS.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {DISTANCE_LABELS[d]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
 
-          <div>
-            <label className={labelClass}>Local</label>
-            <input
+          <Field label="Local">
+            <Input
               type="text"
               placeholder="Ex: Nice, França"
               value={form.location}
               onChange={(e) => setField('location', e.target.value)}
-              className={inputClass}
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Objetivo</label>
+            <Field label="Objetivo">
               <div className="flex gap-2 h-12">
                 {([['finish', 'Concluir'], ['time', 'Tempo']] as const).map(([val, lbl]) => (
                   <button
@@ -388,63 +380,56 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                       'flex-1 rounded-2xl border text-sm font-semibold transition-colors',
                       form.goal === val
                         ? 'bg-primary text-white border-transparent'
-                        : 'border-slate-700/50 text-slate-400 bg-[#283139]',
+                        : 'border-slate-700/50 text-slate-400 bg-bg-input',
                     )}
                   >
                     {lbl}
                   </button>
                 ))}
               </div>
-            </div>
+            </Field>
             {form.goal === 'time' && (
-              <div>
-                <label className={labelClass}>Tempo alvo (h:m:s)</label>
-                <input
+              <Field label="Tempo alvo (h:m:s)">
+                <Input
                   type="text"
                   placeholder="04:30:00"
                   value={form.targetTime}
                   onChange={(e) => setField('targetTime', e.target.value)}
-                  className={cn(inputClass, 'font-[var(--font-mono)]')}
+                  className="font-[var(--font-mono)]"
                 />
-              </div>
+              </Field>
             )}
           </div>
 
           {form.distance === '70.3' || form.distance === 'full' ? (
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>D+ bike (m)</label>
-                <input
+              <Field label="D+ bike (m)">
+                <Input
                   type="number"
                   placeholder="0"
                   value={form.bikeElevationGainM}
                   onChange={(e) => setField('bikeElevationGainM', e.target.value)}
-                  className={inputClass}
                 />
-              </div>
-              <div>
-                <label className={labelClass}>D+ corrida (m)</label>
-                <input
+              </Field>
+              <Field label="D+ corrida (m)">
+                <Input
                   type="number"
                   placeholder="0"
                   value={form.runElevationGainM}
                   onChange={(e) => setField('runElevationGainM', e.target.value)}
-                  className={inputClass}
                 />
-              </div>
+              </Field>
             </div>
           ) : null}
 
-          <div>
-            <label className={labelClass}>Notas</label>
-            <textarea
+          <Field label="Notas">
+            <Textarea
               placeholder="Estratégia, logística, checklist…"
               value={form.notes}
               onChange={(e) => setField('notes', e.target.value)}
               rows={2}
-              className={cn(inputClass, 'h-auto py-3 resize-none')}
             />
-          </div>
+          </Field>
 
           {validationError && (
             <p className="text-[13px] text-red-400 flex items-center gap-1.5">
@@ -464,24 +449,25 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
           {editingId && (
             <Button
               variant="secondary"
+              size="lg"
               onClick={() => {
                 if (editingId) deleteMutation.mutate(editingId);
                 closeSheet();
               }}
-              className="h-14 px-5 text-red-400"
+              className="px-5 text-red-400"
             >
               <span className="material-symbols-outlined">delete</span>
             </Button>
           )}
-          <Button variant="secondary" fullWidth onClick={closeSheet} className="h-14">
+          <Button variant="secondary" size="lg" fullWidth onClick={closeSheet}>
             Cancelar
           </Button>
           <Button
             variant="primary"
+            size="lg"
             fullWidth
             onClick={handleSave}
             loading={saveMutation.isPending}
-            className="h-14"
           >
             Salvar
           </Button>

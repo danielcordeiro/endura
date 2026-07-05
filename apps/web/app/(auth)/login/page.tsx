@@ -4,6 +4,8 @@ import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 type Tab = 'login' | 'register';
 
@@ -162,9 +164,6 @@ function LoginPageInner() {
     setConfirmPassword('');
   }
 
-  const inputClass =
-    'w-full h-14 px-5 bg-bg-surface border border-border-strong/50 rounded-2xl text-text-primary placeholder:text-text-muted text-[15px] outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20';
-
   return (
     <div className="w-full max-w-[400px] animate-fade-in-up">
       {/* Logo */}
@@ -218,32 +217,28 @@ function LoginPageInner() {
       {/* Login Form */}
       {activeTab === 'login' && (
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <input
+          <Field error={errors.email}>
+            <Input
+              size="lg"
               type="email"
               placeholder="E-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
               autoComplete="email"
+              invalid={!!errors.email}
             />
-            {errors.email && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.email}</p>
-            )}
-          </div>
-          <div>
-            <input
+          </Field>
+          <Field error={errors.password}>
+            <Input
+              size="lg"
               type="password"
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
               autoComplete="current-password"
+              invalid={!!errors.password}
             />
-            {errors.password && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.password}</p>
-            )}
-          </div>
+          </Field>
           <Button type="submit" fullWidth loading={isLoading}>
             Entrar
           </Button>
@@ -279,58 +274,50 @@ function LoginPageInner() {
       {/* Register Form */}
       {activeTab === 'register' && (
         <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <input
+          <Field error={errors.name}>
+            <Input
+              size="lg"
               type="text"
               placeholder="Nome completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={inputClass}
               autoComplete="name"
+              invalid={!!errors.name}
             />
-            {errors.name && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.name}</p>
-            )}
-          </div>
-          <div>
-            <input
+          </Field>
+          <Field error={errors.email}>
+            <Input
+              size="lg"
               type="email"
               placeholder="E-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
               autoComplete="email"
+              invalid={!!errors.email}
             />
-            {errors.email && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.email}</p>
-            )}
-          </div>
-          <div>
-            <input
+          </Field>
+          <Field error={errors.password}>
+            <Input
+              size="lg"
               type="password"
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
               autoComplete="new-password"
+              invalid={!!errors.password}
             />
-            {errors.password && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.password}</p>
-            )}
-          </div>
-          <div>
-            <input
+          </Field>
+          <Field error={errors.confirmPassword}>
+            <Input
+              size="lg"
               type="password"
               placeholder="Confirmar senha"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={inputClass}
               autoComplete="new-password"
+              invalid={!!errors.confirmPassword}
             />
-            {errors.confirmPassword && (
-              <p className="mt-1.5 text-danger text-[12px] pl-1">{errors.confirmPassword}</p>
-            )}
-          </div>
+          </Field>
           <Button type="submit" fullWidth loading={isLoading}>
             Criar Conta
           </Button>
