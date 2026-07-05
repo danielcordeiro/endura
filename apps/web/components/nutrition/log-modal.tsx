@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 interface ProtocolItem {
   phase: string;
@@ -221,7 +222,8 @@ export function LogModal({
                   <span className="font-mono text-xs text-slate-500 w-10 shrink-0">{formatOffset(entry.item.minuteOffset)}</span>
                   <span className="flex-1 text-sm text-slate-200">{entry.item.productName}</span>
                   {!entry.skipped && (
-                    <input
+                    <Input
+                      size="sm"
                       type="number"
                       min={0}
                       step={0.5}
@@ -231,7 +233,7 @@ export function LogModal({
                         next[idx] = { ...entry, consumedQuantity: Number(e.target.value) };
                         setEntries(next);
                       }}
-                      className="w-16 h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-sm text-white text-center font-mono"
+                      className="w-20 shrink-0 px-2 text-center font-mono"
                     />
                   )}
                   <span className="text-xs text-slate-500 w-6 shrink-0">{entry.item.unit}</span>
@@ -252,7 +254,8 @@ export function LogModal({
                       </button>
                     ) : (
                       <div className="ml-8 space-y-2">
-                        <input
+                        <Input
+                          size="sm"
                           type="text"
                           placeholder="Produto real (ex: GU Energy Vanilla)"
                           value={entry.productName}
@@ -261,9 +264,9 @@ export function LogModal({
                             next[idx] = { ...entry, productName: e.target.value };
                             setEntries(next);
                           }}
-                          className="w-full h-9 bg-bg-input border border-slate-700 rounded-lg px-3 text-xs text-white"
                         />
-                        <input
+                        <Input
+                          size="sm"
                           type="text"
                           placeholder="Marca (opcional)"
                           value={entry.brand}
@@ -272,7 +275,6 @@ export function LogModal({
                             next[idx] = { ...entry, brand: e.target.value };
                             setEntries(next);
                           }}
-                          className="w-full h-9 bg-bg-input border border-slate-700 rounded-lg px-3 text-xs text-white"
                         />
                       </div>
                     )}

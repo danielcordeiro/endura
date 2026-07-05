@@ -99,7 +99,7 @@ export function ProtocolComparison({ data, className }: ProtocolComparisonProps)
                   </span>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {/* Prescribed bar */}
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-slate-500 w-12">Prescrito</span>

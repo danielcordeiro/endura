@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface SuggestionItem {
   phase: 'during' | 'pre' | 'post';
@@ -175,7 +178,7 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
         {accepted && !editing && (
           <button
             onClick={startEdit}
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-slate-700/50 text-slate-400 hover:text-slate-100 transition shrink-0"
             title="Editar"
           >
             <span className="material-symbols-outlined text-lg">edit</span>
@@ -186,92 +189,93 @@ export function IntraWorkoutSuggestionCard({ workoutId, durationMin }: { workout
       {editing ? (
         <div className="space-y-3">
           {draft.map((item, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-700/50 bg-bg-elevated p-3 space-y-2">
+            <div key={idx} className="rounded-xl border border-slate-700/50 bg-bg-elevated p-3 space-y-3">
               <div className="flex items-center gap-2">
-                <input
+                <Input
+                  size="sm"
                   type="number"
                   min={0}
                   value={item.minuteOffset}
                   onChange={(e) => updateItem(idx, { minuteOffset: Number(e.target.value) })}
-                  className="w-14 h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white text-center font-mono"
                   title="Minuto"
+                  className="w-16 shrink-0 px-2 text-center font-mono"
                 />
-                <span className="text-xs text-slate-500">min</span>
-                <input
+                <span className="text-xs text-slate-500 shrink-0">min</span>
+                <Input
+                  size="sm"
                   type="text"
                   value={item.productName}
                   onChange={(e) => updateItem(idx, { productName: e.target.value })}
-                  className="flex-1 h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-sm text-white"
+                  className="flex-1"
                 />
                 <button
                   onClick={() => removeItem(idx)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10 shrink-0"
+                  aria-label="Remover item"
+                  className="w-11 h-11 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-500/10 shrink-0"
                   title="Remover"
                 >
                   <span className="material-symbols-outlined text-base">delete</span>
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <input
-                  type="text"
-                  placeholder="Marca (opcional)"
-                  value={item.brand ?? ''}
-                  onChange={(e) => updateItem(idx, { brand: e.target.value })}
-                  className="flex-1 h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white"
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] text-slate-500 uppercase">Qtd</span>
-                  <input
+              <Input
+                size="sm"
+                type="text"
+                placeholder="Marca (opcional)"
+                value={item.brand ?? ''}
+                onChange={(e) => updateItem(idx, { brand: e.target.value })}
+              />
+              <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+                <Field label="Qtd">
+                  <Input
+                    size="sm"
                     type="number"
                     min={0}
                     step={0.5}
                     value={item.quantity}
                     onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
-                    className="h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white text-center"
+                    className="text-center font-mono"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] text-slate-500 uppercase">Unidade</span>
-                  <select
-                    value={item.unit}
-                    onChange={(e) => updateItem(idx, { unit: e.target.value as SuggestionItem['unit'] })}
-                    className="h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white"
-                  >
-                    <option value="un">un</option>
-                    <option value="ml">ml</option>
-                    <option value="g">g</option>
-                    <option value="scoop">scoop</option>
-                  </select>
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] text-slate-500 uppercase">Carb(g)</span>
-                  <input
+                </Field>
+                <Field label="Unidade">
+                  <Select value={item.unit} onValueChange={(v) => updateItem(idx, { unit: v as SuggestionItem['unit'] })}>
+                    <SelectTrigger size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="un">un</SelectItem>
+                      <SelectItem value="ml">ml</SelectItem>
+                      <SelectItem value="g">g</SelectItem>
+                      <SelectItem value="scoop">scoop</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Carb(g)">
+                  <Input
+                    size="sm"
                     type="number"
                     min={0}
                     value={item.carbsG}
                     onChange={(e) => updateItem(idx, { carbsG: Number(e.target.value) })}
-                    className="h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white text-center"
+                    className="text-center font-mono"
                   />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-[10px] text-slate-500 uppercase">Na(mg)</span>
-                  <input
+                </Field>
+                <Field label="Na(mg)">
+                  <Input
+                    size="sm"
                     type="number"
                     min={0}
                     value={item.sodiumMg}
                     onChange={(e) => updateItem(idx, { sodiumMg: Number(e.target.value) })}
-                    className="h-8 bg-bg-input border border-slate-700 rounded-lg px-2 text-xs text-white text-center"
+                    className="text-center font-mono"
                   />
-                </label>
+                </Field>
               </div>
             </div>
           ))}
 
           <button
             onClick={addItem}
-            className="w-full h-10 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-slate-100 hover:border-slate-600 text-xs font-semibold flex items-center justify-center gap-1 transition"
+            className="w-full h-11 rounded-xl border border-dashed border-slate-700 text-slate-400 hover:text-slate-100 hover:border-slate-600 text-xs font-semibold flex items-center justify-center gap-1 transition"
           >
             <span className="material-symbols-outlined text-base">add</span>
             Adicionar item

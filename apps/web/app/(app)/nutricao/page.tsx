@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { AlertBanner } from '@/components/ui/alert-banner';
 import { ProductAutocomplete, type CatalogProduct } from '@/components/ui/product-autocomplete';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 /* ---------- Types ---------- */
 
@@ -196,12 +198,6 @@ export default function NutricaoPage() {
   const presets = presetsQuery.data?.data ?? [];
   const shoppingList = shoppingListQuery.data?.data ?? [];
 
-  const inputClass =
-    'w-full h-11 px-3 bg-[#283139] border border-slate-700/50 rounded-xl text-slate-100 placeholder:text-slate-500 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-
-  const smallInputClass =
-    'w-full h-9 px-3 bg-[#283139] border border-slate-700/50 rounded-xl text-slate-100 placeholder:text-slate-500 font-[var(--font-mono)] text-[13px] outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-
   return (
     <div className="py-6 space-y-8">
       {/* Title */}
@@ -304,7 +300,7 @@ export default function NutricaoPage() {
                 <button
                   onClick={() => deletePresetMutation.mutate(preset.id)}
                   disabled={deletePresetMutation.isPending}
-                  className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                  className="flex items-center justify-center w-11 h-11 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
                 >
                   <span className="material-symbols-outlined text-lg">delete</span>
                 </button>
@@ -381,18 +377,14 @@ export default function NutricaoPage() {
       >
         <div className="space-y-5">
           {/* Preset name */}
-          <div>
-            <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">
-              Nome do preset
-            </label>
-            <input
+          <Field label="Nome do preset">
+            <Input
               type="text"
               placeholder="Ex: Treino longo bike"
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
-              className={inputClass}
             />
-          </div>
+          </Field>
 
           {/* Items */}
           <div className="space-y-3">
@@ -403,7 +395,7 @@ export default function NutricaoPage() {
             {presetItems.map((item, index) => (
               <div
                 key={index}
-                className="space-y-2 p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f]"
+                className="space-y-3 p-3 rounded-2xl border border-slate-800/50 bg-[#1c262f]"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">
@@ -412,7 +404,8 @@ export default function NutricaoPage() {
                   {presetItems.length > 1 && (
                     <button
                       onClick={() => removePresetItem(index)}
-                      className="text-slate-500 hover:text-red-400 transition-colors"
+                      aria-label="Remover item"
+                      className="flex items-center justify-center w-11 h-11 -m-2.5 text-slate-500 hover:text-red-400 transition-colors shrink-0"
                     >
                       <span className="material-symbols-outlined text-sm">delete</span>
                     </button>
@@ -423,46 +416,41 @@ export default function NutricaoPage() {
                   onChange={(v) => updatePresetItem(index, 'product', v)}
                   onProductSelect={(p) => handlePresetProductSelect(index, p)}
                   placeholder="Produto"
-                  className="h-11 px-3 pr-10 border bg-[#283139] rounded-xl text-sm"
+                  className="h-11 px-3 pr-10 border border-border-strong/50 bg-bg-input rounded-xl text-sm"
                 />
-                <input
+                <Input
                   type="text"
                   placeholder="Quantidade (ex: 2 unidades)"
                   value={item.quantity}
                   onChange={(e) =>
                     updatePresetItem(index, 'quantity', e.target.value)
                   }
-                  className={inputClass}
                 />
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-slate-500">
-                      Carb (g)
-                    </label>
-                    <input
+                <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+                  <Field label="Carb (g)">
+                    <Input
+                      size="sm"
                       type="number"
                       placeholder="0"
                       value={item.carbsG}
                       onChange={(e) =>
                         updatePresetItem(index, 'carbsG', e.target.value)
                       }
-                      className={smallInputClass}
+                      className="font-[var(--font-mono)]"
                     />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-500">
-                      Sodio (mg)
-                    </label>
-                    <input
+                  </Field>
+                  <Field label="Sodio (mg)">
+                    <Input
+                      size="sm"
                       type="number"
                       placeholder="0"
                       value={item.sodiumMg}
                       onChange={(e) =>
                         updatePresetItem(index, 'sodiumMg', e.target.value)
                       }
-                      className={smallInputClass}
+                      className="font-[var(--font-mono)]"
                     />
-                  </div>
+                  </Field>
                 </div>
               </div>
             ))}

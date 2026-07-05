@@ -191,7 +191,7 @@ export default function TreinoPage() {
             disabled={!canPrev}
             aria-label="Semana anterior"
             className={cn(
-              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
               canPrev
                 ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
                 : 'text-slate-600 opacity-40 cursor-not-allowed',
@@ -217,7 +217,7 @@ export default function TreinoPage() {
             disabled={!canNext}
             aria-label="Proxima semana"
             className={cn(
-              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
+              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-800/60 transition-all',
               canNext
                 ? 'text-slate-200 hover:bg-[#283139] active:scale-95'
                 : 'text-slate-600 opacity-40 cursor-not-allowed',

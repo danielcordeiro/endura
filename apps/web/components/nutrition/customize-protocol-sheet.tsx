@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 /* ── Types ── */
 
@@ -35,12 +37,6 @@ const phaseOptions = [
   { value: 'during', label: 'Durante' },
   { value: 'post', label: 'Pos' },
 ] as const;
-
-const inputClass =
-  'w-full h-9 px-3 bg-[#283139] border border-slate-700/50 rounded-xl text-slate-100 placeholder:text-slate-500 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-
-const smallInputClass =
-  'w-full h-8 px-2 bg-[#283139] border border-slate-700/50 rounded-lg text-slate-100 placeholder:text-slate-500 font-[var(--font-mono)] text-[12px] outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
 
 /* ── Component ── */
 
@@ -111,7 +107,7 @@ export function CustomizeProtocolSheet({
                     key={opt.value}
                     onClick={() => updateItem(index, 'phase', opt.value)}
                     className={cn(
-                      'px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors',
+                      'inline-flex items-center justify-center h-11 px-3 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors',
                       item.phase === opt.value
                         ? opt.value === 'pre'
                           ? 'bg-amber-500/20 text-amber-400'
@@ -128,58 +124,59 @@ export function CustomizeProtocolSheet({
               {items.length > 1 && (
                 <button
                   onClick={() => removeItem(index)}
-                  className="text-slate-500 hover:text-red-400 transition-colors"
+                  aria-label="Remover item"
+                  className="flex items-center justify-center w-11 h-11 text-slate-500 hover:text-red-400 transition-colors shrink-0"
                 >
                   <span className="material-symbols-outlined text-sm">delete</span>
                 </button>
               )}
             </div>
 
-            <input
+            <Input
+              size="sm"
               type="text"
               placeholder="Produto"
               value={item.productName}
               onChange={(e) => updateItem(index, 'productName', e.target.value)}
-              className={inputClass}
             />
 
-            <div className="grid grid-cols-4 gap-1.5">
-              <div>
-                <label className="text-[9px] text-slate-500">Carb (g)</label>
-                <input
+            <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+              <Field label="Carb (g)">
+                <Input
+                  size="sm"
                   type="number"
                   value={item.carbsG ?? 0}
                   onChange={(e) => updateItem(index, 'carbsG', Number(e.target.value))}
-                  className={smallInputClass}
+                  className="font-[var(--font-mono)]"
                 />
-              </div>
-              <div>
-                <label className="text-[9px] text-slate-500">Sodio (mg)</label>
-                <input
+              </Field>
+              <Field label="Sodio (mg)">
+                <Input
+                  size="sm"
                   type="number"
                   value={item.sodiumMg ?? 0}
                   onChange={(e) => updateItem(index, 'sodiumMg', Number(e.target.value))}
-                  className={smallInputClass}
+                  className="font-[var(--font-mono)]"
                 />
-              </div>
-              <div>
-                <label className="text-[9px] text-slate-500">Caf (mg)</label>
-                <input
+              </Field>
+              <Field label="Caf (mg)">
+                <Input
+                  size="sm"
                   type="number"
                   value={item.caffeineMg ?? 0}
                   onChange={(e) => updateItem(index, 'caffeineMg', Number(e.target.value))}
-                  className={smallInputClass}
+                  className="font-[var(--font-mono)]"
                 />
-              </div>
-              <div>
-                <label className="text-[9px] text-slate-500">Kcal</label>
-                <input
+              </Field>
+              <Field label="Kcal">
+                <Input
+                  size="sm"
                   type="number"
                   value={item.kcal ?? 0}
                   onChange={(e) => updateItem(index, 'kcal', Number(e.target.value))}
-                  className={smallInputClass}
+                  className="font-[var(--font-mono)]"
                 />
-              </div>
+              </Field>
             </div>
           </div>
         ))}

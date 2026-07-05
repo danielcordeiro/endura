@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { PhaseToggle } from '@/components/ui/phase-tag';
 import { ProductAutocomplete, type CatalogProduct } from '@/components/ui/product-autocomplete';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
+import { Stepper } from '@/components/ui/stepper';
 
 /* ---------- Types ---------- */
 
@@ -123,11 +126,6 @@ export function LogSupplementSheet({
     setQuantity((prev) => String(Math.max(1, (parseInt(prev, 10) || 0) - 1)));
   }
 
-  const labelClass = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 block';
-
-  const smallInputClass =
-    'w-full h-11 px-3 bg-bg-elevated border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-500 font-[var(--font-mono)] text-[14px] outline-none transition-colors focus:border-primary';
-
   /* Nutrient summary for collapsed state */
   const nutrientParts: string[] = [];
   if (carbsG) nutrientParts.push(`${carbsG}g CHO`);
@@ -143,47 +141,29 @@ export function LogSupplementSheet({
         <PhaseToggle value={phase} onChange={setPhase} />
 
         {/* Product — autocomplete with catalog + free text */}
-        <div>
-          <label className={labelClass}>Produto</label>
+        <Field label="Produto">
           <ProductAutocomplete
             value={product}
             onChange={setProduct}
             onProductSelect={handleProductSelect}
           />
-        </div>
+        </Field>
 
         {/* Quantity + Time offset — side by side */}
         <div className="grid grid-cols-2 gap-3">
           {/* Quantity stepper — integrated pill */}
-          <div>
-            <label className={labelClass}>Quantidade</label>
-            <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-slate-700/50 overflow-hidden">
-              <button
-                type="button"
-                onClick={decrementQuantity}
-                className="flex items-center justify-center w-12 h-full text-slate-400 hover:text-white active:scale-90 transition-all"
-              >
-                <span className="material-symbols-outlined text-xl">remove</span>
-              </button>
-              <input
-                type="text"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="flex-1 h-full text-center bg-transparent text-white font-[var(--font-mono)] text-lg font-bold outline-none"
-              />
-              <button
-                type="button"
-                onClick={incrementQuantity}
-                className="flex items-center justify-center w-12 h-full text-slate-400 hover:text-white active:scale-90 transition-all"
-              >
-                <span className="material-symbols-outlined text-xl">add</span>
-              </button>
-            </div>
-          </div>
+          <Field label="Quantidade">
+            <Stepper
+              value={quantity}
+              onChange={setQuantity}
+              onIncrement={incrementQuantity}
+              onDecrement={decrementQuantity}
+              aria-label="quantidade"
+            />
+          </Field>
 
           {/* Time offset — pill with clock icon */}
-          <div>
-            <label className={labelClass}>Tempo (+offset)</label>
+          <Field label="Tempo (+offset)">
             <div className="flex items-center h-14 bg-bg-elevated rounded-full border border-slate-700/50 px-4 gap-2">
               <span className="material-symbols-outlined text-primary text-xl">schedule</span>
               <span className="text-slate-500 text-[15px]">+</span>
@@ -195,7 +175,7 @@ export function LogSupplementSheet({
               />
               <span className="text-slate-400 text-[14px]">min</span>
             </div>
-          </div>
+          </Field>
         </div>
 
         {/* Collapsible nutrients — with icon and summary */}
@@ -217,47 +197,47 @@ export function LogSupplementSheet({
             </span>
           </summary>
 
-          <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-            <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Carbs (g)</label>
-              <input
+          <div className="grid grid-cols-2 gap-x-3 gap-y-4 px-4 pb-4">
+            <Field label="Carbs (g)">
+              <Input
+                size="sm"
                 type="number"
                 placeholder="0"
                 value={carbsG}
                 onChange={(e) => setCarbsG(e.target.value)}
-                className={smallInputClass}
+                className="font-[var(--font-mono)]"
               />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Sódio (mg)</label>
-              <input
+            </Field>
+            <Field label="Sódio (mg)">
+              <Input
+                size="sm"
                 type="number"
                 placeholder="0"
                 value={sodiumMg}
                 onChange={(e) => setSodiumMg(e.target.value)}
-                className={smallInputClass}
+                className="font-[var(--font-mono)]"
               />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Cafeína (mg)</label>
-              <input
+            </Field>
+            <Field label="Cafeína (mg)">
+              <Input
+                size="sm"
                 type="number"
                 placeholder="0"
                 value={caffeineMg}
                 onChange={(e) => setCaffeineMg(e.target.value)}
-                className={smallInputClass}
+                className="font-[var(--font-mono)]"
               />
-            </div>
-            <div>
-              <label className="text-[11px] text-slate-500 mb-1 block">Kcal</label>
-              <input
+            </Field>
+            <Field label="Kcal">
+              <Input
+                size="sm"
                 type="number"
                 placeholder="0"
                 value={kcal}
                 onChange={(e) => setKcal(e.target.value)}
-                className={smallInputClass}
+                className="font-[var(--font-mono)]"
               />
-            </div>
+            </Field>
           </div>
         </details>
 
@@ -278,15 +258,15 @@ export function LogSupplementSheet({
 
       {/* Action buttons */}
       <div className="flex gap-3 pt-6 mt-auto">
-        <Button variant="secondary" fullWidth onClick={handleClose} className="h-14">
+        <Button variant="secondary" size="lg" fullWidth onClick={handleClose}>
           Cancelar
         </Button>
         <Button
           variant="primary"
+          size="lg"
           fullWidth
           onClick={handleSave}
           loading={mutation.isPending}
-          className="h-14"
         >
           Salvar
         </Button>

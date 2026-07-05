@@ -125,8 +125,8 @@ export function ProductAutocomplete({
           }}
           className={cn(
             'w-full h-14 px-5 pr-12 bg-bg-surface border-2 border-slate-700/50 rounded-full',
-            'text-white placeholder:text-slate-500 text-[15px] outline-none transition-colors',
-            'focus:border-primary',
+            'text-white placeholder:text-text-muted text-[15px] outline-none transition-colors',
+            'focus:border-primary focus:ring-2 focus:ring-primary/20',
             className,
           )}
         />

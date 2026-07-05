@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 interface RaceSimulationFormProps {
   raceGoal?: {
@@ -51,15 +53,11 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
     setTargetTimeSec(h * 3600 + m * 60);
   }
 
-  const inputClass = 'w-full h-11 px-3 bg-[#283139] border border-slate-700/50 rounded-xl text-slate-100 placeholder:text-slate-500 text-sm outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-  const smallInputClass = 'w-full h-9 px-2 bg-[#283139] border border-slate-700/50 rounded-lg text-slate-100 font-[var(--font-mono)] text-[13px] outline-none transition-colors focus:border-primary/60 focus:ring-1 focus:ring-primary/20';
-
   return (
     <div className="space-y-5">
-      <div>
-        <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">Nome do plano</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
-      </div>
+      <Field label="Nome do plano">
+        <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
 
       {raceGoal && (
         <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
@@ -69,29 +67,25 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
 
       <div>
         <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">Tempo alvo</label>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] text-slate-500">Horas</label>
-            <input type="number" min={0} max={20} value={hours} onChange={(e) => updateTime(Number(e.target.value), minutes)} className={smallInputClass} />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Minutos</label>
-            <input type="number" min={0} max={59} value={minutes} onChange={(e) => updateTime(hours, Number(e.target.value))} className={smallInputClass} />
-          </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <Field label="Horas">
+            <Input size="sm" type="number" min={0} max={20} value={hours} onChange={(e) => updateTime(Number(e.target.value), minutes)} className="font-[var(--font-mono)]" />
+          </Field>
+          <Field label="Minutos">
+            <Input size="sm" type="number" min={0} max={59} value={minutes} onChange={(e) => updateTime(hours, Number(e.target.value))} className="font-[var(--font-mono)]" />
+          </Field>
         </div>
       </div>
 
       <div>
         <label className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 block">Condicoes climaticas</label>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[10px] text-slate-500">Temp (C)</label>
-            <input type="number" value={tempC} onChange={(e) => setTempC(Number(e.target.value))} className={smallInputClass} />
-          </div>
-          <div>
-            <label className="text-[10px] text-slate-500">Umidade (%)</label>
-            <input type="number" min={0} max={100} value={humidity} onChange={(e) => setHumidity(Number(e.target.value))} className={smallInputClass} />
-          </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <Field label="Temp (C)">
+            <Input size="sm" type="number" value={tempC} onChange={(e) => setTempC(Number(e.target.value))} className="font-[var(--font-mono)]" />
+          </Field>
+          <Field label="Umidade (%)">
+            <Input size="sm" type="number" min={0} max={100} value={humidity} onChange={(e) => setHumidity(Number(e.target.value))} className="font-[var(--font-mono)]" />
+          </Field>
         </div>
       </div>
 

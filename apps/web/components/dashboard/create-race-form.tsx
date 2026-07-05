@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Field } from '@/components/ui/field';
 
 interface CreateRaceFormProps {
   onClose: () => void;
@@ -76,18 +78,14 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Race name */}
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-              Nome da prova
-            </label>
-            <input
+          <Field label="Nome da prova">
+            <Input
               type="text"
               value={raceName}
               onChange={(e) => setRaceName(e.target.value)}
               placeholder="Ex: Ironman 70.3 Florianopolis"
-              className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white placeholder:text-slate-600 focus:border-primary focus:outline-none transition-colors"
             />
-          </div>
+          </Field>
 
           {/* Distance */}
           <div>
@@ -120,19 +118,15 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
           </div>
 
           {/* Date */}
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">
-              Data da prova
-            </label>
-            <input
+          <Field label="Data da prova">
+            <Input
               type="date"
               value={raceDate}
               onChange={(e) => setRaceDate(e.target.value)}
               required
               min={new Date().toISOString().split('T')[0]}
-              className="w-full h-12 bg-bg-input border border-slate-700 rounded-xl px-4 text-sm text-white focus:border-primary focus:outline-none transition-colors"
             />
-          </div>
+          </Field>
 
           {/* Goal type */}
           <div>
@@ -252,18 +246,15 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 h-14 rounded-full bg-bg-elevated text-slate-300 font-bold text-sm active:scale-[0.98] transition-transform"
-            >
+            <Button type="button" variant="secondary" size="lg" onClick={onClose} className="flex-1">
               Cancelar
-            </button>
+            </Button>
             <Button
               type="submit"
               variant="primary"
+              size="lg"
               loading={mutation.isPending}
-              className="flex-1 h-14 rounded-full text-sm font-bold"
+              className="flex-1"
               disabled={!raceDate}
             >
               Salvar
