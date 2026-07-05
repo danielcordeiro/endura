@@ -21,13 +21,13 @@ const iconMap: Record<string, string> = {
 };
 
 const colorMap: Record<string, { bg: string; text: string }> = {
-  swim: { bg: 'bg-cyan-500/20', text: 'text-cyan-400' },
-  bike: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  run: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
-  brick: { bg: 'bg-purple-500/20', text: 'text-purple-400' },
+  swim: { bg: 'bg-swim/20', text: 'text-swim' },
+  bike: { bg: 'bg-bike/20', text: 'text-bike' },
+  run: { bg: 'bg-run/20', text: 'text-run' },
+  brick: { bg: 'bg-brick/20', text: 'text-brick' },
 };
 
-const defaultColors = { bg: 'bg-slate-500/20', text: 'text-slate-400' };
+const defaultColors = { bg: 'bg-text-faint/20', text: 'text-text-muted' };
 
 export function ActivityRow({
   title,

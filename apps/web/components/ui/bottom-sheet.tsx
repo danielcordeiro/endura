@@ -47,7 +47,7 @@ export function BottomSheet({ open, onClose, title, children, className }: Botto
         aria-label={title}
         className={cn(
           'absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px]',
-          'bg-[#111518] rounded-t-[2rem]',
+          'bg-bg-surface rounded-t-[2rem]',
           'shadow-2xl animate-slide-up',
           'max-h-[90dvh] overflow-hidden flex flex-col',
           className,

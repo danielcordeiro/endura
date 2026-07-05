@@ -71,7 +71,7 @@ function Ring({ score, color, size = 104 }: { score: number; color: string; size
 /** Sparkline da forma (TSB) — últimos N pontos, dá o ar de "telemetria". */
 function Sparkline({ values, color }: { values: number[]; color: string }) {
   if (values.length < 2) return null;
-  const w = 96, h = 26;
+  const w = 64, h = 24;
   const min = Math.min(...values), max = Math.max(...values);
   const span = max - min || 1;
   const pts = values.map((v, i) => {
@@ -80,7 +80,11 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
   return (
-    <svg width={w} height={h} className="overflow-visible">
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      className="w-16 h-6 shrink-0 overflow-visible"
+    >
       <polyline points={pts} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" opacity={0.9} />
     </svg>
   );
@@ -186,7 +190,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
             <span className="material-symbols-outlined text-base text-text-faint">{trendIcon}</span>
           </div>
           <div className="flex items-end justify-between gap-1 mt-1">
-            <span className="font-mono text-2xl font-bold leading-none" style={{ color: tsbColor }}>
+            <span className="min-w-0 font-mono text-2xl font-bold leading-none" style={{ color: tsbColor }}>
               {tsb >= 0 ? '+' : ''}{tsb.toFixed(0)}
             </span>
             <Sparkline values={sparkVals} color={tsbColor} />

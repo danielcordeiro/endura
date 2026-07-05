@@ -237,7 +237,7 @@ type DashboardTab = 'today' | 'performance';
 
 function HeaderSkeleton() {
   return (
-    <div className="sticky top-0 z-10 bg-bg-base/80 backdrop-blur-xl pt-4 pb-3 flex items-center gap-4">
+    <div className="sticky top-0 z-10 -mx-4 px-4 bg-bg-base/70 backdrop-blur-xl pt-4 pb-3 flex items-center gap-4">
       <div className="skeleton h-12 w-12 rounded-full" />
       <div className="flex-1 space-y-2">
         <div className="skeleton h-5 w-40 rounded" />
@@ -598,7 +598,7 @@ export default function DashboardPage() {
 
             {todayWorkout ? (
               <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
-                <div className="bg-gradient-to-br from-[#2c353d] to-[#1c242c] rounded-card-inner p-5">
+                <div className="bg-gradient-to-br from-card-gradient-hi to-card-gradient-lo rounded-card-inner p-5">
                   <div className="flex items-start gap-4">
                     <div className={cn(
                       'flex items-center justify-center h-11 w-11 rounded-full shrink-0',
@@ -665,7 +665,7 @@ export default function DashboardPage() {
             ) : todayActivity ? (
               <Link href="/atividades">
                 <div className="rounded-card bg-bg-surface p-5 ring-1 ring-hairline shadow-card">
-                  <div className="bg-gradient-to-br from-success/10 to-[#1c242c] rounded-card-inner p-5">
+                  <div className="bg-gradient-to-br from-success/10 to-card-gradient-lo rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(
                         'flex items-center justify-center h-11 w-11 rounded-full shrink-0',

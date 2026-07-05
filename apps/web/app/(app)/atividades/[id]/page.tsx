@@ -298,7 +298,7 @@ export default function ActivityDetailPage() {
         {/* Map placeholder */}
         <div className="relative h-44 rounded-2xl bg-[#1c262f] border border-slate-800/50 overflow-hidden">
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#101a22] via-transparent to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-transparent to-transparent z-10" />
           {/* Placeholder pattern */}
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="material-symbols-outlined text-[48px] text-slate-700">map</span>
@@ -552,31 +552,33 @@ export default function ActivityDetailPage() {
       {/* Fixed footer with nutritional summary */}
       {activity.nutrition.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-30">
-          <div className="bg-gradient-to-t from-[#101a22] via-[#101a22] to-transparent pt-6 pb-6 px-5">
-            <div className="flex items-center justify-between gap-2 px-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resumo Nutricional</p>
-              <span className="material-symbols-outlined text-sm text-slate-600">info</span>
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              {[
-                { value: activity.totals.carbsG, unit: 'g', label: 'CARB', color: 'bg-bg-surface' },
-                { value: activity.totals.sodiumMg, unit: 'mg', label: 'SÓDIO', color: 'bg-bg-surface' },
-                { value: activity.totals.caffeineMg, unit: 'mg', label: 'CAF', color: 'bg-bg-surface' },
-                { value: activity.totals.kcal, unit: '', label: 'KCAL', color: 'bg-primary/15' },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className={cn(
-                    'flex-1 text-center py-3 rounded-2xl border border-slate-800/50',
-                    item.color,
-                  )}
-                >
-                  <p className="font-[var(--font-mono)] font-bold text-base text-white leading-none">
-                    {item.value}<span className="text-xs text-slate-500 font-normal">{item.unit}</span>
-                  </p>
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">{item.label}</p>
-                </div>
-              ))}
+          <div className="bg-gradient-to-t from-bg-base via-bg-base to-transparent pt-6 pb-6 px-5">
+            <div className="max-w-lg mx-auto">
+              <div className="flex items-center justify-between gap-2 px-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Resumo Nutricional</p>
+                <span className="material-symbols-outlined text-sm text-slate-600">info</span>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                {[
+                  { value: activity.totals.carbsG, unit: 'g', label: 'CARB', color: 'bg-bg-surface' },
+                  { value: activity.totals.sodiumMg, unit: 'mg', label: 'SÓDIO', color: 'bg-bg-surface' },
+                  { value: activity.totals.caffeineMg, unit: 'mg', label: 'CAF', color: 'bg-bg-surface' },
+                  { value: activity.totals.kcal, unit: '', label: 'KCAL', color: 'bg-primary/15' },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={cn(
+                      'flex-1 text-center py-3 rounded-2xl border border-slate-800/50',
+                      item.color,
+                    )}
+                  >
+                    <p className="font-[var(--font-mono)] font-bold text-base text-white leading-none">
+                      {item.value}<span className="text-xs text-slate-500 font-normal">{item.unit}</span>
+                    </p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">{item.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { isBottomNavHidden } from '@/lib/nav-visibility';
 
 const tabs = [
   { href: '/dashboard', label: 'Início', icon: 'home' },
@@ -12,14 +13,10 @@ const tabs = [
   { href: '/configuracoes', label: 'Perfil', icon: 'person' },
 ] as const;
 
-// Telas de detalhe têm a própria barra de ação fixa no rodapé; esconder a nav
-// global evita que ela sobreponha/encubra os botões dessas telas.
-const HIDE_ON = [/^\/treino\/[^/]+$/, /^\/atividades\/[^/]+$/];
-
 export function BottomNav() {
   const pathname = usePathname();
 
-  if (HIDE_ON.some((re) => re.test(pathname))) return null;
+  if (isBottomNavHidden(pathname)) return null;
 
   return (
     <nav

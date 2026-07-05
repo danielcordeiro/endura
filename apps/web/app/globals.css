@@ -8,6 +8,10 @@
   --color-bg-input: #283139;
   --color-bg-overlay: #050a0e;
 
+  /* ── Gradientes bespoke (cards hero de treino) ── */
+  --color-card-gradient-hi: #2c353d;
+  --color-card-gradient-lo: #1c242c;
+
   /* ── Bordas ── */
   --color-border: #1e293b80;
   --color-border-strong: #334155;
@@ -83,6 +87,15 @@
   --font-body: "Lexend", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 }
+
+/* ── Escala de z-index (canônica — não usar valores fora desta lista) ──
+   z-10  sticky headers dentro do fluxo (header do dashboard, mês de atividades)
+   z-20  elemento flutuante sobre conteúdo sticky (badge sobre mapa)
+   z-30  footer fixo de tela de detalhe (ação/resumo nutricional)
+   z-40  bottom nav global
+   z-50  overlays modais (bottom sheet, modais)
+   z-60  popover/dropdown dentro de modal (ex.: autocomplete)
+*/
 
 /* ── Global Styles ── */
 

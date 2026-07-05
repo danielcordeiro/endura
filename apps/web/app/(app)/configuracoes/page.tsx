@@ -409,7 +409,7 @@ export default function ConfiguracoesPage() {
               </p>
             </div>
             {/* Days badge */}
-            <div className="shrink-0 text-center bg-[#101a22]/80 rounded-2xl px-4 py-3 border border-slate-800/50">
+            <div className="shrink-0 text-center bg-bg-base/80 rounded-2xl px-4 py-3 border border-slate-800/50">
               <p className="font-[var(--font-mono)] font-bold text-3xl text-primary leading-none">
                 {daysUntilRace}
               </p>

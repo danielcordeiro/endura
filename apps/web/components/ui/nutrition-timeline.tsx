@@ -52,7 +52,7 @@ export function NutritionTimeline({ items, className }: NutritionTimelineProps) 
           {sorted.map((item, i) => (
             <div
               key={i}
-              className={cn('w-3 h-3 rounded-full -mt-px ring-2 ring-[#101a22]', phaseColor[item.phase])}
+              className={cn('w-3 h-3 rounded-full -mt-px ring-2 ring-bg-base', phaseColor[item.phase])}
               style={{
                 position: 'absolute',
                 left: `${((i) / Math.max(sorted.length - 1, 1)) * 100}%`,

@@ -491,7 +491,7 @@ export default function TreinoDetailPage() {
 
       {/* ── Fixed Bottom Action Buttons ── */}
       <div
-        className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#101a22] via-[#101a22] to-transparent"
+        className="fixed bottom-0 left-0 right-0 z-30 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-bg-base via-bg-base to-transparent"
       >
         <div className="max-w-lg mx-auto space-y-2">
           <SendToWatchButton workoutId={data.id} alreadySent={data.sentToWatch} />

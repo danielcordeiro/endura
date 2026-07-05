@@ -66,7 +66,7 @@ export function FatigueStrainCard({ weeklyTSS, monotony, strain, currentATL, cur
 
       {/* Metrics grid */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-bg-elevated rounded-2xl p-3.5 text-center">
+        <div className="bg-bg-elevated rounded-2xl p-3 text-center">
           <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">TSS/Sem</p>
           <p className="font-mono text-lg font-bold text-white">{weeklyTSS}</p>
         </div>

@@ -165,17 +165,15 @@ export default function AtividadesPage() {
       </div>
 
       {/* Period segmented control */}
-      <div className="bg-bg-surface p-1.5 rounded-full flex border border-slate-800/50">
+      <div className="segmented h-12" role="tablist" aria-label="Período de atividades">
         {periodOptions.map((opt) => (
           <button
             key={opt.value}
             onClick={() => setPeriod(opt.value)}
-            className={cn(
-              'flex-1 py-2.5 rounded-full text-sm font-semibold transition-all duration-200',
-              period === opt.value
-                ? 'bg-primary text-white shadow-md shadow-primary/25'
-                : 'text-slate-400 hover:text-slate-200',
-            )}
+            role="tab"
+            aria-selected={period === opt.value}
+            data-active={period === opt.value}
+            className="segmented-item"
           >
             {opt.label}
           </button>
