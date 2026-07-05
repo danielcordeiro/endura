@@ -83,7 +83,7 @@ function isPast(dateStr: string): boolean {
 
 function WeeklyPlanSkeleton() {
   return (
-    <div className="space-y-6 pt-6 pb-6">
+    <div className="space-y-8 pt-6 pb-6">
       <div className="space-y-3">
         <div className="h-4 w-24 rounded-full bg-slate-800/60 animate-pulse" />
         <div className="h-8 w-48 rounded-lg bg-slate-800/60 animate-pulse" />
@@ -162,7 +162,7 @@ export default function TreinoPage() {
   );
 
   return (
-    <div className="space-y-6 pt-6 pb-6">
+    <div className="space-y-8 pt-6 pb-6">
       {/* ── Header ── */}
       <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
         <div className="flex items-center gap-2.5 mb-2">
@@ -201,7 +201,7 @@ export default function TreinoPage() {
           </button>
 
           <div className="text-center">
-            <h1 className="font-[var(--font-heading)] text-3xl font-bold text-slate-100 leading-tight">
+            <h1 className="font-heading text-2xl font-bold text-text-primary leading-tight">
               Semana {weekNumber}
               {totalWeeks != null && (
                 <span className="text-xl font-semibold text-slate-500"> / {totalWeeks}</span>

@@ -38,7 +38,7 @@ interface RaceGoal {
 
 function SettingsSkeleton() {
   return (
-    <div className="py-6 space-y-6 animate-pulse">
+    <div className="py-6 space-y-8 animate-pulse">
       <div className="flex items-center justify-between">
         <div className="h-8 w-24 rounded-lg bg-slate-800/60" />
         <div className="h-10 w-10 rounded-full bg-slate-800/60" />
@@ -358,10 +358,10 @@ export default function ConfiguracoesPage() {
   if (isLoadingPage) return <SettingsSkeleton />;
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-6 space-y-8">
       {/* ── Header ── */}
       <div className="animate-fade-in-up stagger-1" style={{ opacity: 0 }}>
-        <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-slate-100 tracking-tight">
+        <h1 className="font-heading text-2xl font-bold text-text-primary tracking-tight">
           Perfil
         </h1>
       </div>

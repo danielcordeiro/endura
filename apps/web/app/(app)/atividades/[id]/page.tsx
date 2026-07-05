@@ -87,7 +87,7 @@ const phaseIconColors: Record<Phase, string> = {
 
 function DetailSkeleton() {
   return (
-    <div className="py-6 space-y-6 animate-pulse">
+    <div className="py-6 space-y-8 animate-pulse">
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-[#1c262f]" />
@@ -241,22 +241,22 @@ export default function ActivityDetailPage() {
 
   return (
     <div className="pb-36">
-      <div className="py-6 space-y-6">
+      <div className="py-6 space-y-8">
         {/* Header: back + title + more */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 hover:bg-[#283139] transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
-          <h1 className="font-heading font-bold text-lg text-slate-100 truncate flex-1">
+          <span className="font-heading font-bold text-xs text-slate-400 uppercase tracking-widest truncate flex-1 text-center">
             Detalhes da Atividade
-          </h1>
+          </span>
           <button
             onClick={() => setShowDeleteSheet(true)}
             aria-label="Excluir atividade"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-[#283139] transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-red-400 hover:bg-[#283139] transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>
@@ -264,9 +264,9 @@ export default function ActivityDetailPage() {
 
         {/* Title + Discipline + date */}
         <div className="space-y-2">
-          <h2 className="font-heading font-bold text-2xl text-slate-100 tracking-tight">
+          <h1 className="font-heading font-bold text-2xl text-text-primary tracking-tight">
             {activity.title}
-          </h2>
+          </h1>
           <div className="flex items-center gap-3">
             <DisciplineBadge discipline={activity.discipline} size="md" />
             <span className="font-body text-[13px] text-slate-400">
@@ -282,7 +282,7 @@ export default function ActivityDetailPage() {
             { icon: 'location_on', label: 'Distância', value: activity.distance ?? '--', unit: '' },
             { icon: 'monitor_heart', label: 'Freq.', value: activity.avgHeartRate ?? '--', unit: activity.avgHeartRate ? 'bpm' : '' },
           ].map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-2 rounded-2xl border border-slate-800/50 bg-bg-surface p-4">
+            <div key={stat.label} className="flex flex-col items-center gap-2 rounded-card border border-slate-800/50 bg-bg-surface p-4">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15">
                 <span className="material-symbols-outlined text-lg text-primary">{stat.icon}</span>
               </div>

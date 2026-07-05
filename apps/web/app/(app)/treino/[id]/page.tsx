@@ -75,7 +75,7 @@ function formatDate(dateStr: string): string {
 
 function WorkoutDetailSkeleton() {
   return (
-    <div className="space-y-6 pt-6 pb-28">
+    <div className="space-y-8 pt-6 pb-28">
       {/* Top nav */}
       <div className="flex items-center justify-between">
         <div className="h-8 w-8 rounded-full bg-slate-800/60 animate-pulse" />
@@ -364,7 +364,7 @@ export default function TreinoDetailPage() {
     })) ?? [];
 
   return (
-    <div className="space-y-6 pt-6 pb-28">
+    <div className="space-y-8 pt-6 pb-28">
       {/* ── Fixed Top Nav ── */}
       <div
         className="flex items-center justify-between animate-fade-in-up stagger-1"

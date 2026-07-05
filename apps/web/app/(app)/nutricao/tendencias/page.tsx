@@ -56,16 +56,16 @@ export default function TendenciasPage() {
   ];
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/nutricao"
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-[#1c262f] border border-slate-800/50 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
-        <h1 className="font-heading font-bold text-xl text-slate-100">Tendencias Nutricionais</h1>
+        <h1 className="font-heading font-bold text-2xl text-text-primary">Tendencias Nutricionais</h1>
       </div>
 
       {/* Filters */}

@@ -150,10 +150,10 @@ export default function AtividadesPage() {
   );
 
   return (
-    <div className="py-6 space-y-6">
+    <div className="py-6 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-heading font-bold text-3xl text-slate-100 tracking-tight">
+        <h1 className="font-heading font-bold text-2xl text-text-primary tracking-tight">
           Atividades
         </h1>
         <button

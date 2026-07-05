@@ -201,7 +201,7 @@ export default function NutricaoPage() {
   return (
     <div className="py-6 space-y-8">
       {/* Title */}
-      <h1 className="font-[var(--font-heading)] font-bold text-[28px] text-slate-100">
+      <h1 className="font-heading font-bold text-2xl text-text-primary">
         Nutricao
       </h1>
 
