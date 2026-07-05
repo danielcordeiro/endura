@@ -7,6 +7,7 @@ import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface CreateRaceFormProps {
   onClose: () => void;
@@ -241,7 +242,7 @@ export function CreateRaceForm({ onClose }: CreateRaceFormProps) {
 
           {/* Error */}
           {mutation.isError && (
-            <p className="text-sm text-danger">Erro ao cadastrar prova. Tente novamente.</p>
+            <AlertBanner variant="danger">Erro ao cadastrar prova. Tente novamente.</AlertBanner>
           )}
 
           {/* Actions */}

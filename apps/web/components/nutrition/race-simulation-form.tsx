@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface RaceSimulationFormProps {
   raceGoal?: {
@@ -90,7 +91,7 @@ export function RaceSimulationForm({ raceGoal, onSuccess }: RaceSimulationFormPr
       </div>
 
       {mutation.isError && (
-        <p className="text-[13px] text-danger">Erro ao gerar simulacao. Tente novamente.</p>
+        <AlertBanner variant="danger">Erro ao gerar simulacao. Tente novamente.</AlertBanner>
       )}
 
       <Button variant="primary" fullWidth onClick={() => mutation.mutate()} loading={mutation.isPending} className="gap-2">

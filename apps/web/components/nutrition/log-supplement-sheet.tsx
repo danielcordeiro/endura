@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { PhaseToggle } from '@/components/ui/phase-tag';
 import { ProductAutocomplete, type CatalogProduct } from '@/components/ui/product-autocomplete';
 import { Input } from '@/components/ui/input';
@@ -243,16 +244,10 @@ export function LogSupplementSheet({
 
         {/* Validation / mutation errors */}
         {validationError && (
-          <p className="text-[13px] text-danger flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-sm">error</span>
-            {validationError}
-          </p>
+          <AlertBanner variant="danger">{validationError}</AlertBanner>
         )}
         {mutation.isError && (
-          <p className="text-[13px] text-danger flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-sm">error</span>
-            Erro ao salvar. Tente novamente.
-          </p>
+          <AlertBanner variant="danger">Erro ao salvar. Tente novamente.</AlertBanner>
         )}
       </div>
 

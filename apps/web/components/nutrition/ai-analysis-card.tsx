@@ -2,8 +2,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
-import { apiFetch, cn } from '@/lib/utils';
+import { apiFetch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { CHART_COLORS } from '@/lib/chart-theme';
 
 /* ── Types ── */
@@ -29,11 +30,11 @@ interface AiAnalysisCardProps {
   hasNutritionLog: boolean;
 }
 
-const severityConfig = {
-  info: { bg: 'bg-info/10', border: 'border-info/20', icon: 'info', text: 'text-info' },
-  warning: { bg: 'bg-warning/10', border: 'border-warning/20', icon: 'warning', text: 'text-warning' },
-  critical: { bg: 'bg-danger/10', border: 'border-danger/20', icon: 'error', text: 'text-danger' },
-};
+const severityVariant = {
+  info: 'info',
+  warning: 'warning',
+  critical: 'danger',
+} as const;
 
 const categoryLabels: Record<string, string> = {
   sub_fueling: 'Sub-fueling',
@@ -131,7 +132,7 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
         </Button>
 
         {analyzeMutation.isError && (
-          <p className="text-[13px] text-danger mt-3">Erro ao gerar analise. Tente novamente.</p>
+          <AlertBanner variant="danger" className="mt-3">Erro ao gerar analise. Tente novamente.</AlertBanner>
         )}
       </div>
     );
@@ -172,31 +173,19 @@ export function AiAnalysisCard({ activityId, hasNutritionLog }: AiAnalysisCardPr
         <div className="space-y-2">
           <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Insights</p>
           {analysis.insights.map((item, i) => {
-            const config = severityConfig[item.severity] ?? severityConfig.info;
+            const variant = severityVariant[item.severity] ?? 'info';
             return (
-              <div
-                key={i}
-                className={cn('p-3.5 rounded-xl border', config.bg, config.border)}
-              >
-                <div className="flex items-start gap-2">
-                  <span className={cn('material-symbols-outlined text-lg shrink-0 mt-0.5', config.text)}>
-                    {config.icon}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn('text-xs font-bold', config.text)}>
-                        {categoryLabels[item.category] ?? item.category}
-                      </span>
-                    </div>
-                    <p className="text-sm text-text-secondary">{item.insight}</p>
-                    {item.recommendation && (
-                      <p className="text-xs text-text-secondary mt-1.5">
-                        <span className="font-bold text-text-secondary">Recomendacao:</span> {item.recommendation}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <AlertBanner key={i} variant={variant}>
+                <span className="text-xs font-bold block mb-1">
+                  {categoryLabels[item.category] ?? item.category}
+                </span>
+                <p className="text-sm text-text-secondary">{item.insight}</p>
+                {item.recommendation && (
+                  <p className="text-xs text-text-secondary mt-1.5">
+                    <span className="font-bold text-text-secondary">Recomendacao:</span> {item.recommendation}
+                  </p>
+                )}
+              </AlertBanner>
             );
           })}
         </div>

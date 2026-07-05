@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface ReadinessAssessment {
   level: 'intense' | 'moderate' | 'light' | 'rest';
@@ -238,7 +239,7 @@ export function ReadinessCard({ readiness: initialReadiness }: ReadinessCardProp
           </div>
 
           {mutation.isError && (
-            <p className="text-xs text-danger text-center">Erro ao recalcular. Tente novamente.</p>
+            <AlertBanner variant="danger">Erro ao recalcular. Tente novamente.</AlertBanner>
           )}
         </div>
       )}

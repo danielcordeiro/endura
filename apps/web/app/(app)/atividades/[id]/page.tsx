@@ -516,12 +516,9 @@ export default function ActivityDetailPage() {
           title="Excluir atividade"
         >
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-danger/10 border border-danger/20">
-              <span className="material-symbols-outlined text-[20px] text-danger shrink-0">warning</span>
-              <p className="font-body text-sm text-text-primary">
-                Esta acao nao pode ser desfeita. A atividade sera removida do Endura junto com a nutricao registrada e o calculo de CTL/ATL/TSB sera recalculado.
-              </p>
-            </div>
+            <AlertBanner variant="danger">
+              Esta acao nao pode ser desfeita. A atividade sera removida do Endura junto com a nutricao registrada e o calculo de CTL/ATL/TSB sera recalculado.
+            </AlertBanner>
             {deleteMutation.isError && (
               <AlertBanner variant="danger">
                 {(deleteMutation.error as { message?: string })?.message ?? 'Erro ao excluir atividade.'}

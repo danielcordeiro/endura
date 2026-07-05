@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface QuickLogButtonsProps {
   activityId: string;
@@ -38,10 +39,9 @@ export function QuickLogButtons({
 
   if (hasLog) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 rounded-full bg-success/10 border border-success/20">
-        <span className="material-symbols-outlined text-lg text-success">check_circle</span>
-        <span className="text-sm font-medium text-success">Nutricao registrada</span>
-      </div>
+      <AlertBanner variant="success" className="rounded-full items-center py-3">
+        Nutricao registrada
+      </AlertBanner>
     );
   }
 

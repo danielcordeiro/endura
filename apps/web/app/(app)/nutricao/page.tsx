@@ -467,14 +467,12 @@ export default function NutricaoPage() {
 
           {/* Validation error */}
           {validationError && (
-            <p className="text-[13px] text-danger">{validationError}</p>
+            <AlertBanner variant="danger">{validationError}</AlertBanner>
           )}
 
           {/* Mutation error */}
           {createPresetMutation.isError && (
-            <p className="text-[13px] text-danger">
-              Erro ao criar preset. Tente novamente.
-            </p>
+            <AlertBanner variant="danger">Erro ao criar preset. Tente novamente.</AlertBanner>
           )}
 
           {/* Action buttons */}

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { RaceSimulationForm } from '@/components/nutrition/race-simulation-form';
 import { RacePlanTimeline } from '@/components/nutrition/race-plan-timeline';
 import { RacePlanCard } from '@/components/nutrition/race-plan-card';
@@ -139,10 +140,7 @@ export default function RaceDayPage() {
               <div className="space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-warning/60">Fatores de risco</p>
                 {selectedPlan.plan.riskFactors.map((risk, i) => (
-                  <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-warning/5 border border-warning/10">
-                    <span className="material-symbols-outlined text-sm text-warning shrink-0 mt-0.5">warning</span>
-                    <p className="text-sm text-text-secondary">{risk}</p>
-                  </div>
+                  <AlertBanner key={i} variant="warning">{risk}</AlertBanner>
                 ))}
               </div>
             )}

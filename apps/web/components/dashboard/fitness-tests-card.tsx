@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 /* ── Types ── */
 
@@ -281,7 +282,7 @@ function TestForm({ type, onClose }: { type: ActiveForm; onClose: () => void }) 
           )}
 
           {mutation.isError && (
-            <p className="text-sm text-danger">Erro ao salvar. Tente novamente.</p>
+            <AlertBanner variant="danger">Erro ao salvar. Tente novamente.</AlertBanner>
           )}
 
           <div className="flex gap-3 pt-1">

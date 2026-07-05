@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 /* ── Types ── */
 
@@ -190,7 +191,7 @@ export function CustomizeProtocolSheet({
         </button>
 
         {mutation.isError && (
-          <p className="text-[13px] text-danger">Erro ao salvar. Tente novamente.</p>
+          <AlertBanner variant="danger">Erro ao salvar. Tente novamente.</AlertBanner>
         )}
 
         <div className="flex gap-3 pt-2">

@@ -432,16 +432,10 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
           </Field>
 
           {validationError && (
-            <p className="text-[13px] text-danger flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">error</span>
-              {validationError}
-            </p>
+            <AlertBanner variant="danger">{validationError}</AlertBanner>
           )}
           {saveMutation.isError && (
-            <p className="text-[13px] text-danger flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">error</span>
-              Erro ao salvar. Tente novamente.
-            </p>
+            <AlertBanner variant="danger">Erro ao salvar. Tente novamente.</AlertBanner>
           )}
         </div>
 

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth-store';
 import { apiFetch, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { AlertBanner } from '@/components/ui/alert-banner';
 import { NutritionTimeline } from '@/components/ui/nutrition-timeline';
 import { CustomizeProtocolSheet } from './customize-protocol-sheet';
 
@@ -139,7 +140,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
         </div>
 
         {generateMutation.isError && (
-          <p className="text-[13px] text-danger mt-3">Erro ao gerar protocolo. Tente novamente.</p>
+          <AlertBanner variant="danger" className="mt-3">Erro ao gerar protocolo. Tente novamente.</AlertBanner>
         )}
       </div>
     );
@@ -256,10 +257,9 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
           </div>
         ) : (
           <div className="flex gap-2">
-            <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-full bg-success/10 border border-success/20">
-              <span className="material-symbols-outlined text-lg text-success">check_circle</span>
-              <span className="text-sm font-medium text-success">Plano aceito</span>
-            </div>
+            <AlertBanner variant="success" className="flex-1 rounded-full items-center py-3">
+              Plano aceito
+            </AlertBanner>
             <Button
               variant="ghost"
               onClick={() => setShowCustomize(true)}

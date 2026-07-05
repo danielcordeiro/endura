@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { CHART_COLORS } from '@/lib/chart-theme';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface DailyMetric {
   date: string;
@@ -57,12 +58,13 @@ interface MergedPoint {
 
 const PEAK_META: Record<
   PMCForecastData['peak']['status'],
-  { label: string; cls: string; icon: string }
+  { label: string; variant?: 'success' | 'info' | 'danger' | 'warning'; cls: string; icon: string }
 > = {
-  ideal: { label: 'No pico certo', cls: 'border-success/40 bg-success/10 text-success', icon: 'check_circle' },
-  too_fresh: { label: 'Forma na mesa', cls: 'border-info/40 bg-info/10 text-info', icon: 'trending_up' },
-  too_fatigued: { label: 'Risco de fadiga', cls: 'border-danger/40 bg-danger/10 text-danger', icon: 'warning' },
-  building: { label: 'Em construção', cls: 'border-warning/40 bg-warning/10 text-warning', icon: 'construction' },
+  ideal: { label: 'No pico certo', variant: 'success', cls: 'border-success/40 bg-success/10 text-success', icon: 'check_circle' },
+  too_fresh: { label: 'Forma na mesa', variant: 'info', cls: 'border-info/40 bg-info/10 text-info', icon: 'trending_up' },
+  too_fatigued: { label: 'Risco de fadiga', variant: 'danger', cls: 'border-danger/40 bg-danger/10 text-danger', icon: 'warning' },
+  building: { label: 'Em construção', variant: 'warning', cls: 'border-warning/40 bg-warning/10 text-warning', icon: 'construction' },
+  // Sem variante: estado neutro (nao ha plano/prova ainda), nao e um alerta de success/info/danger/warning.
   no_plan: { label: 'Sem plano', cls: 'border-text-muted/40 bg-text-muted/10 text-text-secondary', icon: 'event_busy' },
   no_race: { label: 'Sem prova-alvo', cls: 'border-text-muted/40 bg-text-muted/10 text-text-secondary', icon: 'flag' },
 };
@@ -180,32 +182,39 @@ export function PMCChart({ metrics, currentCTL, currentATL, currentTSB, forecast
 
       {/* Banner de projeção de forma (o diferencial: PMC forward-looking) */}
       {useForecast && peak && peakMeta && (
-        <div className={`mt-4 rounded-2xl border p-4 ${peakMeta.cls}`}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="material-symbols-outlined text-base">{peakMeta.icon}</span>
-            <span className="text-xs font-bold uppercase tracking-wider">Projeção de forma — {peakMeta.label}</span>
-          </div>
-          <p className="text-[13px] leading-snug text-text-primary/90">{peak.message}</p>
-          {(raceDay || forecast?.race) && (
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              {forecast?.race && (
-                <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20">
-                  {forecast.race.name || 'Prova'} · {fmtShort(forecast.race.date)} · {forecast.race.daysOut}d
-                </span>
-              )}
-              {raceDay && (
-                <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20 font-mono">
-                  TSB na prova: {raceDay.tsb >= 0 ? '+' : ''}{raceDay.tsb.toFixed(0)} (ideal {lo}–{hi})
-                </span>
-              )}
-              {peak.recommendedTaperStart && (
-                <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20">
-                  Taper sugerido: {fmtShort(peak.recommendedTaperStart)}
-                </span>
-              )}
+        peakMeta.variant ? (
+          <AlertBanner variant={peakMeta.variant} icon={peakMeta.icon} className="mt-4">
+            <span className="text-xs font-bold uppercase tracking-wider block mb-1.5">Projeção de forma — {peakMeta.label}</span>
+            <p className="text-[13px] leading-snug opacity-90">{peak.message}</p>
+            {(raceDay || forecast?.race) && (
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {forecast?.race && (
+                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20">
+                    {forecast.race.name || 'Prova'} · {fmtShort(forecast.race.date)} · {forecast.race.daysOut}d
+                  </span>
+                )}
+                {raceDay && (
+                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20 font-mono">
+                    TSB na prova: {raceDay.tsb >= 0 ? '+' : ''}{raceDay.tsb.toFixed(0)} (ideal {lo}–{hi})
+                  </span>
+                )}
+                {peak.recommendedTaperStart && (
+                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-black/20">
+                    Taper sugerido: {fmtShort(peak.recommendedTaperStart)}
+                  </span>
+                )}
+              </div>
+            )}
+          </AlertBanner>
+        ) : (
+          <div className={`mt-4 rounded-2xl border p-4 ${peakMeta.cls}`}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="material-symbols-outlined text-base">{peakMeta.icon}</span>
+              <span className="text-xs font-bold uppercase tracking-wider">Projeção de forma — {peakMeta.label}</span>
             </div>
-          )}
-        </div>
+            <p className="text-[13px] leading-snug text-text-primary/90">{peak.message}</p>
+          </div>
+        )
       )}
     </div>
   );

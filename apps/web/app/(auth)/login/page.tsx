@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 type Tab = 'login' | 'register';
 
@@ -208,10 +209,9 @@ function LoginPageInner() {
 
       {/* Error banner */}
       {errors.general && (
-        <div className="mb-4 p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[13px] flex items-center gap-2" role="alert">
-          <span className="material-symbols-outlined text-base shrink-0" aria-hidden="true">error</span>
+        <AlertBanner variant="danger" className="mb-4">
           {errors.general}
-        </div>
+        </AlertBanner>
       )}
 
       {/* Login Form */}

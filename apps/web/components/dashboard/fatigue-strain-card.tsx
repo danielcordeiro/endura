@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { AlertBanner } from '@/components/ui/alert-banner';
 
 interface FatigueStrainCardProps {
   weeklyTSS: number;
@@ -87,13 +88,10 @@ export function FatigueStrainCard({ weeklyTSS, monotony, strain, currentATL, cur
 
       {/* Risk alert */}
       {(monotonyRisk === 'high' || fatigueLevel === 'high') && (
-        <div className="mt-3 flex items-start gap-2 bg-danger/10 border border-danger/20 rounded-xl p-3">
-          <span className="material-symbols-outlined text-base text-danger mt-0.5">warning</span>
-          <p className="text-xs text-danger leading-relaxed">
-            {fatigueLevel === 'high' && 'Fadiga muito alta. Considere um dia de recuperacao.'}
-            {fatigueLevel !== 'high' && monotonyRisk === 'high' && 'Monotonia alta — varie a intensidade dos treinos para reduzir risco de lesao.'}
-          </p>
-        </div>
+        <AlertBanner variant="danger" className="mt-3">
+          {fatigueLevel === 'high' && 'Fadiga muito alta. Considere um dia de recuperacao.'}
+          {fatigueLevel !== 'high' && monotonyRisk === 'high' && 'Monotonia alta — varie a intensidade dos treinos para reduzir risco de lesao.'}
+        </AlertBanner>
       )}
     </div>
   );

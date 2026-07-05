@@ -571,7 +571,7 @@ export default function ConfiguracoesPage() {
               </Field>
 
               {intervalsConnectError && (
-                <p className="text-sm text-danger">{intervalsConnectError}</p>
+                <AlertBanner variant="danger">{intervalsConnectError}</AlertBanner>
               )}
 
               <div className="flex gap-3 pt-1">

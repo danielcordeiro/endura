@@ -8,6 +8,8 @@ interface AlertBannerProps {
   variant: AlertVariant;
   children: React.ReactNode;
   action?: { label: string; onClick: () => void };
+  /** Sobrescreve o icone padrao do variant (ex.: um icone mais especifico que "warning" generico). */
+  icon?: string;
   className?: string;
 }
 
@@ -18,7 +20,7 @@ const variantStyles: Record<AlertVariant, { bg: string; border: string; icon: st
   info: { bg: 'bg-info/10', border: 'border-info/20', icon: 'info', textColor: 'text-info' },
 };
 
-export function AlertBanner({ variant, children, action, className }: AlertBannerProps) {
+export function AlertBanner({ variant, children, action, icon: iconOverride, className }: AlertBannerProps) {
   const { bg, border, icon, textColor } = variantStyles[variant];
 
   return (
@@ -32,7 +34,7 @@ export function AlertBanner({ variant, children, action, className }: AlertBanne
         className,
       )}
     >
-      <span className={cn('material-symbols-outlined shrink-0', textColor)} aria-hidden="true">{icon}</span>
+      <span className={cn('material-symbols-outlined shrink-0', textColor)} aria-hidden="true">{iconOverride ?? icon}</span>
       <div className={cn('flex-1 text-sm font-medium', textColor)}>{children}</div>
       {action && (
         <button
