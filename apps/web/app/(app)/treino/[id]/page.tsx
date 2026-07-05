@@ -305,7 +305,7 @@ export default function TreinoDetailPage() {
 
   const workoutId = params.id;
 
-  const { data, isLoading, isError } = useQuery<WorkoutDetail>({
+  const { data, isLoading, isError, refetch } = useQuery<WorkoutDetail>({
     queryKey: ['workout-detail', workoutId],
     queryFn: async () => {
       const res = await apiFetch<{ data: WorkoutDetail }>(`/api/plan/workout/${workoutId}`, {
@@ -340,12 +340,12 @@ export default function TreinoDetailPage() {
       <div className="pt-6 space-y-4">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors active:scale-[0.98]"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
           Voltar
         </button>
-        <AlertBanner variant="danger">
+        <AlertBanner variant="danger" action={{ label: 'Tentar novamente', onClick: () => refetch() }}>
           Nao foi possivel carregar os detalhes do treino.
         </AlertBanner>
       </div>
@@ -372,7 +372,8 @@ export default function TreinoDetailPage() {
       >
         <button
           onClick={() => router.back()}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+          aria-label="Voltar"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors active:scale-[0.98]"
         >
           <span className="material-symbols-outlined text-xl">arrow_back</span>
         </button>
@@ -390,7 +391,7 @@ export default function TreinoDetailPage() {
             }
           }}
           aria-label="Compartilhar treino"
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors active:scale-[0.98]"
         >
           <span className="material-symbols-outlined text-xl">share</span>
         </button>

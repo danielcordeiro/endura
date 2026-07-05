@@ -215,7 +215,7 @@ export default function ActivityDetailPage() {
       <div className="py-6 space-y-4">
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
+          className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors active:scale-[0.98]"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           <span className="font-body text-sm">Voltar</span>
@@ -241,12 +241,13 @@ export default function ActivityDetailPage() {
 
   return (
     <div className="pb-36">
-      <div className="py-6 space-y-8">
+      <div className="py-6 space-y-8 animate-fade-in-up">
         {/* Header: back + title + more */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors shrink-0"
+            aria-label="Voltar"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors active:scale-[0.98] shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
@@ -256,7 +257,7 @@ export default function ActivityDetailPage() {
           <button
             onClick={() => setShowDeleteSheet(true)}
             aria-label="Excluir atividade"
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-danger hover:bg-bg-elevated transition-colors shrink-0"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-danger hover:bg-bg-elevated transition-colors active:scale-[0.98] shrink-0"
           >
             <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>

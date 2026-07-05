@@ -50,7 +50,7 @@ export function RacePlanCard({ plan, onSelect }: RacePlanCardProps) {
   return (
     <div
       onClick={() => onSelect(plan.id)}
-      className="p-4 rounded-card border border-border bg-bg-surface hover:bg-bg-elevated transition-colors cursor-pointer"
+      className="p-4 rounded-card border border-border bg-bg-surface hover:bg-bg-elevated transition-colors active:scale-[0.98] cursor-pointer"
     >
       <div className="flex items-start justify-between mb-2">
         <h3 className="font-heading font-bold text-base text-text-primary truncate flex-1">
@@ -80,6 +80,7 @@ export function RacePlanCard({ plan, onSelect }: RacePlanCardProps) {
         <button
           onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(); }}
           disabled={deleteMutation.isPending}
+          aria-label={`Excluir plano ${plan.name}`}
           className="text-text-muted hover:text-danger transition-colors"
         >
           <span className="material-symbols-outlined text-lg">delete</span>

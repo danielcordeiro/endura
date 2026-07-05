@@ -71,13 +71,13 @@ export function ProductAutocomplete({
   const products = data?.data ?? [];
 
   useEffect(() => {
-    if (products.length > 0 && debouncedQuery.length >= 2) {
+    if (debouncedQuery.length >= 2 && !isFetching) {
       setIsOpen(true);
       setSelectedIndex(-1);
-    } else {
+    } else if (debouncedQuery.length < 2) {
       setIsOpen(false);
     }
-  }, [products, debouncedQuery]);
+  }, [products, debouncedQuery, isFetching]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -121,7 +121,7 @@ export function ProductAutocomplete({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            if (products.length > 0 && value.length >= 2) setIsOpen(true);
+            if (value.length >= 2) setIsOpen(true);
           }}
           className={cn(
             'w-full h-14 px-5 pr-12 bg-bg-surface border-2 border-border-strong/50 rounded-full',
@@ -162,6 +162,13 @@ export function ProductAutocomplete({
               </span>
             </button>
           ))}
+        </div>
+      )}
+
+      {isOpen && products.length === 0 && !isFetching && (
+        <div className="absolute z-[60] w-full mt-2 bg-bg-surface border border-border-strong/50 rounded-2xl shadow-card p-4 flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg text-text-faint">search_off</span>
+          <span className="text-[13px] text-text-secondary">Nenhum produto encontrado — digite manualmente</span>
         </div>
       )}
     </div>

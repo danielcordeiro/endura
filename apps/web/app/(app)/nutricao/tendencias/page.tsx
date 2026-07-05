@@ -56,12 +56,13 @@ export default function TendenciasPage() {
   ];
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-6 space-y-8 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/nutricao"
-          className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary transition-colors shrink-0"
+          aria-label="Voltar"
+          className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary transition-colors active:scale-[0.98] shrink-0"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
@@ -113,12 +114,12 @@ export default function TendenciasPage() {
           <div className="h-64 rounded-2xl bg-bg-surface animate-pulse" />
           <div className="h-64 rounded-2xl bg-bg-surface animate-pulse" />
         </div>
-      ) : (
+      ) : trends.length > 0 ? (
         <>
           <CarbsSodiumChart data={trends} />
           <AdherenceChart data={trends} />
         </>
-      )}
+      ) : null}
 
       {!trendsQuery.isLoading && trends.length === 0 && (
         <div className="flex flex-col items-center py-12 space-y-3">

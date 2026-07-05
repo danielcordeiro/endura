@@ -76,7 +76,8 @@ function CustomTooltip(props: any) {
 export default function PMCChartInner({ data, raceDate }: PMCChartInnerProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-text-muted">
+      <div className="flex flex-col items-center justify-center gap-1.5 h-full text-sm text-text-muted">
+        <span className="material-symbols-outlined text-2xl text-text-faint">monitoring</span>
         Sem dados suficientes
       </div>
     );

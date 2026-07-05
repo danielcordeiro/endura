@@ -67,7 +67,7 @@ export default function Home() {
       </div>
 
       {/* Version */}
-      <p className="absolute bottom-8 text-xs text-text-faint font-[var(--font-mono)]">
+      <p className="absolute bottom-8 text-xs text-text-muted font-[var(--font-mono)]">
         v{APP_VERSION}
       </p>
     </main>

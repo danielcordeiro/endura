@@ -199,7 +199,7 @@ export default function NutricaoPage() {
   const shoppingList = shoppingListQuery.data?.data ?? [];
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-6 space-y-8 animate-fade-in-up">
       {/* Title */}
       <h1 className="font-heading font-bold text-2xl text-text-primary">
         Nutricao
@@ -213,7 +213,7 @@ export default function NutricaoPage() {
             'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
             'text-xs font-semibold text-primary',
             'bg-primary/10 border border-primary/20',
-            'hover:bg-primary/20 transition-colors',
+            'hover:bg-primary/20 transition-colors active:scale-[0.98]',
           )}
         >
           <span className="material-symbols-outlined text-sm">monitoring</span>
@@ -225,7 +225,7 @@ export default function NutricaoPage() {
             'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
             'text-xs font-semibold text-primary',
             'bg-primary/10 border border-primary/20',
-            'hover:bg-primary/20 transition-colors',
+            'hover:bg-primary/20 transition-colors active:scale-[0.98]',
           )}
         >
           <span className="material-symbols-outlined text-sm">flag</span>
@@ -251,7 +251,7 @@ export default function NutricaoPage() {
               'inline-flex items-center gap-1.5 px-4 py-2 rounded-full',
               'text-xs font-semibold text-primary',
               'bg-primary/10 border border-primary/20',
-              'hover:bg-primary/20 transition-colors',
+              'hover:bg-primary/20 transition-colors active:scale-[0.98]',
             )}
           >
             <span className="material-symbols-outlined text-sm">add</span>
@@ -300,7 +300,8 @@ export default function NutricaoPage() {
                 <button
                   onClick={() => deletePresetMutation.mutate(preset.id)}
                   disabled={deletePresetMutation.isPending}
-                  className="flex items-center justify-center w-11 h-11 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
+                  aria-label={`Excluir preset ${preset.name}`}
+                  className="flex items-center justify-center w-11 h-11 rounded-xl text-text-muted hover:text-danger hover:bg-danger/10 transition-colors active:scale-[0.98] shrink-0"
                 >
                   <span className="material-symbols-outlined text-lg">delete</span>
                 </button>

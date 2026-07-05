@@ -22,10 +22,14 @@
   --color-border-focus: #2196f5;
   --color-hairline: #ffffff1f;
 
-  /* ── Texto ── */
+  /* ── Texto ──
+     text-muted calibrado p/ >=4.5:1 (WCAG AA) contra bg-elevated, o pior
+     caso entre as 3 superfícies — não escurecer sem reconferir contraste.
+     text-faint fica abaixo de 4.5:1 de propósito: só p/ ícone/borda/
+     placeholder/disabled (exceção WCAG 1.4.3), nunca texto real. */
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-text-muted: #8494a8;
   --color-text-faint: #475569;
   --color-text-inverse: #0d161d;
 
@@ -199,7 +203,7 @@ h1, h2, h3 {
   border-color: rgba(33, 150, 245, 0.30);
 }
 .card-interactive:active {
-  transform: scale(0.99);
+  transform: scale(0.98);
 }
 
 /* ── Segmented control (tabs em pílula) ── */
@@ -223,10 +227,13 @@ h1, h2, h3 {
   font-weight: 600;
   font-size: 14px;
   color: var(--color-text-secondary);
-  transition: color 200ms ease, background-color 200ms ease;
+  transition: color 200ms ease, background-color 200ms ease, transform 150ms ease;
 }
 .segmented-item:hover {
   color: var(--color-text-primary);
+}
+.segmented-item:active {
+  transform: scale(0.98);
 }
 .segmented-item[data-active="true"] {
   color: #fff;

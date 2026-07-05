@@ -116,7 +116,7 @@ export default function TreinoPage() {
   // null = semana atual; numero = semana especifica do plano.
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
-  const { data, isLoading, isError } = useQuery<WeeklyPlan>({
+  const { data, isLoading, isError, refetch } = useQuery<WeeklyPlan>({
     queryKey: ['weekly-workouts', selectedWeek],
     queryFn: () =>
       apiFetch<WeeklyPlan>(
@@ -143,7 +143,7 @@ export default function TreinoPage() {
         <h1 className="font-[var(--font-heading)] text-[28px] font-bold text-text-primary">
           Plano Semanal
         </h1>
-        <AlertBanner variant="danger">
+        <AlertBanner variant="danger" action={{ label: 'Tentar novamente', onClick: () => refetch() }}>
           Nao foi possivel carregar o plano semanal. Verifique sua conexao e tente novamente.
         </AlertBanner>
       </div>
@@ -258,7 +258,7 @@ export default function TreinoPage() {
               className={cn(
                 'flex items-center gap-3 w-full text-left p-4 rounded-2xl',
                 'border transition-all duration-200',
-                'hover:bg-bg-elevated active:scale-[0.99]',
+                'hover:bg-bg-elevated active:scale-[0.98]',
                 'animate-fade-in-up',
                 today
                   ? 'bg-bg-surface border-primary/40 ring-1 ring-primary/20'

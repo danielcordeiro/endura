@@ -514,7 +514,7 @@ function Step2({ data, update }: StepProps) {
       )}
 
       {/* Race name (optional) */}
-      <Field label={<>Nome da prova <span className="text-text-faint font-normal">(opcional)</span></>}>
+      <Field label={<>Nome da prova <span className="text-text-muted font-normal">(opcional)</span></>}>
         <Input
           size="lg"
           type="text"
@@ -570,7 +570,7 @@ function Step3({ data, update }: StepProps) {
             onChange={(e) => update({ maxHr: e.target.value })}
           />
         </Field>
-        <Field label={<>FTP (W) <span className="text-text-faint font-normal">opc.</span></>}>
+        <Field label={<>FTP (W) <span className="text-text-muted font-normal">opc.</span></>}>
           <Input
             size="lg"
             type="number"

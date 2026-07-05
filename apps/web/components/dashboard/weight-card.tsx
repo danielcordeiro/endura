@@ -96,7 +96,7 @@ export function WeightCard() {
       )}
 
       {/* Source */}
-      <p className="text-[9px] text-text-faint mt-2 text-right">
+      <p className="text-[9px] text-text-muted mt-2 text-right">
         {history.length > 0 ? 'Garmin via intervals.icu' : 'Perfil do atleta'}
       </p>
     </div>

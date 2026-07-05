@@ -100,6 +100,7 @@ export default function AtividadesPage() {
     isLoading,
     isError,
     error,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -150,7 +151,7 @@ export default function AtividadesPage() {
   );
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-6 space-y-8 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-heading font-bold text-2xl text-text-primary tracking-tight">
@@ -158,7 +159,8 @@ export default function AtividadesPage() {
         </h1>
         <button
           onClick={() => router.push('/configuracoes')}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
+          aria-label="Configurações"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors active:scale-[0.98]"
         >
           <span className="material-symbols-outlined text-[20px]">settings</span>
         </button>
@@ -187,7 +189,7 @@ export default function AtividadesPage() {
             key={opt.value}
             onClick={() => setDiscipline(opt.value)}
             className={cn(
-              'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0',
+              'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-medium transition-all duration-200 whitespace-nowrap shrink-0 active:scale-[0.98]',
               discipline === opt.value
                 ? 'bg-primary/15 text-primary border border-primary/30'
                 : 'bg-bg-surface text-text-secondary border border-border hover:bg-bg-elevated hover:text-text-primary',
@@ -208,7 +210,7 @@ export default function AtividadesPage() {
 
       {/* Error state */}
       {isError && (
-        <AlertBanner variant="danger">
+        <AlertBanner variant="danger" action={{ label: 'Tentar novamente', onClick: () => refetch() }}>
           {(error as { message?: string })?.message ?? 'Erro ao carregar atividades.'}
         </AlertBanner>
       )}

@@ -119,7 +119,7 @@ function MetricTile({
         {unit && <span className="text-[10px] text-text-muted font-normal ml-0.5">{unit}</span>}
       </p>
       <p className="text-[10px] text-text-muted mt-0.5">{label}</p>
-      {subtext && <p className="text-[9px] text-text-faint mt-0.5">{subtext}</p>}
+      {subtext && <p className="text-[9px] text-text-muted mt-0.5">{subtext}</p>}
     </div>
   );
 }

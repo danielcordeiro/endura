@@ -160,7 +160,7 @@ export function DailyCockpit({ userName, pmc, readiness, forecast, targetRace }:
               <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">Recuperação</span>
             </div>
             {recovery?.score != null && (
-              <span className="block text-[9px] text-text-faint mt-0.5">
+              <span className="block text-[9px] text-text-muted mt-0.5">
                 ao acordar{recovery.date ? ` · ${fmtDay(recovery.date)}` : ''}
               </span>
             )}

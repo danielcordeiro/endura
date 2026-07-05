@@ -380,7 +380,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('today');
   const [showRaceForm, setShowRaceForm] = useState(false);
 
-  const { data, isLoading, isError } = useQuery<DashboardSummary>({
+  const { data, isLoading, isError, refetch } = useQuery<DashboardSummary>({
     queryKey: ['dashboard-summary'],
     queryFn: async () => {
       const res = await apiFetch<{ data: DashboardSummary }>('/api/dashboard/summary', {
@@ -423,7 +423,7 @@ export default function DashboardPage() {
   if (isError || !data) {
     return (
       <div className="pt-6">
-        <AlertBanner variant="danger">
+        <AlertBanner variant="danger" action={{ label: 'Tentar novamente', onClick: () => refetch() }}>
           Nao foi possivel carregar o dashboard. Verifique sua conexao e tente novamente.
         </AlertBanner>
       </div>
@@ -559,7 +559,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setShowRaceForm(true)}
-                className="w-full rounded-card bg-bg-surface p-6 border border-hairline shadow-card flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.99]"
+                className="w-full rounded-card bg-bg-surface p-6 border border-hairline shadow-card flex flex-col items-center text-center hover:ring-primary/30 transition-all active:scale-[0.98]"
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
                   <span className="material-symbols-outlined text-3xl text-primary">flag</span>
@@ -664,7 +664,7 @@ export default function DashboardPage() {
               </div>
             ) : todayActivity ? (
               <Link href="/atividades">
-                <div className="rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
+                <div className="card-interactive rounded-card bg-bg-surface p-5 border border-hairline shadow-card">
                   <div className="bg-gradient-to-br from-success/10 to-card-gradient-lo rounded-card-inner p-5">
                     <div className="flex items-start gap-4">
                       <div className={cn(

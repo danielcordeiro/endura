@@ -248,6 +248,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
               variant="ghost"
               onClick={() => setShowCustomize(true)}
               disabled={isLoading}
+              aria-label="Personalizar protocolo"
               className="gap-2 shrink-0"
             >
               <span className="material-symbols-outlined text-lg">edit</span>
@@ -262,6 +263,7 @@ export function DailyNutritionCard({ workoutId, protocol, discipline }: DailyNut
             <Button
               variant="ghost"
               onClick={() => setShowCustomize(true)}
+              aria-label="Personalizar protocolo"
               className="gap-2 shrink-0"
             >
               <span className="material-symbols-outlined text-lg">edit</span>

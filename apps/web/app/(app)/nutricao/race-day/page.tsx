@@ -48,10 +48,10 @@ export default function RaceDayPage() {
   const selectedPlan = plans.find((p) => p.id === selectedPlanId);
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-6 space-y-8 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/nutricao" className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary transition-colors shrink-0">
+        <Link href="/nutricao" aria-label="Voltar" className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary transition-colors active:scale-[0.98] shrink-0">
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </Link>
         <h1 className="font-heading font-bold text-2xl text-text-primary">Race Day Simulator</h1>

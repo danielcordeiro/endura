@@ -150,7 +150,8 @@ export function ApiKeysSection({ token }: { token: string | null | undefined }) 
       )}
 
       {activeKeys.length === 0 && !listQuery.isLoading && (
-        <div className="rounded-2xl border border-border bg-bg-surface p-4 text-center">
+        <div className="rounded-2xl border border-border bg-bg-surface p-4 flex flex-col items-center gap-1.5 text-center">
+          <span className="material-symbols-outlined text-2xl text-text-faint">key</span>
           <span className="text-xs text-text-muted">Nenhuma API Key ativa</span>
         </div>
       )}

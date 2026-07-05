@@ -193,7 +193,7 @@ export function LogModal({
 
             <button
               onClick={onClose}
-              className="w-full h-12 text-text-muted text-sm font-semibold"
+              className="w-full h-12 text-text-muted text-sm font-semibold active:scale-[0.98] transition hover:text-text-primary"
             >
               Cancelar
             </button>

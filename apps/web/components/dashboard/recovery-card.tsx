@@ -140,7 +140,7 @@ export function RecoveryCard() {
                 {m.today}
                 <span className="text-[9px] text-text-muted font-normal ml-0.5">{UNIT[m.key]}</span>
                 {m.baseline != null && (
-                  <span className="text-[9px] text-text-faint font-normal ml-1.5">base {m.baseline}</span>
+                  <span className="text-[9px] text-text-muted font-normal ml-1.5">base {m.baseline}</span>
                 )}
               </p>
             ) : (

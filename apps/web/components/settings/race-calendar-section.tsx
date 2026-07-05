@@ -258,7 +258,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
             key={r.id}
             onClick={() => openEdit(r)}
             className={cn(
-              'w-full text-left relative rounded-2xl border border-border bg-bg-surface p-4 flex items-center gap-3 transition-colors hover:border-border-strong',
+              'w-full text-left relative rounded-2xl border border-border bg-bg-surface p-4 flex items-center gap-3 transition-colors active:scale-[0.98] hover:border-border-strong',
               isPast && 'opacity-60',
             )}
           >
@@ -454,6 +454,7 @@ export function RaceCalendarSection({ token }: { token: string | null }) {
                 if (editingId) deleteMutation.mutate(editingId);
                 closeSheet();
               }}
+              aria-label="Excluir prova"
               className="px-5 text-danger"
             >
               <span className="material-symbols-outlined">delete</span>

@@ -126,6 +126,7 @@ function IntegrationCard({
           <button
             onClick={onSync}
             disabled={isSyncing}
+            aria-label={`Sincronizar ${name}`}
             className="flex items-center justify-center w-11 h-11 rounded-full bg-bg-elevated border border-border-strong/50 text-text-secondary hover:text-text-primary transition-colors disabled:opacity-40 shrink-0"
           >
             <span className={cn('material-symbols-outlined text-xl', isSyncing && 'animate-spin')}>
@@ -165,7 +166,7 @@ function MenuItem({
       disabled={soon}
       className={cn(
         'flex items-center gap-3 w-full px-4 py-3.5 transition-colors group',
-        soon ? 'cursor-not-allowed' : 'hover:bg-bg-elevated',
+        soon ? 'cursor-not-allowed' : 'hover:bg-bg-elevated active:scale-[0.98]',
       )}
     >
       <div className="w-9 h-9 rounded-xl bg-bg-elevated flex items-center justify-center text-text-secondary group-hover:text-text-primary transition-colors shrink-0">
@@ -527,7 +528,7 @@ export default function ConfiguracoesPage() {
       </div>
 
       {/* ── Version ── */}
-      <p className="text-center text-xs text-text-faint pb-4">
+      <p className="text-center text-xs text-text-muted pb-4">
         Endura v{APP_VERSION}
       </p>
 
