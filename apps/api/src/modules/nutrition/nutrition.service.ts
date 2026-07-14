@@ -179,10 +179,13 @@ export async function addItemsBulk(
 
     let totalCarbsG = 0, totalSodiumMg = 0, totalCaffeineMg = 0, totalKcal = 0;
     for (const it of itemsRows) {
-      totalCarbsG += Number(it.carbsG ?? 0);
-      totalSodiumMg += Number(it.sodiumMg ?? 0);
-      totalCaffeineMg += Number(it.caffeineMg ?? 0);
-      totalKcal += Number(it.kcal ?? 0);
+      // carbsG/sodiumMg/caffeineMg/kcal sao valores POR UNIDADE (do catalogo);
+      // quantity multiplica para o total real consumido.
+      const qty = Number(it.quantity ?? 1);
+      totalCarbsG += Number(it.carbsG ?? 0) * qty;
+      totalSodiumMg += Number(it.sodiumMg ?? 0) * qty;
+      totalCaffeineMg += Number(it.caffeineMg ?? 0) * qty;
+      totalKcal += Number(it.kcal ?? 0) * qty;
     }
 
     await tx
@@ -341,10 +344,13 @@ export async function recalculateTotals(logId: string) {
   let totalKcal = 0;
 
   for (const item of items) {
-    totalCarbsG += Number(item.carbsG ?? 0);
-    totalSodiumMg += Number(item.sodiumMg ?? 0);
-    totalCaffeineMg += Number(item.caffeineMg ?? 0);
-    totalKcal += Number(item.kcal ?? 0);
+    // carbsG/sodiumMg/caffeineMg/kcal sao valores POR UNIDADE (do catalogo);
+    // quantity multiplica para o total real consumido.
+    const qty = Number(item.quantity ?? 1);
+    totalCarbsG += Number(item.carbsG ?? 0) * qty;
+    totalSodiumMg += Number(item.sodiumMg ?? 0) * qty;
+    totalCaffeineMg += Number(item.caffeineMg ?? 0) * qty;
+    totalKcal += Number(item.kcal ?? 0) * qty;
   }
 
   await db
@@ -535,10 +541,12 @@ export async function followProtocol(userId: string, activityId: string, protoco
 
   let totalCarbsG = 0, totalSodiumMg = 0, totalCaffeineMg = 0, totalKcal = 0;
   for (const item of protocolItems) {
-    totalCarbsG += Number(item.carbsG ?? 0);
-    totalSodiumMg += Number(item.sodiumMg ?? 0);
-    totalCaffeineMg += Number(item.caffeineMg ?? 0);
-    totalKcal += Number(item.kcal ?? 0);
+    // carbsG/sodiumMg/caffeineMg/kcal sao valores POR UNIDADE; quantity multiplica.
+    const qty = Number(item.quantity ?? 1);
+    totalCarbsG += Number(item.carbsG ?? 0) * qty;
+    totalSodiumMg += Number(item.sodiumMg ?? 0) * qty;
+    totalCaffeineMg += Number(item.caffeineMg ?? 0) * qty;
+    totalKcal += Number(item.kcal ?? 0) * qty;
   }
 
   const carbsPerHour = durationHours > 0 ? totalCarbsG / durationHours : 0;

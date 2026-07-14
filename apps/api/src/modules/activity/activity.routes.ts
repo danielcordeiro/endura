@@ -140,12 +140,16 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
         }));
 
         const totals = nutrition.reduce(
-          (acc, n) => ({
-            carbsG: acc.carbsG + n.carbsG,
-            sodiumMg: acc.sodiumMg + n.sodiumMg,
-            caffeineMg: acc.caffeineMg + n.caffeineMg,
-            kcal: acc.kcal + n.kcal,
-          }),
+          (acc, n) => {
+            // carbsG/sodiumMg/caffeineMg/kcal sao valores POR UNIDADE; quantity multiplica.
+            const qty = Number(n.quantity) || 1;
+            return {
+              carbsG: acc.carbsG + n.carbsG * qty,
+              sodiumMg: acc.sodiumMg + n.sodiumMg * qty,
+              caffeineMg: acc.caffeineMg + n.caffeineMg * qty,
+              kcal: acc.kcal + n.kcal * qty,
+            };
+          },
           { carbsG: 0, sodiumMg: 0, caffeineMg: 0, kcal: 0 },
         );
 

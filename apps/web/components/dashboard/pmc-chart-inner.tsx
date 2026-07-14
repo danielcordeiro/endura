@@ -136,13 +136,18 @@ export default function PMCChartInner({ data, raceDate }: PMCChartInnerProps) {
         <Line type="monotone" dataKey="atl" name="ATL" stroke={CHART_COLORS.fatigue} strokeWidth={2} dot={false} strokeDasharray="4 4" connectNulls={false} />
         <Line type="monotone" dataKey="tsb" name="TSB" stroke={CHART_COLORS.form} strokeWidth={2} dot={false} connectNulls={false} />
 
-        {/* Projeção (linha tracejada, mais clara) */}
+        {/* Projeção (linha tracejada, mais clara). Recharts so clona/injeta os pontos
+            calculados em filhos DIRETOS do chart — agrupar em <>...</> faz essas 3
+            linhas nao renderizarem nada, entao cada uma precisa do seu proprio
+            condicional em vez de um Fragment compartilhado. */}
         {hasForecast && (
-          <>
-            <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke={CHART_COLORS.fitness} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="atlF" name="ATL proj." stroke={CHART_COLORS.fatigue} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
-            <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke={CHART_COLORS.form} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
-          </>
+          <Line type="monotone" dataKey="ctlF" name="CTL proj." stroke={CHART_COLORS.fitness} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+        )}
+        {hasForecast && (
+          <Line type="monotone" dataKey="atlF" name="ATL proj." stroke={CHART_COLORS.fatigue} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
+        )}
+        {hasForecast && (
+          <Line type="monotone" dataKey="tsbF" name="TSB proj." stroke={CHART_COLORS.form} strokeWidth={2} strokeOpacity={0.9} strokeDasharray="5 4" dot={false} connectNulls={false} />
         )}
       </ComposedChart>
     </ResponsiveContainer>
