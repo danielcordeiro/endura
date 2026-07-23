@@ -77,6 +77,29 @@ export const athleteProfilesRelations = relations(athleteProfiles, ({ one }) => 
   }),
 }));
 
+// ── BIKES (equipamentos do atleta p/ estimativa de CdA) ──────────
+// Um atleta tem N bikes; uma é a padrão (is_default) usada nas atividades
+// novas. Cada activity referencia a bike usada (activities.bike_id), com
+// opção de trocar depois. peso + crr alimentam o motor aero (ver aero.ts).
+export const bikes = pgTable('bikes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  weightKg: numeric('weight_kg', { precision: 4, scale: 2 }),
+  crr: numeric('crr', { precision: 5, scale: 4 }),
+  drivetrainEfficiency: numeric('drivetrain_efficiency', { precision: 4, scale: 3 }),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => [
+  index('idx_bikes_user').on(table.userId),
+]);
+
+export const bikesRelations = relations(bikes, ({ one, many }) => ({
+  user: one(users, { fields: [bikes.userId], references: [users.id] }),
+  activities: many(activities),
+}));
+
 // ── PROVA ALVO ────────────────────────────────────────────────
 
 export const raceGoals = pgTable('race_goals', {
@@ -206,6 +229,9 @@ export const activities = pgTable('activities', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   plannedWorkoutId: uuid('planned_workout_id').references(() => plannedWorkouts.id),
+  // Bike usada nesta atividade (só bike). Preenchida com a bike padrão no sync;
+  // trocável na tela da atividade → recomputa o CdA. SET NULL se a bike sumir.
+  bikeId: uuid('bike_id').references(() => bikes.id, { onDelete: 'set null' }),
   externalId: varchar('external_id', { length: 100 }),
   source: varchar('source', { length: 20 }).notNull(),
   discipline: varchar('discipline', { length: 10 }).notNull(),
@@ -270,6 +296,10 @@ export const activitiesRelations = relations(activities, ({ one, many }) => ({
   streams: one(activityStreams, {
     fields: [activities.id],
     references: [activityStreams.activityId],
+  }),
+  bike: one(bikes, {
+    fields: [activities.bikeId],
+    references: [bikes.id],
   }),
 }));
 

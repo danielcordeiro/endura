@@ -7,6 +7,7 @@ import { Agent, setGlobalDispatcher } from 'undici';
 setGlobalDispatcher(new Agent({ connect: { timeout: 30_000 } }));
 import authRoutes from './modules/auth/auth.routes.js';
 import athleteRoutes from './modules/athlete/athlete.routes.js';
+import bikeRoutes from './modules/bike/bike.routes.js';
 import activityRoutes from './modules/activity/activity.routes.js';
 import stravaRoutes from './modules/integration/strava.routes.js';
 import intervalsRoutes from './modules/integration/intervals.routes.js';
@@ -100,6 +101,7 @@ app.get('/health', async () => {
 // ── Rotas ─────────────────────────────────────────────────────────
 await app.register(authRoutes);
 await app.register(athleteRoutes);
+await app.register(bikeRoutes);
 await app.register(activityRoutes);
 await app.register(stravaRoutes);
 await app.register(intervalsRoutes);

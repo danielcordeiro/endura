@@ -50,6 +50,7 @@ interface ActivityDetail {
     tss?: number;
     hasStreams?: boolean;
     analysis?: AnalysisResult;
+    bikeId?: string | null;
     nutrition: NutritionItem[];
     totals: {
       carbsG: number;
@@ -318,7 +319,7 @@ export default function ActivityDetailPage() {
 
         {/* ── Análise avançada (NP/TSS/zonas/picos/laps) ── */}
         {activity.hasStreams && activity.analysis && (
-          <ActivityAnalysis activityId={params.id} analysis={activity.analysis} />
+          <ActivityAnalysis activityId={params.id} analysis={activity.analysis} bikeId={activity.bikeId} />
         )}
 
         {/* ── Nutrition section ── */}

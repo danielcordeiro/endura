@@ -23,3 +23,11 @@ export const activityParams = z.object({
 });
 
 export type ActivityParams = z.infer<typeof activityParams>;
+
+// ── Body para trocar a bike de uma atividade ───────────────────
+// bikeId null = desvincula (volta a resolver pela bike padrão no recompute).
+export const setActivityBikeBody = z.object({
+  bikeId: z.string().uuid('bikeId deve ser um UUID valido').nullable(),
+});
+
+export type SetActivityBikeBody = z.infer<typeof setActivityBikeBody>;

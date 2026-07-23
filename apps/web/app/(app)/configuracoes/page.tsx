@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/field';
 import { ApiKeysSection } from '@/components/settings/api-keys-section';
 import { RaceCalendarSection } from '@/components/settings/race-calendar-section';
+import { BikesSection } from '@/components/settings/bikes-section';
 
 /* ---------- Types ---------- */
 
@@ -502,6 +503,11 @@ export default function ConfiguracoesPage() {
             soon
           />
         </div>
+      </div>
+
+      {/* ── Minhas bikes (setup aero / CdA) ── */}
+      <div className="animate-fade-in-up stagger-4" style={{ opacity: 0 }}>
+        <BikesSection token={token} />
       </div>
 
       {/* ── API Keys ── */}

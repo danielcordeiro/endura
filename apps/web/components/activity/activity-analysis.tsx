@@ -8,10 +8,12 @@ import { AnalysisGraph } from './analysis-graph';
 import { AnalysisPeaks } from './analysis-peaks';
 import { AnalysisZones } from './analysis-zones';
 import { AeroCard } from './aero-card';
+import { BikeSelector } from './bike-selector';
 
 interface ActivityAnalysisProps {
   activityId: string;
   analysis: AnalysisResult;
+  bikeId?: string | null;
 }
 
 type Tab = 'summary' | 'graph' | 'peaks' | 'zones';
@@ -23,7 +25,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'zones', label: 'Zonas' },
 ];
 
-export function ActivityAnalysis({ activityId, analysis }: ActivityAnalysisProps) {
+export function ActivityAnalysis({ activityId, analysis, bikeId }: ActivityAnalysisProps) {
   const [tab, setTab] = useState<Tab>('summary');
   const [selectedLap, setSelectedLap] = useState<number | 'full'>('full');
 
@@ -84,7 +86,10 @@ export function ActivityAnalysis({ activityId, analysis }: ActivityAnalysisProps
 
       {tab === 'summary' && (
         <>
-          {/* CdA é da atividade inteira — mostra só no treino completo. */}
+          {/* Bike + CdA são da atividade inteira — só no treino completo, só bike. */}
+          {selectedLap === 'full' && analysis.discipline === 'bike' && (
+            <BikeSelector activityId={activityId} currentBikeId={bikeId ?? null} />
+          )}
           {selectedLap === 'full' && analysis.aero && <AeroCard aero={analysis.aero} />}
           <AnalysisSummary metrics={metrics} discipline={analysis.discipline} weightKg={analysis.inputs.weightKg} />
         </>

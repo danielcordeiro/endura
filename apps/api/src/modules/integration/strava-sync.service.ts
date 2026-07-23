@@ -4,6 +4,7 @@ import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { encrypt, decrypt } from '../../lib/encryption.js';
 import { analyzeActivity, type StreamData, type LapInput, type Discipline } from '../activity/activity-analytics.js';
+import * as bikeService from '../bike/bike.service.js';
 
 // ── Constantes ──────────────────────────────────────────────────
 
@@ -313,13 +314,22 @@ export async function ingestActivityAnalysis(
   const profile = await db.query.athleteProfiles.findFirst({
     where: eq(schema.athleteProfiles.userId, userId),
   });
+
+  // Bike da atividade: preserva a já escolhida (troca manual num re-sync),
+  // senão usa a bike padrão do atleta. Só faz sentido pra ciclismo.
+  const existingActivity = await db.query.activities.findFirst({
+    where: eq(schema.activities.id, activityId),
+    columns: { bikeId: true },
+  });
+  const bike = discipline === 'bike'
+    ? await bikeService.resolveBikeForActivity(userId, existingActivity?.bikeId ?? null)
+    : undefined;
+
   const ctx = {
     ftpWatts: profile?.ftpWatts ?? null,
     maxHr: profile?.maxHr ?? null,
     weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
-    bikeWeightKg: profile?.bikeWeightKg ? Number(profile.bikeWeightKg) : null,
-    crr: profile?.crr ? Number(profile.crr) : null,
-    drivetrainEff: profile?.drivetrainEfficiency ? Number(profile.drivetrainEfficiency) : null,
+    ...bikeService.bikeToSetup(bike),
   };
 
   const result = analyzeActivity(streamData, laps, discipline as Discipline, ctx);
@@ -351,6 +361,7 @@ export async function ingestActivityAnalysis(
       analysis: result as unknown as Record<string, unknown>,
       tss: result.summary.tss != null ? String(result.summary.tss) : null,
       hasStreams: true,
+      bikeId: bike?.id ?? existingActivity?.bikeId ?? null,
       updatedAt: new Date(),
     })
     .where(eq(schema.activities.id, activityId));

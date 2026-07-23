@@ -33,8 +33,6 @@ interface OnboardingData {
   maxHr: string;
   ftp: string;
   pace5k: string;
-  bikeWeightKg: string;
-  crr: string; // resolvido do preset de pneu (resist. de rolamento)
   hasPool: boolean;
   hasBikeTrainer: boolean;
   hasTreadmill: boolean;
@@ -76,8 +74,6 @@ export default function OnboardingPage() {
     maxHr: '',
     ftp: '',
     pace5k: '',
-    bikeWeightKg: '',
-    crr: '',
     hasPool: false,
     hasBikeTrainer: false,
     hasTreadmill: false,
@@ -152,8 +148,6 @@ export default function OnboardingPage() {
           maxHr: data.maxHr ? parseInt(data.maxHr, 10) : null,
           ftpWatts: data.ftp ? parseInt(data.ftp, 10) : null,
           run5kPaceSec: paceToSeconds(data.pace5k),
-          bikeWeightKg: data.bikeWeightKg ? parseFloat(data.bikeWeightKg) : null,
-          crr: data.crr ? parseFloat(data.crr) : null,
           hasPool: data.hasPool,
           hasBikeTrainer: data.hasBikeTrainer,
           hasTreadmill: data.hasTreadmill,
@@ -537,17 +531,6 @@ function Step2({ data, update }: StepProps) {
    Step 3 — Dados Fisiológicos
    ═══════════════════════════════════════════════════════ */
 
-// Presets de resistência de rolamento (Crr) por tipo de pneu/piso. O valor
-// resolvido vai pro perfil e a estimativa de CdA fixa esse Crr (ver aero.ts).
-const TIRE_PRESETS: { label: string; crr: string }[] = [
-  { label: 'Selecione…', crr: '' },
-  { label: 'Estrada premium (GP5000/látex)', crr: '0.0033' },
-  { label: 'Estrada 25mm', crr: '0.0040' },
-  { label: 'Estrada treino/robusto', crr: '0.0050' },
-  { label: 'Gravel', crr: '0.0080' },
-  { label: 'MTB', crr: '0.0120' },
-];
-
 function Step3({ data, update }: StepProps) {
   return (
     <div className="space-y-6">
@@ -607,39 +590,6 @@ function Step3({ data, update }: StepProps) {
           onChange={(e) => update({ pace5k: e.target.value })}
         />
       </Field>
-
-      {/* Setup da bike — habilita a estimativa de CdA (aerodinâmica) por pedalada */}
-      <div className="space-y-4 rounded-2xl border border-border bg-bg-surface/50 p-4">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px] text-bike">air</span>
-          <span className="text-text-secondary text-sm font-medium">
-            Setup da bike <span className="text-text-muted font-normal">(opc. — melhora a estimativa de CdA)</span>
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-          <Field label="Peso da bike (kg)">
-            <Input
-              size="lg"
-              type="number"
-              step="0.1"
-              placeholder="8.0"
-              value={data.bikeWeightKg}
-              onChange={(e) => update({ bikeWeightKg: e.target.value })}
-            />
-          </Field>
-          <Field label="Pneu / piso">
-            <select
-              value={data.crr}
-              onChange={(e) => update({ crr: e.target.value })}
-              className="w-full h-12 rounded-xl border border-border bg-bg-input px-3 text-text-primary text-base outline-none focus:border-border-focus"
-            >
-              {TIRE_PRESETS.map((t) => (
-                <option key={t.label} value={t.crr}>{t.label}</option>
-              ))}
-            </select>
-          </Field>
-        </div>
-      </div>
 
       {/* Equipment */}
       <div className="space-y-3">

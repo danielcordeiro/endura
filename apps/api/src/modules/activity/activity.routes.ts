@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../auth/auth.middleware.js';
-import { activityListQuery, activityParams } from './activity.schemas.js';
+import { activityListQuery, activityParams, setActivityBikeBody } from './activity.schemas.js';
 import * as activityService from './activity.service.js';
 
 // ── Tratamento de erros padronizado ──────────────────────────────
@@ -169,6 +169,7 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
             tss: raw.tss != null ? Number(raw.tss) : undefined,
             hasStreams: raw.hasStreams,
             analysis: raw.analysis ?? undefined,
+            bikeId: raw.bikeId ?? null,
             nutrition,
             totals,
           },
@@ -199,6 +200,38 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
 
         const data = await activityService.getActivityStreamsForChart(request.userId, parsed.data.id);
         return reply.send({ data });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  // ── PUT /api/activities/:id/bike ────────────────────────────
+  // Troca a bike usada na atividade → recomputa o CdA a partir das streams
+  // salvas (sem chamar o Strava). Retorna a análise recalculada.
+  app.put<{ Params: { id: string } }>(
+    '/api/activities/:id/bike',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsedParams = activityParams.safeParse(request.params);
+        if (!parsedParams.success) {
+          return reply.status(400).send({ code: 'ERR_VALIDATION', message: 'Parametro de ID invalido', status: 400 });
+        }
+        const parsedBody = setActivityBikeBody.safeParse(request.body);
+        if (!parsedBody.success) {
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: parsedBody.error.errors[0]?.message ?? 'Dados invalidos',
+            status: 400,
+          });
+        }
+        const result = await activityService.setActivityBike(
+          request.userId,
+          parsedParams.data.id,
+          parsedBody.data.bikeId,
+        );
+        return reply.send({ data: result });
       } catch (err) {
         await handleError(err, request, reply);
       }

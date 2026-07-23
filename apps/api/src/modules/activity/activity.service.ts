@@ -2,6 +2,8 @@ import { eq, and, desc, gte, sql, count } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import type { ActivityListQuery } from './activity.schemas.js';
+import { analyzeActivity, type StreamData, type LapInput, type Discipline } from './activity-analytics.js';
+import * as bikeService from '../bike/bike.service.js';
 
 // ── Tipos ───────────────────────────────────────────────────────
 
@@ -238,4 +240,104 @@ export async function getActivityStreamsForChart(
     distanceM: pick(streamRow.distanceM),
     laps,
   };
+}
+
+// ── Recompute de análise de UMA atividade (a partir das streams salvas) ──
+// Reusa a lógica do backfill (recompute-activity-analysis.ts) num único ponto:
+// resolve a bike da atividade (ou padrão) pro CdA. Não gasta rate limit do
+// Strava. Retorna a análise nova (ou a existente se não houver streams).
+
+interface StoredLap { lapIndex: number; startOffsetSec: number; name: string | null }
+
+export async function recomputeActivityAnalysis(userId: string, activityId: string) {
+  const activity = await db.query.activities.findFirst({
+    where: and(eq(schema.activities.id, activityId), eq(schema.activities.userId, userId)),
+  });
+  if (!activity) {
+    throw { code: 'ERR_ACTIVITY_NOT_FOUND', message: 'Atividade nao encontrada', status: 404 };
+  }
+  if (!activity.hasStreams) return activity.analysis ?? null;
+
+  const streamRow = await db.query.activityStreams.findFirst({
+    where: eq(schema.activityStreams.activityId, activityId),
+  });
+  if (!streamRow) return activity.analysis ?? null;
+
+  const streamData: StreamData = {
+    timeSec: streamRow.timeSec as number[],
+    watts: streamRow.watts as number[] | null,
+    heartRate: streamRow.heartRate as number[] | null,
+    cadence: streamRow.cadence as number[] | null,
+    distanceM: streamRow.distanceM as number[] | null,
+    altitudeM: streamRow.altitudeM as number[] | null,
+    velocityMs: streamRow.velocityMs as number[] | null,
+    gradePct: streamRow.gradePct as number[] | null,
+    moving: streamRow.moving as boolean[] | null,
+    tempC: streamRow.tempC as number[] | null,
+  };
+
+  const totalEndSec = streamData.timeSec.length > 0
+    ? Math.floor(streamData.timeSec[streamData.timeSec.length - 1]!)
+    : 0;
+
+  const prevLaps = ((activity.analysis as { laps?: StoredLap[] } | null)?.laps ?? [])
+    .slice()
+    .sort((a, b) => a.startOffsetSec - b.startOffsetSec);
+  const laps: LapInput[] = prevLaps.map((lap, i) => ({
+    lapIndex: lap.lapIndex,
+    startOffsetSec: lap.startOffsetSec,
+    endOffsetSec: i + 1 < prevLaps.length ? prevLaps[i + 1]!.startOffsetSec - 1 : totalEndSec,
+    name: lap.name,
+  }));
+
+  const profile = await db.query.athleteProfiles.findFirst({
+    where: eq(schema.athleteProfiles.userId, userId),
+  });
+  const bike = activity.discipline === 'bike'
+    ? await bikeService.resolveBikeForActivity(userId, activity.bikeId)
+    : undefined;
+  const ctx = {
+    ftpWatts: profile?.ftpWatts ?? null,
+    maxHr: profile?.maxHr ?? null,
+    weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+    ...bikeService.bikeToSetup(bike),
+  };
+
+  const result = analyzeActivity(streamData, laps, activity.discipline as Discipline, ctx);
+
+  await db
+    .update(schema.activities)
+    .set({
+      analysis: result as unknown as Record<string, unknown>,
+      tss: result.summary.tss != null ? String(result.summary.tss) : null,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.activities.id, activityId));
+
+  return result;
+}
+
+// ── Trocar a bike de uma atividade → recomputa o CdA na hora ──────
+export async function setActivityBike(userId: string, activityId: string, bikeId: string | null) {
+  const activity = await db.query.activities.findFirst({
+    where: and(eq(schema.activities.id, activityId), eq(schema.activities.userId, userId)),
+    columns: { id: true },
+  });
+  if (!activity) {
+    throw { code: 'ERR_ACTIVITY_NOT_FOUND', message: 'Atividade nao encontrada', status: 404 };
+  }
+  if (bikeId) {
+    const bike = await bikeService.getBikeById(userId, bikeId);
+    if (!bike) {
+      throw { code: 'ERR_BIKE_NOT_FOUND', message: 'Bike nao encontrada', status: 404 };
+    }
+  }
+
+  await db
+    .update(schema.activities)
+    .set({ bikeId, updatedAt: new Date() })
+    .where(eq(schema.activities.id, activityId));
+
+  const analysis = await recomputeActivityAnalysis(userId, activityId);
+  return { bikeId, analysis };
 }
