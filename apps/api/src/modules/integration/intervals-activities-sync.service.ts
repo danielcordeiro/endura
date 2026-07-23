@@ -1,7 +1,8 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { decrypt } from '../../lib/encryption.js';
+import { analyzeActivity, type StreamData, type LapInput, type Discipline } from '../activity/activity-analytics.js';
 
 // ── Config ────────────────────────────────────────────────────────
 
@@ -11,20 +12,27 @@ const BASE_BACKOFF_MS = 1000;
 const MAX_RETRIES = 3;
 
 // ── Rate limiter ──────────────────────────────────────────────────
+// Por CONTA (chaveado pelo authHeader, que já é único por API key) — cada
+// usuário tem sua própria cota no intervals.icu, um limiter global fazia um
+// usuário competir pela cota de outro em syncs concorrentes (cron + manual).
 
-const requestTimestamps: number[] = [];
+const requestTimestampsByAccount = new Map<string, number[]>();
 const MAX_REQUESTS_PER_MINUTE = 30;
 
-function canMakeRequest(): boolean {
+function canMakeRequest(accountKey: string): boolean {
   const oneMinuteAgo = Date.now() - 60_000;
-  while (requestTimestamps.length > 0 && requestTimestamps[0]! < oneMinuteAgo) {
-    requestTimestamps.shift();
+  const timestamps = requestTimestampsByAccount.get(accountKey) ?? [];
+  while (timestamps.length > 0 && timestamps[0]! < oneMinuteAgo) {
+    timestamps.shift();
   }
-  return requestTimestamps.length < MAX_REQUESTS_PER_MINUTE;
+  requestTimestampsByAccount.set(accountKey, timestamps);
+  return timestamps.length < MAX_REQUESTS_PER_MINUTE;
 }
 
-function recordRequest(): void {
-  requestTimestamps.push(Date.now());
+function recordRequest(accountKey: string): void {
+  const timestamps = requestTimestampsByAccount.get(accountKey) ?? [];
+  timestamps.push(Date.now());
+  requestTimestampsByAccount.set(accountKey, timestamps);
 }
 
 function makeAuthHeader(apiKey: string): string {
@@ -33,11 +41,12 @@ function makeAuthHeader(apiKey: string): string {
 }
 
 async function fetchWithRetry(url: string, authHeader: string, retries: number = MAX_RETRIES): Promise<unknown> {
+  const accountKey = authHeader;
   for (let attempt = 0; attempt < retries; attempt++) {
-    while (!canMakeRequest()) {
+    while (!canMakeRequest(accountKey)) {
       await new Promise((r) => setTimeout(r, 1000));
     }
-    recordRequest();
+    recordRequest(accountKey);
 
     const res = await fetch(url, { headers: { Authorization: authHeader } });
 
@@ -94,6 +103,139 @@ export interface ActivitySyncResult {
   updated: number;
   skipped: number;
   errors: number;
+}
+
+// ── Streams + intervalos (análise avançada) ────────────────────────
+
+interface IntervalsStreamItem {
+  type: string;
+  data: (number | null)[];
+}
+
+interface IntervalsIntervalRaw {
+  start_index?: number;
+  end_index?: number;
+  type?: string;
+  label?: string | null;
+}
+
+interface IntervalsIntervalsResponse {
+  icu_intervals?: IntervalsIntervalRaw[];
+}
+
+const ANALYZABLE_DISCIPLINES = new Set(['bike', 'run']);
+
+function findStream(streams: IntervalsStreamItem[], type: string): number[] | null {
+  const found = streams.find((s) => s.type === type);
+  return found ? (found.data as number[]) : null;
+}
+
+// ── Ingestão de streams + análise avançada (NP/TSS/zonas) ──────────
+// Espelha ingestActivityAnalysis do strava-sync.service.ts, mas usando a API
+// do intervals.icu: /activity/{id}/streams (array de {type,data}, mesmo
+// esquema de "smart recording" irregular do Strava em atividades outdoor —
+// contíguo em atividades indoor/trainer) e /activity/{id}/intervals
+// (segmentos auto-detectados por intensidade, não laps manuais — mas com
+// index bruto compatível, reaproveitado aqui como "laps" da UI).
+export async function ingestIntervalsAnalysis(
+  userId: string,
+  activityId: string,
+  discipline: string,
+  authHeader: string,
+  intervalsActivityId: string,
+): Promise<void> {
+  if (!ANALYZABLE_DISCIPLINES.has(discipline)) return;
+
+  const rawStreams = (await fetchWithRetry(
+    `${API_BASE}/activity/${intervalsActivityId}/streams`,
+    authHeader,
+  )) as IntervalsStreamItem[];
+  if (!Array.isArray(rawStreams)) return;
+
+  const timeSec = findStream(rawStreams, 'time');
+  const elapsedSec = timeSec && timeSec.length > 0 ? timeSec[timeSec.length - 1]! : 0;
+  if (!timeSec || timeSec.length < 2 || elapsedSec < 60) return;
+
+  let intervalsResp: IntervalsIntervalsResponse | null = null;
+  try {
+    intervalsResp = (await fetchWithRetry(
+      `${API_BASE}/activity/${intervalsActivityId}/intervals`,
+      authHeader,
+    )) as IntervalsIntervalsResponse;
+  } catch {
+    intervalsResp = null; // segue sem laps — não é fatal
+  }
+
+  const streamData: StreamData = {
+    timeSec,
+    watts: findStream(rawStreams, 'watts'),
+    heartRate: findStream(rawStreams, 'heartrate'),
+    cadence: findStream(rawStreams, 'cadence'),
+    distanceM: findStream(rawStreams, 'distance'),
+    altitudeM: findStream(rawStreams, 'altitude') ?? findStream(rawStreams, 'fixed_altitude'),
+    velocityMs: findStream(rawStreams, 'velocity_smooth'),
+    gradePct: findStream(rawStreams, 'grade_smooth'),
+    tempC: findStream(rawStreams, 'temp'),
+    // intervals.icu não expõe uma stream "moving" separada.
+  };
+
+  // Clamp simétrico + conversão índice→segundo via lookup no timeSec (mesmo
+  // esquema do Strava) — necessário porque atividades outdoor sincronizadas
+  // via intervals.icu também têm "smart recording" irregular (índice bruto
+  // != segundo decorrido); só indoor/trainer tem timeSec contíguo.
+  const rawIntervals = intervalsResp?.icu_intervals ?? [];
+  const laps: LapInput[] = rawIntervals.map((iv, i) => {
+    const startIdx = Math.max(0, Math.min(iv.start_index ?? 0, timeSec.length - 1));
+    const endIdx = Math.max(0, Math.min(iv.end_index ?? timeSec.length - 1, timeSec.length - 1));
+    return {
+      lapIndex: i + 1,
+      startOffsetSec: Math.floor(timeSec[startIdx] ?? 0),
+      endOffsetSec: Math.floor(timeSec[endIdx] ?? 0),
+      name: iv.label ?? iv.type ?? null,
+    };
+  });
+
+  const profile = await db.query.athleteProfiles.findFirst({
+    where: eq(schema.athleteProfiles.userId, userId),
+  });
+  const ctx = {
+    ftpWatts: profile?.ftpWatts ?? null,
+    maxHr: profile?.maxHr ?? null,
+    weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+  };
+
+  const result = analyzeActivity(streamData, laps, discipline as Discipline, ctx);
+
+  const streamRow = {
+    timeSec: streamData.timeSec,
+    watts: streamData.watts,
+    heartRate: streamData.heartRate,
+    cadence: streamData.cadence,
+    distanceM: streamData.distanceM,
+    altitudeM: streamData.altitudeM,
+    velocityMs: streamData.velocityMs,
+    gradePct: streamData.gradePct,
+    moving: null,
+    tempC: streamData.tempC,
+    sampleCount: timeSec.length,
+    source: PROVIDER,
+    updatedAt: new Date(),
+  };
+
+  await db
+    .insert(schema.activityStreams)
+    .values({ activityId, ...streamRow })
+    .onConflictDoUpdate({ target: schema.activityStreams.activityId, set: streamRow });
+
+  await db
+    .update(schema.activities)
+    .set({
+      analysis: result as unknown as Record<string, unknown>,
+      tss: result.summary.tss != null ? String(result.summary.tss) : null,
+      hasStreams: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.activities.id, activityId));
 }
 
 // ── Sync por usuario ──────────────────────────────────────────────
@@ -232,24 +374,63 @@ export async function syncActivitiesForUser(
           calories: act.calories ? Math.round(act.calories) : null,
           latStart: act.start_latlng?.[0] != null ? String(act.start_latlng[0]) : null,
           lonStart: act.start_latlng?.[1] != null ? String(act.start_latlng[1]) : null,
-          perceivedEffort: act.perceived_exertion ? Math.round(act.perceived_exertion) : null,
+          perceivedEffort: act.perceived_exertion != null ? Math.round(act.perceived_exertion) : null,
           notes: act.description ?? null,
-          // icu_training_load já é o TSS calculado pelo próprio intervals.icu
-          // (usa NP/FTP quando há potência, senão HR-based) — melhor que a
-          // nossa estimativa por FC quando disponível.
-          tss: act.icu_training_load != null ? String(act.icu_training_load) : null,
           rawData: act as unknown as Record<string, unknown>,
           updatedAt: new Date(),
         };
 
-        if (existingByIntervals) {
-          await db.update(schema.activities)
-            .set(activityData)
-            .where(eq(schema.activities.id, existingByIntervals.id));
-          result.updated++;
-        } else {
-          await db.insert(schema.activities).values({ ...activityData, createdAt: new Date() });
+        // icu_training_load é o TSS calculado pelo próprio intervals.icu (usa
+        // NP/FTP quando há potência, senão HR-based) — usado como fallback
+        // SÓ enquanto não temos um TSS melhor (via streams, ingestIntervalsAnalysis
+        // abaixo). COALESCE no UPDATE evita que um re-sync pise no TSS mais
+        // preciso já calculado — sem isso, toda sincronização voltaria a
+        // sobrescrever com a estimativa mais fraca.
+        // IMPORTANTE: só protege pra disciplinas analisáveis (bike/run) — pra
+        // swim/other, ingestIntervalsAnalysis nunca roda (early-return), então
+        // hasStreams nunca vira true e o COALESCE congelaria pra sempre o
+        // PRIMEIRO icu_training_load capturado, ignorando recomputos melhores
+        // que a intervals.icu faça depois (ex.: após o atleta configurar zonas).
+        const tssFallback = act.icu_training_load != null ? String(act.icu_training_load) : null;
+        const tssSetOnConflict = ANALYZABLE_DISCIPLINES.has(discipline)
+          ? sql`coalesce(${schema.activities.tss}, ${tssFallback})`
+          : tssFallback;
+
+        // Upsert atômico sobre o índice único (user_id, external_id, source) —
+        // check-then-insert sem transação podia duplicar a atividade num sync
+        // concorrente (cron + manual pro mesmo usuário).
+        const [upserted] = await db
+          .insert(schema.activities)
+          .values({ ...activityData, tss: tssFallback, createdAt: new Date() })
+          .onConflictDoUpdate({
+            target: [schema.activities.userId, schema.activities.externalId, schema.activities.source],
+            set: { ...activityData, tss: tssSetOnConflict },
+          })
+          .returning({
+            id: schema.activities.id,
+            hasStreams: schema.activities.hasStreams,
+            // xmax=0 é o idioma padrão do Postgres pra distinguir INSERT de
+            // UPDATE dentro de um INSERT...ON CONFLICT — usar isso em vez do
+            // "existingByIntervals" lido ANTES do upsert, que fica errado sob
+            // corrida (cron + sync manual pro mesmo usuário podem ambos ler
+            // "não existe" e um deles na verdade cai no ramo de UPDATE).
+            wasInsert: sql<boolean>`(xmax = 0)`,
+          });
+
+        if (upserted!.wasInsert) {
           result.inserted++;
+        } else {
+          result.updated++;
+        }
+
+        // Ingestão de streams + análise avançada (NP/TSS/zonas/laps): só na
+        // primeira vez que vemos a atividade sem streams ainda.
+        if (!upserted!.hasStreams) {
+          try {
+            await ingestIntervalsAnalysis(userId, upserted!.id, discipline, authHeader, externalId);
+          } catch (err) {
+            console.warn(`[intervals-sync] Falha ao analisar atividade ${externalId}:`, err);
+          }
         }
       } catch {
         result.errors++;

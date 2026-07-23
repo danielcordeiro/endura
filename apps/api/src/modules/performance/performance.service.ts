@@ -1186,21 +1186,27 @@ function computeBenchmark(
   let bestSpeedKmh: number | null = null;
   let avgSpeedKmh: number | null = null;
 
+  // avgPace/avgSpeedKmh usam total_distância/total_duração (ponderado), NÃO a
+  // média simples das razões por atividade — média de razões dá peso IGUAL
+  // a uma sessão de 6min (drill/technique, pace inflado pelo descanso) e a
+  // uma de 50min contínua, distorcendo a média pra cima (ex.: natação real
+  // do Daniel: média simples dava 2:12/100m, ponderada por distância dá
+  // 2:06/100m — mais fiel, porque pesa cada atividade pelo volume real).
   if (discipline === 'swim') {
     // Pace per 100m
     const paces = all.map((a) => (Number(a.durationSec!) / Number(a.distanceM!)) * 100);
     bestPace = Math.round(Math.min(...paces));
-    avgPace = Math.round(paces.reduce((a, b) => a + b, 0) / paces.length);
+    avgPace = Math.round((totalDurationSec / totalDistanceM) * 100);
   } else if (discipline === 'run') {
     // Pace per km
     const paces = all.map((a) => (Number(a.durationSec!) / Number(a.distanceM!)) * 1000);
     bestPace = Math.round(Math.min(...paces));
-    avgPace = Math.round(paces.reduce((a, b) => a + b, 0) / paces.length);
+    avgPace = Math.round((totalDurationSec / totalDistanceM) * 1000);
   } else {
     // Bike: speed km/h
     const speeds = all.map((a) => (Number(a.distanceM!) / 1000) / (Number(a.durationSec!) / 3600));
     bestSpeedKmh = Math.round(Math.max(...speeds) * 10) / 10;
-    avgSpeedKmh = Math.round((speeds.reduce((a, b) => a + b, 0) / speeds.length) * 10) / 10;
+    avgSpeedKmh = Math.round(((totalDistanceM / 1000) / (totalDurationSec / 3600)) * 10) / 10;
   }
 
   // Power (bike only)
