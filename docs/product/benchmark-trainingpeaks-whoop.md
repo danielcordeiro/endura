@@ -1,6 +1,6 @@
 ---
 created: 2026-06-25
-updated: 2026-06-25
+updated: 2026-07-23
 author: Daniel
 status: living
 ---
@@ -19,13 +19,14 @@ Fonte: [Performance Manager](https://www.trainingpeaks.com/learn/articles/the-sc
 
 | Recurso | O que é | Endura hoje |
 |---|---|---|
-| **TSS** | Carga por treino (1h no FTP = 100) | ✅ estimado por FC (sem potência → proxy quadrático) |
-| **CTL / ATL / TSB** | EMA 42d / 7d / diferença ("Fitness/Fadiga/Forma") | ✅ calculado ao vivo |
+| **TSS** | Carga por treino (1h no FTP = 100) | ✅ real via NP/FTP (bike/run com streams do Strava); FC como fallback quando não há potência |
+| **CTL / ATL / TSB** | EMA 42d / 7d / diferença ("Fitness/Fadiga/Forma") | ✅ calculado ao vivo, agora com TSS real (não só estimativa por FC) |
 | **PMC (Performance Manager)** | Gráfico de fitness/fadiga/forma com **projeção futura** dos treinos planejados | ⚠️ tínhamos só o retrospectivo → **✅ projeção entregue (esta release)** |
 | **Faixa de pico (TSB +15…+25)** | Forma ideal para prova A (Friel) | ✅ avaliação de pico na projeção |
-| **Mean-Max / Peak Power Curve** | Melhor potência por duração (5s…3h) | ❌ exige streams (não armazenados) |
-| **Peak Performances** | Recordes (melhor pace 1k/5k/10k, FTP, etc.) | ⚠️ parcial (benchmarks por disciplina, 180d) |
-| **Time-in-Zones** | Distribuição de tempo por zona de FC/potência/pace | ❌ exige streams |
+| **Mean-Max / Peak Power Curve** | Melhor potência por duração (5s…3h) | ✅ curva de potência (5s–90min) por atividade — **entregue** (streams agora persistidas) |
+| **Peak Performances** | Recordes (melhor pace 1k/5k/10k, FTP, etc.) | ⚠️ melhor esforço de pace por atividade entregue; falta ranking "recorde histórico" entre atividades |
+| **Time-in-Zones** | Distribuição de tempo por zona de FC/potência/pace | ✅ zonas de FC/potência por atividade — **entregue** |
+| **NP / IF / VI / EF / Decoupling / VAM / Análise por lap** | Métricas avançadas de potência (Coggan) | ✅ **entregue** — não estava nem no benchmark original, TP/intervals.icu como referência |
 | **ATP (Annual Training Plan)** | Periodização anual com metas semanais de CTL/volume | ⚠️ plano por semana, sem visão de temporada |
 | **Workout Builder + envio p/ device** | Treino estruturado → relógio | ✅ via intervals.icu (`sentToWatch`) |
 | **Calendar (multi-mês)** | Calendário arrastar-soltar | ⚠️ semana atual + calendário de provas |
@@ -64,7 +65,7 @@ Legenda de esforço: S (≤1 dia), M (2–4 dias), L (semana+, depende de stream
 4. **Season/ATP view na web (M)** — calendário multi-semana com CTL planejado vs realizado e marcos das provas A/B/C. Reusa `projectPMC`.
 
 ### P1 — Forte, médio esforço
-5. **Time-in-Zones + curva de pace/potência (L)** — exige persistir streams (laps/watts/HR) do Strava/intervals. Habilita análise por zona, mean-max e "Peak Performances" reais.
+5. ✅ **Time-in-Zones + curva de pace/potência + análise avançada (NP/IF/TSS/VI/EF/decoupling/VAM/laps)** — *entregue nesta release.* Streams+laps do Strava (bike/run) persistidas em `activity_streams`; motor de análise (`activity-analytics.ts`) estilo TrainingPeaks/intervals.icu; UI com abas Resumo/Gráfico/Picos/Zonas na atividade. TSS real substitui a estimativa por FC no PMC. Backfill de ~200 atividades históricas + recompute já rodados em prod. **Gaps que ficaram**: swim não coberto (sem power/pace útil via Strava), intervals.icu só usa os campos já computados por eles (`icu_average_watts`/`icu_training_load`) — sem streams completas dessa fonte —, e não há ranking de recorde histórico entre atividades (só picos por atividade individual).
 6. **Sleep Performance % (S)** — necessidade de sono por perfil + comparação; já temos estágios.
 7. **Stress intradiário (M)** — série de stress do Garmin via intervals (se exposto).
 8. **Tendências baselined visuais (S)** — bandas (verde/amarelo/vermelho) em HRV/RHR/sono no card de wellness, estilo WHOOP.
@@ -87,3 +88,4 @@ Sequência sugerida: **#2 Recovery Score (WHOOP) → #3 Strain Target → #4 ATP
 | Data | Alteração |
 |---|---|
 | 2026-06-25 | Criação do benchmark + entrega do item P0.1 (projeção de forma) |
+| 2026-07-23 | Entrega do item P1.5 (análise avançada de atividade: NP/IF/TSS/VI/EF/decoupling/VAM/picos/zonas/laps) — ver `apps/api/src/modules/activity/activity-analytics.ts`. TSS real substitui estimativa por FC no PMC. |
