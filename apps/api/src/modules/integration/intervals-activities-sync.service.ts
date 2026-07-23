@@ -359,6 +359,7 @@ export async function syncActivitiesForUser(
           title: act.name ?? `${discipline} intervals.icu`,
           startedAt: new Date(startedAtStr),
           durationSec: act.elapsed_time ?? act.moving_time ?? null,
+          movingTimeSec: act.moving_time ?? null,
           distanceM: act.distance != null ? String(act.distance) : null,
           avgHr: act.average_heartrate != null ? Math.round(act.average_heartrate) : null,
           maxHr: act.max_heartrate != null ? Math.round(act.max_heartrate) : null,

@@ -207,7 +207,12 @@ export const activities = pgTable('activities', {
   discipline: varchar('discipline', { length: 10 }).notNull(),
   title: varchar('title', { length: 255 }),
   startedAt: timestamp('started_at').notNull(),
-  durationSec: integer('duration_sec'),
+  durationSec: integer('duration_sec'), // tempo DECORRIDO (inclui descanso/paradas)
+  // Tempo em MOVIMENTO — crítico pra pace/velocidade (natação com descanso
+  // entre séries é o caso extremo: elapsed conta o descanso todo, inflando o
+  // "pace médio" pra bem mais lento que o ritmo real de nado). durationSec
+  // continua sendo "tempo total gasto no treino" (correto pra volume/TSS).
+  movingTimeSec: integer('moving_time_sec'),
   distanceM: numeric('distance_m', { precision: 10, scale: 2 }),
   avgHr: integer('avg_hr'),
   maxHr: integer('max_hr'),

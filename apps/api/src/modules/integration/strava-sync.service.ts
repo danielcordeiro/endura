@@ -86,6 +86,7 @@ interface StravaActivity {
   sport_type: string;
   start_date: string;
   elapsed_time: number;
+  moving_time?: number;
   distance: number;
   average_heartrate?: number;
   max_heartrate?: number;
@@ -477,6 +478,7 @@ export async function syncUserActivities(userId: string): Promise<number> {
         title: sa.name,
         startedAt: new Date(sa.start_date),
         durationSec: sa.elapsed_time,
+        movingTimeSec: sa.moving_time ?? null,
         distanceM: sa.distance != null ? String(sa.distance) : null,
         avgHr: sa.average_heartrate != null ? Math.round(sa.average_heartrate) : null,
         maxHr: sa.max_heartrate != null ? Math.round(sa.max_heartrate) : null,
