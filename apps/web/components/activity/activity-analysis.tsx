@@ -7,6 +7,7 @@ import { AnalysisSummary } from './analysis-summary';
 import { AnalysisGraph } from './analysis-graph';
 import { AnalysisPeaks } from './analysis-peaks';
 import { AnalysisZones } from './analysis-zones';
+import { AeroCard } from './aero-card';
 
 interface ActivityAnalysisProps {
   activityId: string;
@@ -82,7 +83,11 @@ export function ActivityAnalysis({ activityId, analysis }: ActivityAnalysisProps
       )}
 
       {tab === 'summary' && (
-        <AnalysisSummary metrics={metrics} discipline={analysis.discipline} weightKg={analysis.inputs.weightKg} />
+        <>
+          {/* CdA é da atividade inteira — mostra só no treino completo. */}
+          {selectedLap === 'full' && analysis.aero && <AeroCard aero={analysis.aero} />}
+          <AnalysisSummary metrics={metrics} discipline={analysis.discipline} weightKg={analysis.inputs.weightKg} />
+        </>
       )}
       {tab === 'graph' && <AnalysisGraph activityId={activityId} />}
       {tab === 'peaks' && <AnalysisPeaks peaks={analysis.peaks} weightKg={analysis.inputs.weightKg} />}

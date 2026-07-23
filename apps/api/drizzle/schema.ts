@@ -57,6 +57,10 @@ export const athleteProfiles = pgTable('athlete_profiles', {
   maxHr: integer('max_hr'),
   ftpWatts: integer('ftp_watts'),
   run5kPaceSec: integer('run_5k_pace_sec'),
+  // ── Setup aerodinâmico (estimativa de CdA por pedalada, ver aero.ts) ──
+  bikeWeightKg: numeric('bike_weight_kg', { precision: 4, scale: 2 }),
+  crr: numeric('crr', { precision: 5, scale: 4 }),                          // resist. de rolamento (preset de pneu/piso)
+  drivetrainEfficiency: numeric('drivetrain_efficiency', { precision: 4, scale: 3 }), // η, default 0.975 aplicado no cálculo
   dietaryRestrictions: text('dietary_restrictions').array(),
   ownedProducts: text('owned_products').array(),
   giSensitivity: boolean('gi_sensitivity').default(false),

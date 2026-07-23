@@ -17,6 +17,9 @@ export async function createProfile(userId: string, data: CreateProfileBody) {
         ...data,
         weeklyHours: data.weeklyHours?.toString() ?? existing.weeklyHours,
         weightKg: data.weightKg?.toString() ?? existing.weightKg,
+        bikeWeightKg: data.bikeWeightKg?.toString() ?? existing.bikeWeightKg,
+        crr: data.crr?.toString() ?? existing.crr,
+        drivetrainEfficiency: data.drivetrainEfficiency?.toString() ?? existing.drivetrainEfficiency,
         updatedAt: new Date(),
       })
       .where(eq(schema.athleteProfiles.userId, userId))
@@ -41,6 +44,9 @@ export async function createProfile(userId: string, data: CreateProfileBody) {
       maxHr: data.maxHr ?? null,
       ftpWatts: data.ftpWatts ?? null,
       run5kPaceSec: data.run5kPaceSec ?? null,
+      bikeWeightKg: data.bikeWeightKg?.toString() ?? null,
+      crr: data.crr?.toString() ?? null,
+      drivetrainEfficiency: data.drivetrainEfficiency?.toString() ?? null,
       dietaryRestrictions: data.dietaryRestrictions ?? null,
       ownedProducts: data.ownedProducts ?? null,
       giSensitivity: data.giSensitivity,
@@ -95,6 +101,9 @@ export async function updateProfile(userId: string, data: UpdateProfileBody) {
   if (data.maxHr !== undefined) updateData.maxHr = data.maxHr;
   if (data.ftpWatts !== undefined) updateData.ftpWatts = data.ftpWatts;
   if (data.run5kPaceSec !== undefined) updateData.run5kPaceSec = data.run5kPaceSec;
+  if (data.bikeWeightKg !== undefined) updateData.bikeWeightKg = data.bikeWeightKg?.toString() ?? null;
+  if (data.crr !== undefined) updateData.crr = data.crr?.toString() ?? null;
+  if (data.drivetrainEfficiency !== undefined) updateData.drivetrainEfficiency = data.drivetrainEfficiency?.toString() ?? null;
   if (data.dietaryRestrictions !== undefined) updateData.dietaryRestrictions = data.dietaryRestrictions;
   if (data.ownedProducts !== undefined) updateData.ownedProducts = data.ownedProducts;
   if (data.giSensitivity !== undefined) updateData.giSensitivity = data.giSensitivity;

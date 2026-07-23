@@ -25,7 +25,10 @@ async function main() {
 
   let ok = 0;
   let failed = 0;
-  const profileCache = new Map<string, { ftpWatts: number | null; maxHr: number | null; weightKg: number | null }>();
+  const profileCache = new Map<string, {
+    ftpWatts: number | null; maxHr: number | null; weightKg: number | null;
+    bikeWeightKg: number | null; crr: number | null; drivetrainEff: number | null;
+  }>();
 
   for (const act of activities) {
     try {
@@ -74,6 +77,9 @@ async function main() {
           ftpWatts: profile?.ftpWatts ?? null,
           maxHr: profile?.maxHr ?? null,
           weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+          bikeWeightKg: profile?.bikeWeightKg ? Number(profile.bikeWeightKg) : null,
+          crr: profile?.crr ? Number(profile.crr) : null,
+          drivetrainEff: profile?.drivetrainEfficiency ? Number(profile.drivetrainEfficiency) : null,
         });
       }
       const ctx = profileCache.get(act.userId)!;

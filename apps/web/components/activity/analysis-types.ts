@@ -55,6 +55,30 @@ export interface PeakEfforts {
 
 export type Discipline = 'bike' | 'run' | 'swim' | 'other';
 
+// Espelha AeroResult de apps/api/src/modules/activity/aero.ts
+export type AeroConfidenceTier = 'low' | 'medium' | 'high';
+
+export interface AeroResult {
+  version: 1;
+  cdaM2: number;
+  wattsAt40kmh: number;
+  crr: number;
+  bikeWeightKg: number;
+  riderWeightKg: number | null;
+  systemMassKg: number;
+  drivetrainEff: number;
+  airDensityKgM3: number;
+  sampleSecs: number;
+  usableFraction: number;
+  speed: { minMs: number; maxMs: number; avgMs: number };
+  usedDefaults: boolean;
+  confidence: {
+    tier: AeroConfidenceTier;
+    score: number;
+    reasons: string[];
+  };
+}
+
 export interface AnalysisResult {
   version: 1;
   computedAt: string;
@@ -64,6 +88,7 @@ export interface AnalysisResult {
   peaks: PeakEfforts;
   zones: { hr: ZoneResult[]; power: ZoneResult[] };
   laps: LapAnalysis[];
+  aero?: AeroResult | null;
 }
 
 export interface ActivityStreamsResponse {

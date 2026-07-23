@@ -317,6 +317,9 @@ export async function ingestActivityAnalysis(
     ftpWatts: profile?.ftpWatts ?? null,
     maxHr: profile?.maxHr ?? null,
     weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+    bikeWeightKg: profile?.bikeWeightKg ? Number(profile.bikeWeightKg) : null,
+    crr: profile?.crr ? Number(profile.crr) : null,
+    drivetrainEff: profile?.drivetrainEfficiency ? Number(profile.drivetrainEfficiency) : null,
   };
 
   const result = analyzeActivity(streamData, laps, discipline as Discipline, ctx);

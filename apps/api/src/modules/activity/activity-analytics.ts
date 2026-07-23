@@ -12,6 +12,11 @@
 // IF = NP/FTP; TSS = (duração_s × NP × IF)/(FTP×3600)×100; VI = NP/avgPower;
 // EF = NP/avgHR; decoupling = variação % da razão potência:FC (ou pace:FC)
 // entre a 1ª e a 2ª metade do trecho.
+//
+// A estimativa de CdA (arrasto aerodinâmico) por pedalada vive em ./aero.ts
+// e é plugada aqui pra pedaladas com potência (ver estimateAero).
+
+import { estimateAero, type AeroResult } from './aero.js';
 
 export interface StreamData {
   timeSec: number[];
@@ -43,6 +48,11 @@ export interface AthleteContext {
   ftpWatts?: number | null;
   maxHr?: number | null;
   weightKg?: number | null;
+  // Setup aerodinâmico (bike + pneu + transmissão) — usado só pela estimativa
+  // de CdA. Opcional: sem eles, estimateAero cai em defaults e sinaliza.
+  bikeWeightKg?: number | null;
+  crr?: number | null;
+  drivetrainEff?: number | null;
 }
 
 export type Discipline = 'bike' | 'run' | 'swim' | 'other';
@@ -107,6 +117,9 @@ export interface AnalysisResult {
   peaks: PeakEfforts;
   zones: { hr: ZoneResult[]; power: ZoneResult[] };
   laps: LapAnalysis[];
+  // CdA estimado (só bike com potência); null quando não estimável. Campo
+  // aditivo/opcional — analises antigas ficam sem até o recompute rodar.
+  aero?: AeroResult | null;
 }
 
 // ── Constantes ────────────────────────────────────────────────
@@ -389,7 +402,7 @@ export function estimateHrTss(durationSec: number, avgHr: number | null, maxHr: 
 
 // ── Análise de um segmento (lap ou atividade inteira) ────────────
 
-interface ResampledStreams {
+export interface ResampledStreams {
   power: number[]; hr: number[]; cadence: number[]; speed: number[];
   altitude: number[]; grade: number[]; temp: number[]; distance: number[]; moving: number[];
   hasPower: boolean; hasHr: boolean; hasCadence: boolean; hasSpeed: boolean;
@@ -514,6 +527,16 @@ export function analyzeActivity(
   const totalEndSec = resampled.power.length - 1;
   const summary = analyzeSegment(resampled, 0, totalEndSec, discipline, ctx);
 
+  // CdA estimado — só bike (a física de arrasto é ciclística). estimateAero
+  // já valida presença de potência/velocidade e retorna null quando não dá.
+  const aero: AeroResult | null = discipline === 'bike'
+    ? estimateAero(resampled, { weightKg: ctx.weightKg ?? null }, {
+        bikeWeightKg: ctx.bikeWeightKg ?? null,
+        crr: ctx.crr ?? null,
+        drivetrainEff: ctx.drivetrainEff ?? null,
+      })
+    : null;
+
   const peaks: PeakEfforts = {
     power: summary.power.avg ? computePeakPowerCurve(resampled.power, 0, totalEndSec) : {},
     pace: computeBestEffortPace(resampled.distance, 0, totalEndSec, PACE_TARGET_DISTANCES_M[discipline] ?? []),
@@ -549,5 +572,6 @@ export function analyzeActivity(
     peaks,
     zones,
     laps: lapAnalyses,
+    aero,
   };
 }

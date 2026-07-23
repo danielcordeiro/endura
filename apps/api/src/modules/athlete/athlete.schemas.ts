@@ -19,6 +19,11 @@ export const createProfileBody = z.object({
   ftpWatts: z.number().int().min(50).max(600).nullable().optional(),
   run5kPaceSec: z.number().int().min(180).max(900).nullable().optional(),
 
+  // Bloco 2b: Setup aerodinâmico (estimativa de CdA por pedalada)
+  bikeWeightKg: z.number().min(3).max(25).nullable().optional(),
+  crr: z.number().min(0.001).max(0.02).nullable().optional(), // resolvido de preset de pneu/piso no UI
+  drivetrainEfficiency: z.number().min(0.9).max(1).nullable().optional(),
+
   // Bloco 3: Perfil nutricional
   dietaryRestrictions: z.array(z.string()).nullable().optional(),
   ownedProducts: z.array(z.string()).nullable().optional(),
