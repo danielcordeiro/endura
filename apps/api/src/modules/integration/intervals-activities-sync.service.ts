@@ -4,6 +4,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { decrypt } from '../../lib/encryption.js';
 import { analyzeActivity, type StreamData, type LapInput, type Discipline } from '../activity/activity-analytics.js';
 import * as bikeService from '../bike/bike.service.js';
+import * as athleteService from '../athlete/athlete.service.js';
 
 // ── Config ────────────────────────────────────────────────────────
 
@@ -211,7 +212,7 @@ export async function ingestIntervalsAnalysis(
   const ctx = {
     ftpWatts: profile?.ftpWatts ?? null,
     maxHr: profile?.maxHr ?? null,
-    weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+    weightKg: await athleteService.resolveWeightKg(userId, profile),
     ...bikeService.bikeToSetup(bike),
   };
 

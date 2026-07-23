@@ -315,7 +315,7 @@ export function estimateAero(
 
   const reasons: string[] = [];
   reasons.push('vento assumido calmo (não verificado)');
-  if (usedDefaults) reasons.push('setup padrão — informe peso da bike e pneu no perfil');
+  if (usedDefaults) reasons.push('setup padrão — cadastre sua bike em Minhas bikes');
   if (sampleSecs < 300) reasons.push('pouco trecho aero-válido (plano/estável)');
   if (highSpeedFraction < 0.15) reasons.push('pouca velocidade alta');
   if (normResid > 0.4) reasons.push('sinal ruidoso (terreno/pedalada irregular)');

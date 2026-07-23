@@ -1,7 +1,24 @@
-import { eq, and, asc, gte } from 'drizzle-orm';
+import { eq, and, asc, gte, desc, isNotNull } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import type { CreateProfileBody, UpdateProfileBody, CreateRaceGoalBody, UpdateRaceGoalBody } from './athlete.schemas.js';
+
+// ── Peso efetivo do atleta (p/ CdA, W/kg, etc.) ──────────────────
+// Usa o peso do perfil quando preenchido; senão o peso diário mais recente
+// (wellness). Evita que o CdA caia no default de 75kg quando o atleta só
+// registra peso pelo tracking diário e não no perfil.
+export async function resolveWeightKg(
+  userId: string,
+  profile?: { weightKg: string | null } | null,
+): Promise<number | null> {
+  if (profile?.weightKg) return Number(profile.weightKg);
+  const latest = await db.query.dailyMetrics.findFirst({
+    where: and(eq(schema.dailyMetrics.userId, userId), isNotNull(schema.dailyMetrics.weightKg)),
+    orderBy: [desc(schema.dailyMetrics.date)],
+    columns: { weightKg: true },
+  });
+  return latest?.weightKg ? Number(latest.weightKg) : null;
+}
 
 // ── Profile ──────────────────────────────────────────────────────
 
