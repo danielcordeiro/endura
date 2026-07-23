@@ -98,7 +98,7 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: 'endura_get_activity',
-    description: 'Detalhe completo de uma atividade (HR, power, distância, elevação, clima, RPE, notes).',
+    description: 'Detalhe completo de uma atividade (HR, power, distância, elevação, clima, RPE, notes). Para bike/run com streams do Strava, inclui `analysis`: NP, IF, TSS (calculado, não estimado), VI, EF, decoupling (Pw:Hr), VAM, curva de potência (peaks.power por duração 5s-90min), zonas de FC/potência e breakdown por lap (analysis.laps[]).',
     scope: 'read:activities',
     inputSchema: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
     call: (a, c) => c.get(`${BASE}/activities/${uid(a.id)}`),

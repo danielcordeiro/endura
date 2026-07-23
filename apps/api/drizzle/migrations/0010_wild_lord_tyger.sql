@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "idx_activities_user_external_source_unique" ON "activities" USING btree ("user_id","external_id","source");

@@ -111,6 +111,87 @@ export interface Activity {
   adverseEvents: AdverseEvent[];
   perceivedEffort: number | null;
   notes: string | null;
+  /** TSS real (calculado via NP/FTP quando há streams; senão icu_training_load
+   * ou estimativa por FC) — denormalizado pro PMC somar sem parsear jsonb. */
+  tss: number | null;
+  /** true quando há streams (bike/run via Strava) e portanto `analysis` populado. */
+  hasStreams: boolean;
+  /** Análise avançada (NP/IF/TSS/VI/EF/decoupling/VAM/picos/zonas/laps) — ver
+   * ActivityAnalysis. Só presente quando hasStreams=true. */
+  analysis: ActivityAnalysis | null;
+}
+
+// ── Activity Analysis (NP/IF/TSS/VI/EF/decoupling/VAM/picos/zonas/laps) ──
+// Espelha apps/api/src/modules/activity/activity-analytics.ts. Calculado a
+// partir de activity_streams (Strava, bike/run) — estilo TrainingPeaks/
+// intervals.icu. Sempre no nível da atividade inteira (summary/peaks/zones)
+// e por lap (laps[], cada um com o mesmo shape de SegmentMetrics).
+//
+// Nota: usa seu próprio union de disciplina (não o `Discipline` acima) porque
+// o valor real vem de mapSportType() no sync (strava-sync.service.ts), que
+// produz 'other' — fora do union 'swim'|'bike'|'run'|'brick' usado pra planos.
+export type AnalysisDiscipline = 'bike' | 'run' | 'swim' | 'other';
+
+export interface MinAvgMax {
+  min: number | null;
+  avg: number | null;
+  max: number | null;
+}
+
+export interface SegmentMetrics {
+  durationSec: number;
+  movingSec: number;
+  distanceM: number | null;
+  elevGainM: number | null;
+  elevLossM: number | null;
+  avgGradePct: number | null;
+  power: MinAvgMax;
+  heartRate: MinAvgMax;
+  cadence: MinAvgMax;
+  speedMs: MinAvgMax;
+  altitudeM: MinAvgMax;
+  tempC: MinAvgMax;
+  npWatts: number | null;
+  ifValue: number | null;
+  viValue: number | null;
+  efValue: number | null;
+  pwHrDecouplingPct: number | null;
+  vamMhr: number | null;
+  tss: number | null;
+  tssMethod: 'power' | 'hr' | null;
+  workKj: number | null;
+  wPerKg: number | null;
+}
+
+export interface LapAnalysis extends SegmentMetrics {
+  lapIndex: number;
+  startOffsetSec: number;
+  name: string | null;
+}
+
+export interface ZoneResult {
+  zone: number;
+  label: string;
+  lowPct: number;
+  highPct: number | null;
+  secs: number;
+  pct: number;
+}
+
+export interface PeakEfforts {
+  power: Record<string, number | null>;
+  pace: Record<string, number | null>;
+}
+
+export interface ActivityAnalysis {
+  version: 1;
+  computedAt: string;
+  discipline: AnalysisDiscipline;
+  inputs: { ftpWatts: number | null; maxHr: number | null; weightKg: number | null };
+  summary: SegmentMetrics;
+  peaks: PeakEfforts;
+  zones: { hr: ZoneResult[]; power: ZoneResult[] };
+  laps: LapAnalysis[];
 }
 
 // ── Nutrition ───────────────────────────────────────────

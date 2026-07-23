@@ -315,6 +315,8 @@ export default async function publicApiRoutes(app: FastifyInstance): Promise<voi
             calories: a.calories,
             perceivedEffort: a.perceivedEffort,
             plannedWorkoutId: a.plannedWorkoutId,
+            tss: a.tss != null ? Number(a.tss) : null,
+            hasStreams: a.hasStreams,
           })),
         },
       });

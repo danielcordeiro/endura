@@ -79,6 +79,8 @@ interface IntervalsActivity {
   average_heartrate?: number;
   max_heartrate?: number;
   average_watts?: number;
+  icu_average_watts?: number;
+  icu_weighted_avg_watts?: number;
   icu_training_load?: number;
   calories?: number;
   start_latlng?: [number, number] | null;
@@ -216,15 +218,26 @@ export async function syncActivitiesForUser(
           startedAt: new Date(startedAtStr),
           durationSec: act.elapsed_time ?? act.moving_time ?? null,
           distanceM: act.distance != null ? String(act.distance) : null,
-          avgHr: act.average_heartrate ? Math.round(act.average_heartrate) : null,
-          maxHr: act.max_heartrate ? Math.round(act.max_heartrate) : null,
-          avgPowerW: act.average_watts ? Math.round(act.average_watts) : null,
+          avgHr: act.average_heartrate != null ? Math.round(act.average_heartrate) : null,
+          maxHr: act.max_heartrate != null ? Math.round(act.max_heartrate) : null,
+          // API do intervals.icu usa "icu_average_watts" (não "average_watts" —
+          // esse campo nunca veio preenchido; bug pré-existente que zerava a
+          // potência de TODA atividade indoor/virtual sincronizada por aqui).
+          // Checagem != null (não truthy) — 0W é um valor real possível.
+          avgPowerW: (() => {
+            const w = act.average_watts ?? act.icu_average_watts;
+            return w != null ? Math.round(w) : null;
+          })(),
           elevationM: act.total_elevation_gain != null ? String(act.total_elevation_gain) : null,
           calories: act.calories ? Math.round(act.calories) : null,
           latStart: act.start_latlng?.[0] != null ? String(act.start_latlng[0]) : null,
           lonStart: act.start_latlng?.[1] != null ? String(act.start_latlng[1]) : null,
           perceivedEffort: act.perceived_exertion ? Math.round(act.perceived_exertion) : null,
           notes: act.description ?? null,
+          // icu_training_load já é o TSS calculado pelo próprio intervals.icu
+          // (usa NP/FTP quando há potência, senão HR-based) — melhor que a
+          // nossa estimativa por FC quando disponível.
+          tss: act.icu_training_load != null ? String(act.icu_training_load) : null,
           rawData: act as unknown as Record<string, unknown>,
           updatedAt: new Date(),
         };

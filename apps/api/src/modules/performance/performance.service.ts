@@ -4,6 +4,7 @@ import * as schema from '../../../drizzle/schema.js';
 import { generateStructuredJSON, CLAUDE_MODELS } from '../../lib/claude.js';
 import { getLatestWellness } from '../integration/wellness-sync.service.js';
 import { findTargetRaceGoal } from '../athlete/athlete.service.js';
+import { estimateHrTss } from '../activity/activity-analytics.js';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -98,17 +99,6 @@ function dateAddDays(dateStr: string, days: number): string {
   return d.toISOString().split('T')[0]!;
 }
 
-/** Estimate TSS from HR data when no power meter is available */
-function estimateHrTSS(durationSec: number, avgHr: number | null, maxHr: number | null): number {
-  if (!avgHr || !maxHr || maxHr === 0) {
-    // Fallback: duration-based estimate (1 TSS per minute at moderate effort)
-    return Math.round((durationSec / 60) * 0.7);
-  }
-  const hrRatio = avgHr / maxHr;
-  const intensityFactor = hrRatio * hrRatio; // Quadratic scaling
-  return Math.round((durationSec / 3600) * intensityFactor * 100);
-}
-
 // ── PMC Calculation (CTL / ATL / TSB) ────────────────────────────
 
 export async function calculatePMC(userId: string, days: number = 90): Promise<PMCData> {
@@ -131,15 +121,15 @@ export async function calculatePMC(userId: string, days: number = 90): Promise<P
   });
   const maxHr = profile?.maxHr ?? 185;
 
-  // Build daily TSS map
+  // Build daily TSS map — prefere o TSS real (calculado via NP/FTP a partir
+  // das streams, ver activity-analytics.ts) e só cai pro estimador por FC
+  // quando a atividade não tem streams/potência (ex: swim, atividade manual).
   const dailyTSS = new Map<string, number>();
   for (const act of activities) {
     const dateStr = act.startedAt.toISOString().split('T')[0]!;
-    const tss = estimateHrTSS(
-      Number(act.durationSec ?? 0),
-      act.avgHr,
-      maxHr,
-    );
+    const tss = act.tss != null
+      ? Number(act.tss)
+      : estimateHrTss(Number(act.durationSec ?? 0), act.avgHr, maxHr);
     dailyTSS.set(dateStr, (dailyTSS.get(dateStr) ?? 0) + tss);
   }
 

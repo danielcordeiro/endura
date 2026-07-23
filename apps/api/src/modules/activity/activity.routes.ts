@@ -162,10 +162,43 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
             duration: formatDuration(raw.durationSec),
             distance: formatDistance(raw.distanceM),
             avgHeartRate: raw.avgHr ?? undefined,
+            maxHeartRate: raw.maxHr ?? undefined,
+            avgPowerW: raw.avgPowerW ?? undefined,
+            elevationM: raw.elevationM != null ? Number(raw.elevationM) : undefined,
+            calories: raw.calories ?? undefined,
+            tss: raw.tss != null ? Number(raw.tss) : undefined,
+            hasStreams: raw.hasStreams,
+            analysis: raw.analysis ?? undefined,
             nutrition,
             totals,
           },
         });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  // ── GET /api/activities/:id/streams ──────────────────────────
+  // Séries temporais (downsampled) pro gráfico Potência/FC/Cadência da
+  // aba "Mapa & Gráfico" + marcadores de início de cada lap.
+  app.get(
+    '/api/activities/:id/streams',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = activityParams.safeParse(request.params);
+        if (!parsed.success) {
+          const firstError = parsed.error.errors[0];
+          return reply.status(400).send({
+            code: 'ERR_VALIDATION',
+            message: firstError?.message ?? 'Parametro de ID invalido',
+            status: 400,
+          });
+        }
+
+        const data = await activityService.getActivityStreamsForChart(request.userId, parsed.data.id);
+        return reply.send({ data });
       } catch (err) {
         await handleError(err, request, reply);
       }

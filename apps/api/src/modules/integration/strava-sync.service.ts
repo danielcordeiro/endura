@@ -3,6 +3,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../../lib/db.js';
 import * as schema from '../../../drizzle/schema.js';
 import { encrypt, decrypt } from '../../lib/encryption.js';
+import { analyzeActivity, type StreamData, type LapInput, type Discipline } from '../activity/activity-analytics.js';
 
 // ── Constantes ──────────────────────────────────────────────────
 
@@ -106,6 +107,30 @@ interface StravaTokenResponse {
   expires_at: number;
 }
 
+interface StravaStreamSet {
+  time?: { data: number[] };
+  heartrate?: { data: number[] };
+  watts?: { data: number[] };
+  cadence?: { data: number[] };
+  distance?: { data: number[] };
+  altitude?: { data: number[] };
+  velocity_smooth?: { data: number[] };
+  grade_smooth?: { data: number[] };
+  moving?: { data: boolean[] };
+  temp?: { data: number[] };
+}
+
+interface StravaLapRaw {
+  lap_index?: number;
+  start_index?: number;
+  end_index?: number;
+  name?: string;
+}
+
+/** Disciplinas com análise avançada (streams + laps + NP/TSS/zonas). */
+const ANALYZABLE_DISCIPLINES = new Set(['bike', 'run']);
+const STREAM_KEYS = 'time,heartrate,watts,cadence,distance,altitude,velocity_smooth,grade_smooth,moving,temp';
+
 // ── Fetch com retry e backoff exponencial ──────────────────────
 
 async function fetchWithRetry(
@@ -201,7 +226,7 @@ export async function refreshStravaToken(
 
 // ── Obter access token valido ──────────────────────────────────
 
-async function getValidAccessToken(
+export async function getValidAccessToken(
   integration: typeof schema.integrations.$inferSelect,
 ): Promise<string> {
   const now = new Date();
@@ -215,6 +240,116 @@ async function getValidAccessToken(
   // Token expirado, faz refresh
   const refreshed = await refreshStravaToken(integration);
   return refreshed.accessToken;
+}
+
+// ── Ingestão de streams/laps + análise avançada (NP/TSS/zonas) ──
+// Chamado por atividade nova (ou sem streams ainda) de bike/run. Busca as
+// séries temporais e os laps do Strava, roda o motor de análise
+// (activity-analytics.ts) e persiste em activity_streams + activities
+// (analysis jsonb, tss denormalizado, hasStreams). Falha isolada (não
+// derruba o sync das outras atividades) — chamado dentro de try/catch.
+export async function ingestActivityAnalysis(
+  userId: string,
+  activityId: string,
+  discipline: string,
+  accessToken: string,
+  stravaActivityId: number,
+): Promise<void> {
+  if (!ANALYZABLE_DISCIPLINES.has(discipline)) return;
+
+  const streamsUrl = `${STRAVA_API_BASE}/activities/${stravaActivityId}/streams?keys=${STREAM_KEYS}&key_by_type=true`;
+  const streamsRes = await fetchWithRetry(streamsUrl, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!streamsRes.ok) {
+    if (streamsRes.status === 404) return; // atividade manual, sem streams
+    throw new Error(`Falha ao buscar streams: ${streamsRes.status}`);
+  }
+  const rawStreams = (await streamsRes.json()) as StravaStreamSet;
+  const timeSec = rawStreams.time?.data;
+  // Gate por DURAÇÃO (não por nº de amostras — "smart recording" pode ter
+  // poucos pontos numa atividade longa e estável, isso não é "dado insuficiente").
+  const elapsedSec = timeSec && timeSec.length > 0 ? timeSec[timeSec.length - 1]! : 0;
+  if (!timeSec || timeSec.length < 2 || elapsedSec < 60) return;
+
+  const lapsUrl = `${STRAVA_API_BASE}/activities/${stravaActivityId}/laps`;
+  const lapsRes = await fetchWithRetry(lapsUrl, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const rawLaps = lapsRes.ok ? ((await lapsRes.json()) as StravaLapRaw[]) : [];
+
+  const streamData: StreamData = {
+    timeSec,
+    watts: rawStreams.watts?.data ?? null,
+    heartRate: rawStreams.heartrate?.data ?? null,
+    cadence: rawStreams.cadence?.data ?? null,
+    distanceM: rawStreams.distance?.data ?? null,
+    altitudeM: rawStreams.altitude?.data ?? null,
+    velocityMs: rawStreams.velocity_smooth?.data ?? null,
+    gradePct: rawStreams.grade_smooth?.data ?? null,
+    moving: rawStreams.moving?.data ?? null,
+    tempC: rawStreams.temp?.data ?? null,
+  };
+
+  // Converte start_index/end_index (índice bruto na stream nativa do Strava)
+  // pra segundos decorridos AQUI — clamp simétrico nos dois lados porque o
+  // Strava pode mandar índices fora dos limites (laps editados/mesclados);
+  // sem o clamp no start, um índice inválido virava silenciosamente "começa
+  // do zero" (timeSec[idx] undefined).
+  const laps: LapInput[] = (Array.isArray(rawLaps) ? rawLaps : []).map((l, i) => {
+    const rawStart = Math.max(0, Math.min(l.start_index ?? 0, timeSec.length - 1));
+    const rawEnd = Math.max(0, Math.min(l.end_index ?? timeSec.length - 1, timeSec.length - 1));
+    return {
+      lapIndex: l.lap_index ?? i + 1,
+      startOffsetSec: Math.floor(timeSec[rawStart] ?? 0),
+      endOffsetSec: Math.floor(timeSec[rawEnd] ?? 0),
+      name: l.name ?? null,
+    };
+  });
+
+  const profile = await db.query.athleteProfiles.findFirst({
+    where: eq(schema.athleteProfiles.userId, userId),
+  });
+  const ctx = {
+    ftpWatts: profile?.ftpWatts ?? null,
+    maxHr: profile?.maxHr ?? null,
+    weightKg: profile?.weightKg ? Number(profile.weightKg) : null,
+  };
+
+  const result = analyzeActivity(streamData, laps, discipline as Discipline, ctx);
+
+  const streamRow = {
+    timeSec: streamData.timeSec,
+    watts: streamData.watts,
+    heartRate: streamData.heartRate,
+    cadence: streamData.cadence,
+    distanceM: streamData.distanceM,
+    altitudeM: streamData.altitudeM,
+    velocityMs: streamData.velocityMs,
+    gradePct: streamData.gradePct,
+    moving: streamData.moving,
+    tempC: streamData.tempC,
+    sampleCount: timeSec.length,
+    source: PROVIDER,
+    updatedAt: new Date(),
+  };
+
+  await db
+    .insert(schema.activityStreams)
+    .values({ activityId, ...streamRow })
+    .onConflictDoUpdate({ target: schema.activityStreams.activityId, set: streamRow });
+
+  await db
+    .update(schema.activities)
+    .set({
+      analysis: result as unknown as Record<string, unknown>,
+      tss: result.summary.tss != null ? String(result.summary.tss) : null,
+      hasStreams: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.activities.id, activityId));
 }
 
 // ── Sincronizar atividades de um usuario ───────────────────────
@@ -304,9 +439,12 @@ export async function syncUserActivities(userId: string): Promise<number> {
       const externalId = String(sa.id);
       const discipline = mapSportType(sa.sport_type);
 
-      // Verifica se já existe (deduplicacao por external_id + source)
+      // Verifica se já existe (deduplicacao por usuario + external_id + source —
+      // SEM o userId aqui, duas contas Endura ligadas ao mesmo atleta Strava
+      // reatribuiriam silenciosamente a atividade uma da outra a cada sync)
       const existing = await db.query.activities.findFirst({
         where: and(
+          eq(schema.activities.userId, userId),
           eq(schema.activities.externalId, externalId),
           eq(schema.activities.source, PROVIDER),
         ),
@@ -339,31 +477,44 @@ export async function syncUserActivities(userId: string): Promise<number> {
         title: sa.name,
         startedAt: new Date(sa.start_date),
         durationSec: sa.elapsed_time,
-        distanceM: sa.distance ? String(sa.distance) : null,
-        avgHr: sa.average_heartrate ? Math.round(sa.average_heartrate) : null,
-        maxHr: sa.max_heartrate ? Math.round(sa.max_heartrate) : null,
-        avgPowerW: sa.average_watts ? Math.round(sa.average_watts) : null,
-        elevationM: sa.total_elevation_gain ? String(sa.total_elevation_gain) : null,
+        distanceM: sa.distance != null ? String(sa.distance) : null,
+        avgHr: sa.average_heartrate != null ? Math.round(sa.average_heartrate) : null,
+        maxHr: sa.max_heartrate != null ? Math.round(sa.max_heartrate) : null,
+        avgPowerW: sa.average_watts != null ? Math.round(sa.average_watts) : null,
+        // total_elevation_gain e legitimamente 0 (indoor/pista/esteira) — checar
+        // truthy descartava esse valor real e gravava null ("sem dado").
+        elevationM: sa.total_elevation_gain != null ? String(sa.total_elevation_gain) : null,
         calories,
         latStart: sa.start_latlng?.[0] != null ? String(sa.start_latlng[0]) : null,
         lonStart: sa.start_latlng?.[1] != null ? String(sa.start_latlng[1]) : null,
-        perceivedEffort: sa.perceived_exertion ? Math.round(sa.perceived_exertion) : null,
+        perceivedEffort: sa.perceived_exertion != null ? Math.round(sa.perceived_exertion) : null,
         rawData: sa as unknown as Record<string, unknown>,
         updatedAt: new Date(),
       };
 
-      if (existing) {
-        // Atualiza atividade existente
-        await db
-          .update(schema.activities)
-          .set(activityData)
-          .where(eq(schema.activities.id, existing.id));
-      } else {
-        // Insere nova atividade
-        await db.insert(schema.activities).values({
-          ...activityData,
-          createdAt: new Date(),
-        });
+      // Upsert atômico (insert ... on conflict do update) sobre o índice único
+      // (user_id, external_id, source) — o antigo check-then-insert deixava uma
+      // janela de corrida entre o cron (a cada 2h) e um sync manual concorrente
+      // pro mesmo usuário criarem DUAS linhas pra mesma atividade real.
+      const [upserted] = await db
+        .insert(schema.activities)
+        .values({ ...activityData, createdAt: new Date() })
+        .onConflictDoUpdate({
+          target: [schema.activities.userId, schema.activities.externalId, schema.activities.source],
+          set: activityData,
+        })
+        .returning({ id: schema.activities.id });
+      const activityId = upserted!.id;
+
+      // Ingestão de streams/laps + análise avançada (NP/TSS/zonas): só na
+      // primeira vez que vemos a atividade com streams ainda não puxadas —
+      // evita rebuscar da API do Strava a cada sync (janela de 48h se repete).
+      if (!existing?.hasStreams) {
+        try {
+          await ingestActivityAnalysis(userId, activityId, discipline, accessToken, sa.id);
+        } catch (err) {
+          console.warn(`[strava-sync] Falha ao analisar atividade ${sa.id}:`, err);
+        }
       }
 
       syncedCount++;

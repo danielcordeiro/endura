@@ -64,6 +64,20 @@
       "when": 1782762350367,
       "tag": "0008_gorgeous_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784818276247,
+      "tag": "0009_normal_brood",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784822201776,
+      "tag": "0010_wild_lord_tyger",
+      "breakpoints": true
     }
   ]
 }

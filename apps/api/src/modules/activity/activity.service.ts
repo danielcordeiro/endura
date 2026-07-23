@@ -174,3 +174,68 @@ export async function getActivity(userId: string, activityId: string) {
 
   return activity;
 }
+
+// ── Streams pra gráfico (downsample + marcadores de lap) ─────────
+// A stream bruta pode ter milhares de pontos (1 por segundo numa atividade
+// de horas) — não faz sentido mandar isso pro celular pra desenhar um
+// gráfico de ~400px de largura. Faz average-pooling pra no máx `maxPoints`.
+
+const DEFAULT_CHART_MAX_POINTS = 400;
+
+function downsampleAvgPool(values: (number | null)[], bucketSize: number): (number | null)[] {
+  if (bucketSize <= 1) return values;
+  const out: (number | null)[] = [];
+  for (let i = 0; i < values.length; i += bucketSize) {
+    const bucket = values.slice(i, i + bucketSize).filter((v): v is number => v != null);
+    out.push(bucket.length > 0 ? Math.round((bucket.reduce((a, b) => a + b, 0) / bucket.length) * 10) / 10 : null);
+  }
+  return out;
+}
+
+export async function getActivityStreamsForChart(
+  userId: string,
+  activityId: string,
+  maxPoints: number = DEFAULT_CHART_MAX_POINTS,
+) {
+  const activity = await db.query.activities.findFirst({
+    where: and(eq(schema.activities.id, activityId), eq(schema.activities.userId, userId)),
+    columns: { id: true, hasStreams: true, analysis: true },
+  });
+
+  if (!activity) {
+    throw { code: 'ERR_ACTIVITY_NOT_FOUND', message: 'Atividade nao encontrada', status: 404 };
+  }
+  if (!activity.hasStreams) {
+    throw { code: 'ERR_NO_STREAMS', message: 'Atividade sem dados de série temporal', status: 404 };
+  }
+
+  const streamRow = await db.query.activityStreams.findFirst({
+    where: eq(schema.activityStreams.activityId, activityId),
+  });
+  if (!streamRow) {
+    throw { code: 'ERR_NO_STREAMS', message: 'Atividade sem dados de série temporal', status: 404 };
+  }
+
+  const timeSec = (streamRow.timeSec as number[]) ?? [];
+  const totalSamples = timeSec.length;
+  const bucketSize = Math.max(1, Math.ceil(totalSamples / maxPoints));
+
+  const pick = (arr: unknown): (number | null)[] => downsampleAvgPool((arr as (number | null)[] | null) ?? [], bucketSize);
+  const timeDownsampled = downsampleAvgPool(timeSec, bucketSize) as number[];
+
+  const laps = ((activity.analysis as { laps?: { lapIndex: number; startOffsetSec: number; name: string | null }[] } | null)?.laps ?? [])
+    .map((l) => ({ lapIndex: l.lapIndex, startOffsetSec: l.startOffsetSec, name: l.name }));
+
+  return {
+    sampleCount: timeDownsampled.length,
+    originalSampleCount: totalSamples,
+    timeSec: timeDownsampled,
+    watts: pick(streamRow.watts),
+    heartRate: pick(streamRow.heartRate),
+    cadence: pick(streamRow.cadence),
+    altitudeM: pick(streamRow.altitudeM),
+    velocityMs: pick(streamRow.velocityMs),
+    distanceM: pick(streamRow.distanceM),
+    laps,
+  };
+}

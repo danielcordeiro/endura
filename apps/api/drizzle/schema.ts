@@ -10,6 +10,7 @@ import {
   date,
   jsonb,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -223,11 +224,24 @@ export const activities = pgTable('activities', {
   perceivedEffort: integer('perceived_effort'),
   notes: text('notes'),
   rawData: jsonb('raw_data'),
+  // ── Análise avançada (NP/IF/TSS/VI/EF/decoupling/VAM/picos/zonas/laps) ──
+  // Calculada a partir de activity_streams quando disponível (bike/run com
+  // watts ou pace). tss fica denormalizado aqui pra PMC (CTL/ATL/TSB) somar
+  // direto sem parsear jsonb; analysis carrega o resto (ver activity-analytics.ts).
+  tss: numeric('tss', { precision: 6, scale: 2 }),
+  analysis: jsonb('analysis'),
+  hasStreams: boolean('has_streams').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('idx_activities_user_started').on(table.userId, table.startedAt),
   index('idx_activities_external_id').on(table.externalId, table.source),
+  // Upsert atômico no sync (strava-sync.service.ts) — sem isso, cron + sync
+  // manual concorrentes pra o mesmo usuário podiam inserir a MESMA atividade
+  // duas vezes (check-then-insert sem transação). NULLs em external_id (hoje
+  // nunca acontece — só sync automático grava activities) não conflitam
+  // entre si no Postgres, então não precisa de WHERE parcial.
+  uniqueIndex('idx_activities_user_external_source_unique').on(table.userId, table.externalId, table.source),
 ]);
 
 export const activitiesRelations = relations(activities, ({ one, many }) => ({
@@ -244,6 +258,10 @@ export const activitiesRelations = relations(activities, ({ one, many }) => ({
     references: [nutritionLogs.activityId],
   }),
   aiInsights: many(aiInsights),
+  streams: one(activityStreams, {
+    fields: [activities.id],
+    references: [activityStreams.activityId],
+  }),
 }));
 
 // ── NUTRIÇÃO PRESCRITA ────────────────────────────────────────
@@ -548,6 +566,35 @@ export const activityComments = pgTable('activity_comments', {
   text: text('text').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+// ── STREAMS (séries temporais) ────────────────────────────────
+// Uma linha por atividade. Arrays paralelos indexados por amostra (mesmo
+// tamanho de timeSec), na resolução nativa do provedor (Strava: amostragem
+// "smart recording" — irregular, valor mantido constante entre pontos).
+// Usado pelo motor de análise (activity-analytics.ts) e pelo gráfico da UI.
+
+export const activityStreams = pgTable('activity_streams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  activityId: uuid('activity_id').notNull().unique().references(() => activities.id, { onDelete: 'cascade' }),
+  timeSec: jsonb('time_sec').notNull(),     // number[] — segundos decorridos desde o início
+  watts: jsonb('watts'),                    // number[] | null
+  heartRate: jsonb('heart_rate'),
+  cadence: jsonb('cadence'),
+  distanceM: jsonb('distance_m'),           // number[] — cumulativo
+  altitudeM: jsonb('altitude_m'),
+  velocityMs: jsonb('velocity_ms'),
+  gradePct: jsonb('grade_pct'),
+  moving: jsonb('moving'),                  // boolean[]
+  tempC: jsonb('temp_c'),
+  sampleCount: integer('sample_count').notNull(),
+  source: varchar('source', { length: 20 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const activityStreamsRelations = relations(activityStreams, ({ one }) => ({
+  activity: one(activities, { fields: [activityStreams.activityId], references: [activities.id] }),
+}));
 
 // ── PLANOS NUTRICIONAIS RACE DAY ─────────────────────────────
 

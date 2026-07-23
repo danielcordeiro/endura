@@ -18,6 +18,8 @@ import { LogSupplementSheet } from '@/components/nutrition/log-supplement-sheet'
 import { ProtocolComparison } from '@/components/nutrition/protocol-comparison';
 import { QuickLogButtons } from '@/components/nutrition/quick-log-buttons';
 import { AiAnalysisCard } from '@/components/nutrition/ai-analysis-card';
+import { ActivityAnalysis } from '@/components/activity/activity-analysis';
+import type { AnalysisResult } from '@/components/activity/analysis-types';
 
 /* ---------- Types ---------- */
 
@@ -45,6 +47,9 @@ interface ActivityDetail {
     duration: string;
     distance?: string;
     avgHeartRate?: number;
+    tss?: number;
+    hasStreams?: boolean;
+    analysis?: AnalysisResult;
     nutrition: NutritionItem[];
     totals: {
       carbsG: number;
@@ -310,6 +315,11 @@ export default function ActivityDetailPage() {
             <span className="text-[11px] font-medium text-text-secondary">Mapa em breve</span>
           </div>
         </div>
+
+        {/* ── Análise avançada (NP/TSS/zonas/picos/laps) ── */}
+        {activity.hasStreams && activity.analysis && (
+          <ActivityAnalysis activityId={params.id} analysis={activity.analysis} />
+        )}
 
         {/* ── Nutrition section ── */}
         <div className="space-y-5">
