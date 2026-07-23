@@ -13,8 +13,10 @@ análise que o Endura já tem.
 
 - **Fase 1 (este doc):** CdA estimado *passivamente* em toda pedalada com potência.
   Regressão global com Crr fixo. Selo de confiança. Roda no ingest e no recompute.
-- **Fase 2 (futuro):** modo "Teste Aero" guiado (ida-e-volta / laps em trecho plano)
-  → Chung/virtual-elevation resolve CdA (e Crr) fechando os laps, compara posições.
+- **Fase 2 (IMPLEMENTADA, v1.7.0):** modo "Teste Aero" guiado (ida-e-volta / laps em trecho
+  plano) → Chung/virtual-elevation resolve CdA **e Crr** minimizando RMSE(elev. virtual,
+  altitude), compara posições (cada lap = posição, Δ watts a 40 km/h). Física em
+  `aero-test.ts`, tabela `aero_tests` (0014), UI `aero-test-section.tsx`.
 
 ## Decisões travadas (brainstorming 2026-07-23)
 

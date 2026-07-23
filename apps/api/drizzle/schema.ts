@@ -635,6 +635,25 @@ export const activityStreamsRelations = relations(activityStreams, ({ one }) => 
   activity: one(activities, { fields: [activityStreams.activityId], references: [activities.id] }),
 }));
 
+// ── TESTE AERO (Fase 2 — Chung/virtual elevation) ────────────────
+// Resultado do "Teste Aero" guiado de UMA atividade: CdA + Crr resolvidos por
+// virtual elevation, e CdA por lap (posição) com rótulos editáveis. Um teste
+// por atividade (re-rodar sobrescreve). `result` carrega o AeroTestResult.
+export const aeroTests = pgTable('aero_tests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  activityId: uuid('activity_id').notNull().unique().references(() => activities.id, { onDelete: 'cascade' }),
+  crr: numeric('crr', { precision: 5, scale: 4 }),
+  result: jsonb('result').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const aeroTestsRelations = relations(aeroTests, ({ one }) => ({
+  activity: one(activities, { fields: [aeroTests.activityId], references: [activities.id] }),
+  user: one(users, { fields: [aeroTests.userId], references: [users.id] }),
+}));
+
 // ── PLANOS NUTRICIONAIS RACE DAY ─────────────────────────────
 
 export const raceNutritionPlans = pgTable('race_nutrition_plans', {

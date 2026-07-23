@@ -1,7 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../auth/auth.middleware.js';
-import { activityListQuery, activityParams, setActivityBikeBody } from './activity.schemas.js';
+import { activityListQuery, activityParams, setActivityBikeBody, aeroTestLabelsBody } from './activity.schemas.js';
 import * as activityService from './activity.service.js';
+import * as aeroTestService from './aero-test.service.js';
 
 // ── Tratamento de erros padronizado ──────────────────────────────
 
@@ -231,6 +232,64 @@ export default async function activityRoutes(app: FastifyInstance): Promise<void
           parsedParams.data.id,
           parsedBody.data.bikeId,
         );
+        return reply.send({ data: result });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  // ── Teste Aero (Fase 2 — Chung/virtual elevation) ───────────
+  // POST roda o teste sobre as streams salvas; GET busca o salvo; PUT renomeia
+  // as posições (rótulos por lap).
+  app.post<{ Params: { id: string } }>(
+    '/api/activities/:id/aero-test',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = activityParams.safeParse(request.params);
+        if (!parsed.success) {
+          return reply.status(400).send({ code: 'ERR_VALIDATION', message: 'Parametro de ID invalido', status: 400 });
+        }
+        const result = await aeroTestService.runAeroTestForActivity(request.userId, parsed.data.id);
+        return reply.send({ data: result });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  app.get<{ Params: { id: string } }>(
+    '/api/activities/:id/aero-test',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsed = activityParams.safeParse(request.params);
+        if (!parsed.success) {
+          return reply.status(400).send({ code: 'ERR_VALIDATION', message: 'Parametro de ID invalido', status: 400 });
+        }
+        const result = await aeroTestService.getAeroTest(request.userId, parsed.data.id);
+        return reply.send({ data: result });
+      } catch (err) {
+        await handleError(err, request, reply);
+      }
+    },
+  );
+
+  app.put<{ Params: { id: string } }>(
+    '/api/activities/:id/aero-test/labels',
+    { onRequest: authenticate },
+    async (request, reply) => {
+      try {
+        const parsedParams = activityParams.safeParse(request.params);
+        if (!parsedParams.success) {
+          return reply.status(400).send({ code: 'ERR_VALIDATION', message: 'Parametro de ID invalido', status: 400 });
+        }
+        const parsedBody = aeroTestLabelsBody.safeParse(request.body);
+        if (!parsedBody.success) {
+          return reply.status(400).send({ code: 'ERR_VALIDATION', message: parsedBody.error.errors[0]?.message ?? 'Dados invalidos', status: 400 });
+        }
+        const result = await aeroTestService.updateAeroTestLabels(request.userId, parsedParams.data.id, parsedBody.data.labels);
         return reply.send({ data: result });
       } catch (err) {
         await handleError(err, request, reply);

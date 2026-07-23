@@ -31,3 +31,13 @@ export const setActivityBikeBody = z.object({
 });
 
 export type SetActivityBikeBody = z.infer<typeof setActivityBikeBody>;
+
+// ── Rótulos das posições de um Teste Aero (por lap) ────────────
+export const aeroTestLabelsBody = z.object({
+  labels: z.array(z.object({
+    lapIndex: z.number().int(),
+    label: z.string().max(60).nullable(),
+  })).max(50),
+});
+
+export type AeroTestLabelsBody = z.infer<typeof aeroTestLabelsBody>;

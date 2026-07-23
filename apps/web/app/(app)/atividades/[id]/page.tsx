@@ -19,6 +19,7 @@ import { ProtocolComparison } from '@/components/nutrition/protocol-comparison';
 import { QuickLogButtons } from '@/components/nutrition/quick-log-buttons';
 import { AiAnalysisCard } from '@/components/nutrition/ai-analysis-card';
 import { ActivityAnalysis } from '@/components/activity/activity-analysis';
+import { AeroTestSection } from '@/components/activity/aero-test-section';
 import type { AnalysisResult } from '@/components/activity/analysis-types';
 
 /* ---------- Types ---------- */
@@ -320,6 +321,11 @@ export default function ActivityDetailPage() {
         {/* ── Análise avançada (NP/TSS/zonas/picos/laps) ── */}
         {activity.hasStreams && activity.analysis && (
           <ActivityAnalysis activityId={params.id} analysis={activity.analysis} bikeId={activity.bikeId} />
+        )}
+
+        {/* ── Teste Aero (Fase 2 — só bike com streams) ── */}
+        {activity.hasStreams && activity.discipline === 'bike' && (
+          <AeroTestSection activityId={params.id} />
         )}
 
         {/* ── Nutrition section ── */}
