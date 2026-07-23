@@ -18,20 +18,49 @@ interface Bike {
   updatedAt: string;
 }
 
-// Presets de resistência de rolamento (Crr) por pneu/piso — mesma tabela do
-// motor aero. O primeiro é vazio (não informado → default no cálculo).
-const TIRE_PRESETS: { label: string; crr: string }[] = [
-  { label: 'Não informado', crr: '' },
-  { label: 'Estrada premium (GP5000/látex)', crr: '0.0033' },
-  { label: 'Estrada 25mm', crr: '0.0040' },
-  { label: 'Estrada treino/robusto', crr: '0.0050' },
-  { label: 'Gravel', crr: '0.0080' },
-  { label: 'MTB', crr: '0.0120' },
+// Crr por MODELO de pneu, AJUSTADO PRA ASFALTO. Os números do bicyclerolling-
+// resistance.com são de rolo (drum, ~28,8 km/h / 42,5 kg); no asfalto real o Crr
+// é ~1,5× maior — então guardo o valor road-adjusted, não o cru. Valores
+// deliberadamente distintos por modelo pra o rótulo reverter sem coluna extra.
+const TIRE_GROUPS: { group: string; options: { label: string; crr: string }[] }[] = [
+  { group: 'Estrada — corrida (tubeless/látex)', options: [
+    { label: 'Vittoria Corsa Pro Speed (TT)', crr: '0.0043' },
+    { label: 'Veloflex Record (TT)', crr: '0.0044' },
+    { label: 'Vittoria Corsa Pro', crr: '0.0046' },
+    { label: 'Continental GP5000 S TR', crr: '0.0050' },
+    { label: 'Specialized S-Works Turbo', crr: '0.0052' },
+    { label: 'Michelin Power Cup', crr: '0.0053' },
+    { label: 'Continental GP5000 (clincher)', crr: '0.0055' },
+    { label: 'Pirelli P Zero Race', crr: '0.0057' },
+  ] },
+  { group: 'Estrada — treino/durável', options: [
+    { label: 'Michelin Power Endurance', crr: '0.0068' },
+    { label: 'Continental GP 4-Season', crr: '0.0074' },
+    { label: 'Continental Gatorskin', crr: '0.0090' },
+  ] },
+  { group: 'Gravel', options: [
+    { label: 'Continental Terra Speed', crr: '0.0076' },
+    { label: 'Panaracer GravelKing (slick)', crr: '0.0085' },
+    { label: 'Gravel cravado (genérico)', crr: '0.0110' },
+  ] },
+  { group: 'MTB', options: [
+    { label: 'XC semi-slick', crr: '0.0120' },
+    { label: 'Trail cravado', crr: '0.0150' },
+  ] },
+  { group: 'Genérico (não sei o modelo)', options: [
+    { label: 'Estrada — premium', crr: '0.0045' },
+    { label: 'Estrada — padrão 25/28mm', crr: '0.0048' },
+    { label: 'Estrada — treino', crr: '0.0062' },
+    { label: 'Gravel — genérico', crr: '0.0088' },
+    { label: 'MTB — genérico', crr: '0.0130' },
+  ] },
 ];
+
+const ALL_TIRES = TIRE_GROUPS.flatMap((g) => g.options);
 
 function tireLabel(crr: string | null): string {
   if (!crr) return '—';
-  const match = TIRE_PRESETS.find((t) => t.crr !== '' && Math.abs(Number(t.crr) - Number(crr)) < 1e-6);
+  const match = ALL_TIRES.find((t) => Math.abs(Number(t.crr) - Number(crr)) < 1e-6);
   return match ? match.label : `Crr ${Number(crr).toFixed(4)}`;
 }
 
@@ -211,18 +240,27 @@ export function BikesSection({ token }: { token: string | null | undefined }) {
                     placeholder="8.0"
                   />
                 </Field>
-                <Field label="Pneu / piso">
+                <Field label="Pneu (modelo)">
                   <select
                     value={form.crr}
                     onChange={(e) => setForm({ ...form, crr: e.target.value })}
                     className="w-full h-12 rounded-xl border border-border bg-bg-input px-3 text-text-primary text-base outline-none focus:border-border-focus"
                   >
-                    {TIRE_PRESETS.map((t) => (
-                      <option key={t.label} value={t.crr}>{t.label}</option>
+                    <option value="">Não informado</option>
+                    {TIRE_GROUPS.map((g) => (
+                      <optgroup key={g.group} label={g.group}>
+                        {g.options.map((t) => (
+                          <option key={t.label} value={t.crr}>{t.label}</option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </Field>
               </div>
+              <p className="-mt-2 text-[11px] text-text-faint">
+                Crr por modelo, ajustado pra asfalto (base bicyclerollingresistance.com).
+                Afeta o valor absoluto do CdA, não a tendência.
+              </p>
 
               <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-border bg-bg-input cursor-pointer">
                 <input
