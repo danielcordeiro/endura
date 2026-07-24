@@ -65,6 +65,7 @@ export interface AeroTestLapResult {
   label: string | null;
   cdaM2: number;
   wattsAt40kmh: number;
+  avgPowerW: number | null;      // potência média real da volta (null sem medidor)
   fitRmseM: number;
   sampleSecs: number;
   speed: { minMs: number; maxMs: number; avgMs: number };
@@ -168,6 +169,15 @@ function fitCdaGivenCrr(s: AeroStreams, start: number, end: number, mass: number
   return best;
 }
 
+function avgPower(s: AeroStreams, start: number, end: number): number | null {
+  let sum = 0, n = 0;
+  for (let i = start; i <= end; i++) {
+    const p = s.power[i];
+    if (isNum(p)) { sum += p; n++; }
+  }
+  return n > 0 ? sum / n : null;
+}
+
 function speedStats(s: AeroStreams, start: number, end: number) {
   let min = Infinity, max = -Infinity, sum = 0, n = 0;
   for (let i = start; i <= end; i++) {
@@ -226,11 +236,13 @@ export function runAeroTest(
   const lapResults: AeroTestLapResult[] = segments.map((seg) => {
     const fit = fitCdaGivenCrr(streams, seg.startSec, seg.endSec, mass, eff, overall.crr);
     const cda = round(fit.cda, 3);
+    const ap = avgPower(streams, seg.startSec, seg.endSec);
     return {
       lapIndex: seg.lapIndex,
       label: seg.label,
       cdaM2: cda,
       wattsAt40kmh: round(wattsAt40(cda), 0),
+      avgPowerW: ap != null ? round(ap, 0) : null,
       fitRmseM: round(fit.rmse, 2),
       sampleSecs: seg.endSec - seg.startSec + 1,
       speed: speedStats(streams, seg.startSec, seg.endSec),

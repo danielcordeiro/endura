@@ -13,6 +13,7 @@ interface AeroTestLap {
   label: string | null;
   cdaM2: number;
   wattsAt40kmh: number;
+  avgPowerW: number | null;
   fitRmseM: number;
   sampleSecs: number;
   speed: { minMs: number; maxMs: number; avgMs: number };
@@ -182,18 +183,24 @@ export function AeroTestSection({ activityId }: { activityId: string }) {
                 {test.laps.map((l) => {
                   const isBest = l.lapIndex === test.bestLapIndex;
                   return (
-                    <div key={l.lapIndex} className={cn('flex items-center gap-3 rounded-xl border p-2.5', isBest ? 'border-success/40 bg-success-dim' : 'border-border bg-bg-input/40')}>
-                      <input
-                        value={labels[l.lapIndex] ?? ''}
-                        onChange={(e) => setLabels((s) => ({ ...s, [l.lapIndex]: e.target.value }))}
-                        placeholder={`Posição ${l.lapIndex}`}
-                        className="flex-1 min-w-0 bg-transparent text-[14px] text-text-primary outline-none placeholder:text-text-faint"
-                      />
-                      {isBest && <span className="material-symbols-outlined text-[16px] text-success shrink-0">emoji_events</span>}
-                      <span className="font-[var(--font-mono)] text-[13px] text-text-secondary shrink-0 w-16 text-right">{l.cdaM2.toFixed(3)} m²</span>
-                      <span className={cn('font-[var(--font-mono)] text-[13px] font-bold shrink-0 w-14 text-right', l.deltaWattsVsBest === 0 ? 'text-success' : 'text-text-primary')}>
-                        {l.deltaWattsVsBest === 0 ? 'melhor' : `+${l.deltaWattsVsBest}W`}
-                      </span>
+                    <div key={l.lapIndex} className={cn('rounded-xl border p-2.5 space-y-1.5', isBest ? 'border-success/40 bg-success-dim' : 'border-border bg-bg-input/40')}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          value={labels[l.lapIndex] ?? ''}
+                          onChange={(e) => setLabels((s) => ({ ...s, [l.lapIndex]: e.target.value }))}
+                          placeholder={`Posição ${l.lapIndex}`}
+                          className="flex-1 min-w-0 bg-transparent text-[14px] text-text-primary outline-none placeholder:text-text-faint"
+                        />
+                        {isBest && <span className="material-symbols-outlined text-[16px] text-success shrink-0">emoji_events</span>}
+                        <span className={cn('font-[var(--font-mono)] text-[13px] font-bold shrink-0', l.deltaWattsVsBest === 0 ? 'text-success' : 'text-text-primary')}>
+                          {l.deltaWattsVsBest === 0 ? 'melhor' : `+${l.deltaWattsVsBest}W`}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 font-[var(--font-mono)] text-[11px] text-text-muted pl-0.5">
+                        <span className="text-text-secondary">CdA {l.cdaM2.toFixed(3)} m²</span>
+                        {l.avgPowerW != null && <span>{l.avgPowerW} W méd</span>}
+                        <span>{(l.speed.avgMs * 3.6).toFixed(1)} km/h méd</span>
+                      </div>
                     </div>
                   );
                 })}
